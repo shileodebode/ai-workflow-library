@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Marketing — Event & Webinar Registration Automation</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,600&family=Barlow:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300&family=Barlow+Condensed:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#faf8f2;--surface:#ffffff;--surface2:#f5f0e8;--border:#e8e0d0;
+  --ink:#181008;--gold:#b88c2a;--gold2:#9a7020;--warm:#e8b840;
+  --deep:#2a1850;--violet:#4a2880;--plum:#7a3898;--cream:#fef9ec;
+  --green:#1a7a42;--red:#c82828;--text:#281808;--muted:#8a7860;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;overflow-x:hidden;}
+.top-ornament{position:fixed;top:0;left:0;right:0;height:5px;z-index:200;background:linear-gradient(90deg,var(--deep),var(--gold),var(--warm),var(--gold),var(--deep));}
+nav{position:fixed;top:5px;left:0;right:0;z-index:100;background:rgba(250,248,242,0.98);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 2.5rem;height:54px;}
+.nav-brand{font-family:'Barlow Condensed',sans-serif;font-size:0.82rem;color:var(--deep);letter-spacing:0.12em;text-transform:uppercase;font-weight:600;}
+.nav-dots{display:flex;gap:0.3rem;}
+.nav-dot{width:7px;height:7px;border-radius:50%;background:var(--border);cursor:pointer;transition:all 0.2s;}
+.nav-dot.active{background:var(--gold);transform:scale(1.5);}
+.nav-dot.done{background:var(--green);}
+.timer{font-size:0.67rem;color:var(--gold2);background:rgba(184,140,42,0.08);border:1px solid rgba(184,140,42,0.2);padding:0.2rem 0.75rem;border-radius:4px;font-family:'Barlow Condensed',sans-serif;letter-spacing:0.08em;}
+.slide{min-height:100vh;padding:80px 0 50px;display:none;flex-direction:column;align-items:center;justify-content:center;position:relative;overflow:hidden;}
+.slide.active{display:flex;}
+.slide-inner{width:100%;max-width:1140px;padding:0 2.5rem;position:relative;z-index:2;}
+/* Hero */
+.hero-pattern{position:absolute;inset:0;background-image:radial-gradient(circle,rgba(184,140,42,0.06) 1.5px,transparent 1.5px);background-size:36px 36px;pointer-events:none;}
+.hero-glow{position:absolute;top:-60px;right:-60px;width:600px;height:600px;border-radius:50%;background:radial-gradient(circle,rgba(74,40,128,0.05) 0%,transparent 65%);pointer-events:none;}
+.hero-tag{display:inline-flex;align-items:center;gap:0.5rem;background:var(--cream);border:1px solid rgba(184,140,42,0.25);color:var(--gold2);font-size:0.67rem;font-weight:600;letter-spacing:0.14em;text-transform:uppercase;padding:0.28rem 0.9rem;border-radius:4px;margin-bottom:1.5rem;font-family:'Barlow Condensed',sans-serif;}
+.hero-tag::before{content:'✦';}
+h1.hero-title{font-family:'Cormorant Garamond',serif;font-size:clamp(3rem,6vw,5.2rem);font-weight:600;line-height:1.0;letter-spacing:-0.01em;color:var(--ink);margin-bottom:1.5rem;}
+h1.hero-title em{font-style:italic;color:var(--deep);}
+h1.hero-title span{color:var(--gold);}
+.hero-desc{font-size:0.97rem;color:var(--muted);max-width:510px;line-height:1.78;margin-bottom:2.5rem;font-weight:300;}
+.kpi-strip{display:flex;gap:1px;background:var(--border);border:1px solid var(--border);border-radius:6px;overflow:hidden;max-width:620px;box-shadow:0 2px 12px rgba(184,140,42,0.08);}
+.kpi{background:white;padding:1.1rem 1.4rem;flex:1;}
+.kpi-val{font-family:'Cormorant Garamond',serif;font-size:2.1rem;font-weight:600;color:var(--gold);line-height:1;}
+.kpi-lbl{font-size:0.59rem;letter-spacing:0.14em;text-transform:uppercase;color:var(--muted);margin-top:0.2rem;font-family:'Barlow Condensed',sans-serif;}
+.sec-tag{font-size:0.61rem;letter-spacing:0.24em;text-transform:uppercase;color:var(--gold2);margin-bottom:0.4rem;font-weight:600;font-family:'Barlow Condensed',sans-serif;display:flex;align-items:center;gap:0.5rem;}
+.sec-tag::before{content:'✦';font-size:0.55rem;}
+.sec-title{font-family:'Cormorant Garamond',serif;font-size:clamp(2rem,3.8vw,3.2rem);font-weight:600;line-height:1.06;margin-bottom:0.5rem;color:var(--ink);}
+.sec-title em{font-style:italic;color:var(--deep);}
+.sec-title span{color:var(--gold);}
+.sec-desc{font-size:0.87rem;color:var(--muted);margin-bottom:1.85rem;max-width:540px;line-height:1.78;font-weight:300;}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;}
+.three-col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;}
+.lr{display:grid;grid-template-columns:1.1fr 1fr;gap:2rem;align-items:start;}
+.lr-rev{display:grid;grid-template-columns:1fr 1.15fr;gap:2rem;align-items:start;}
+.card{background:white;border:1px solid var(--border);border-radius:8px;padding:1.25rem;transition:all 0.2s;box-shadow:0 1px 6px rgba(184,140,42,0.05);}
+.card:hover{border-color:var(--gold);transform:translateY(-2px);box-shadow:0 6px 20px rgba(184,140,42,0.1);}
+.card-icon{font-size:1.4rem;margin-bottom:0.5rem;}
+.card-title{font-family:'Cormorant Garamond',serif;font-size:1.1rem;font-weight:600;margin-bottom:0.3rem;color:var(--ink);}
+.card-desc{font-size:0.72rem;color:var(--muted);line-height:1.65;}
+.panel{background:white;border:1px solid var(--border);border-radius:8px;padding:1.4rem;}
+.panel h3{font-family:'Cormorant Garamond',serif;font-size:1.05rem;font-weight:600;color:var(--deep);margin-bottom:0.9rem;display:flex;align-items:center;gap:0.5rem;}
+.panel h3::before{content:'✦';color:var(--gold);font-size:0.75rem;}
+.steps{list-style:none;}
+.steps li{display:flex;gap:0.75rem;padding:0.45rem 0;border-bottom:1px solid var(--border);font-size:0.76rem;line-height:1.6;}
+.steps li:last-child{border-bottom:none;}
+.step-n{width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,var(--deep),var(--violet));color:white;font-size:0.62rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+/* Workflow */
+.wf-canvas{background:var(--ink);border-radius:12px;padding:2rem;position:relative;overflow:hidden;}
+.wf-pattern{position:absolute;inset:0;background-image:radial-gradient(circle,rgba(184,140,42,0.15) 1px,transparent 1px);background-size:28px 28px;opacity:0.5;}
+.wf-glow2{position:absolute;top:-40px;right:-40px;width:350px;height:350px;background:radial-gradient(circle,rgba(74,40,128,0.12) 0%,transparent 65%);}
+.wf-label{position:absolute;top:0.75rem;left:1rem;font-size:0.57rem;letter-spacing:0.18em;text-transform:uppercase;color:rgba(255,255,255,0.3);display:flex;align-items:center;gap:0.4rem;z-index:3;font-family:'Barlow Condensed',sans-serif;}
+.wf-label::before{content:'';width:7px;height:7px;border-radius:50%;background:var(--warm);box-shadow:0 0 8px var(--warm);animation:wpulse 2s infinite;}
+@keyframes wpulse{0%,100%{opacity:1}50%{opacity:0.2}}
+.wf-nodes{display:flex;align-items:flex-start;gap:0;padding-top:1.5rem;position:relative;z-index:2;flex-wrap:wrap;}
+.wf-stage{display:flex;flex-direction:column;align-items:center;}
+.wf-slbl{font-size:0.51rem;letter-spacing:0.14em;text-transform:uppercase;color:rgba(255,255,255,0.28);margin-bottom:0.3rem;font-family:'Barlow Condensed',sans-serif;}
+.wf-node{display:flex;flex-direction:column;align-items:center;gap:0.3rem;cursor:pointer;position:relative;}
+.wf-box{width:58px;height:58px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.25rem;border:2px solid transparent;transition:all 0.3s;}
+.wf-node:hover .wf-box{transform:scale(1.1);box-shadow:0 0 20px rgba(184,140,42,0.4);}
+.wf-nlbl{font-size:0.52rem;text-align:center;color:rgba(255,255,255,0.42);max-width:66px;line-height:1.3;font-family:'Barlow Condensed',sans-serif;}
+.wf-arr{color:rgba(255,255,255,0.18);padding:0 0.2rem;font-size:0.85rem;align-self:flex-start;margin-top:19px;flex-shrink:0;}
+.ttw{position:relative;}
+.tti{position:absolute;bottom:calc(100%+8px);left:50%;transform:translateX(-50%);background:white;border:1px solid var(--border);border-radius:6px;padding:0.6rem 0.9rem;font-size:0.67rem;opacity:0;pointer-events:none;transition:opacity 0.2s;z-index:50;color:var(--ink);line-height:1.5;max-width:200px;white-space:normal;text-align:left;box-shadow:0 4px 12px rgba(0,0,0,0.1);}
+.ttw:hover .tti{opacity:1;}
+/* Reg card */
+.reg-card{background:white;border:1px solid var(--border);border-radius:8px;padding:0.75rem 1rem;margin-bottom:0.5rem;display:flex;align-items:flex-start;gap:0.85rem;transition:all 0.3s;}
+.reg-card.confirmed{border-color:var(--gold);background:rgba(184,140,42,0.03);}
+.reg-card.attended{border-color:var(--green);background:rgba(26,122,66,0.04);}
+.reg-card.no-show{border-color:var(--muted);opacity:0.7;}
+.rc-num{font-family:'Barlow Condensed',sans-serif;font-size:0.65rem;color:var(--muted);margin-bottom:0.1rem;letter-spacing:0.06em;}
+.rc-name{font-weight:600;font-size:0.78rem;color:var(--ink);}
+.rc-company{font-size:0.64rem;color:var(--muted);}
+.rc-badge{margin-left:auto;font-size:0.59rem;padding:0.1rem 0.45rem;border-radius:4px;font-weight:600;font-family:'Barlow Condensed',sans-serif;white-space:nowrap;letter-spacing:0.05em;}
+.rb-conf{background:rgba(184,140,42,0.1);color:var(--gold2);border:1px solid rgba(184,140,42,0.25);}
+.rb-att{background:rgba(26,122,66,0.1);color:var(--green);border:1px solid rgba(26,122,66,0.2);}
+.rb-ns{background:rgba(138,120,96,0.1);color:var(--muted);border:1px solid rgba(138,120,96,0.2);}
+.rb-new{background:rgba(42,24,80,0.1);color:var(--deep);border:1px solid rgba(42,24,80,0.2);}
+/* Email preview */
+.email-preview{background:white;border:1px solid var(--border);border-radius:8px;overflow:hidden;}
+.ep-header{background:linear-gradient(135deg,var(--deep),var(--violet));color:white;padding:1rem 1.25rem;}
+.ep-pre{font-size:0.6rem;opacity:0.7;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:0.3rem;font-family:'Barlow Condensed',sans-serif;}
+.ep-subject{font-family:'Cormorant Garamond',serif;font-size:1.05rem;font-weight:600;}
+.ep-body{padding:1rem 1.25rem;font-size:0.73rem;line-height:1.75;color:var(--text);}
+.ep-gold{color:var(--gold2);font-weight:600;}
+/* PS list */
+.ps-list{list-style:none;}
+.ps-list li{display:flex;gap:0.75rem;padding:0.45rem 0;border-bottom:1px solid var(--border);font-size:0.74rem;line-height:1.5;transition:all 0.3s;}
+.ps-list li:last-child{border-bottom:none;}
+.ps-num{width:20px;height:20px;border-radius:50%;background:var(--border);color:white;font-size:0.6rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;transition:background 0.3s;}
+/* Info */
+.info-gold{padding:0.75rem 1rem;border-radius:6px;font-size:0.77rem;line-height:1.6;background:rgba(184,140,42,0.06);border:1px solid rgba(184,140,42,0.18);color:var(--gold2);}
+.info-green{padding:0.75rem 1rem;border-radius:6px;font-size:0.77rem;line-height:1.6;background:rgba(26,122,66,0.06);border:1px solid rgba(26,122,66,0.15);color:var(--green);}
+.ba-bad{padding:0.6rem 0.9rem;border-radius:6px;font-size:0.76rem;line-height:1.5;background:rgba(200,40,40,0.04);border:1px solid rgba(200,40,40,0.12);}
+.ba-good{padding:0.6rem 0.9rem;border-radius:6px;font-size:0.76rem;line-height:1.5;background:rgba(26,122,66,0.05);border:1px solid rgba(26,122,66,0.14);}
+.quote-block{background:var(--ink);border-radius:12px;padding:1.75rem 2rem;color:white;border-top:3px solid var(--gold);}
+.quote-text{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:1.2rem;line-height:1.75;margin-bottom:0.75rem;font-weight:400;}
+.quote-text strong{color:var(--warm);font-style:normal;}
+.slide-counter{position:fixed;bottom:1.5rem;left:2rem;font-size:0.62rem;color:var(--muted);z-index:100;font-family:'Barlow Condensed',sans-serif;letter-spacing:0.08em;}
+.slide-nav{position:fixed;bottom:1.5rem;right:2rem;display:flex;gap:0.5rem;z-index:100;}
+.nav-btn{background:white;border:1px solid var(--border);color:var(--text);padding:0.55rem 1.2rem;border-radius:4px;font-family:'Barlow Condensed',sans-serif;font-size:0.72rem;letter-spacing:0.06em;cursor:pointer;transition:all 0.2s;}
+.nav-btn:hover{border-color:var(--gold);color:var(--gold2);}
+.nav-btn.primary{background:var(--deep);border-color:var(--deep);color:white;}
+.nav-btn.primary:hover{background:var(--violet);}
+.run-btn{background:linear-gradient(135deg,var(--deep),var(--violet));color:white;border:none;border-radius:4px;padding:0.7rem 1.5rem;font-family:'Barlow Condensed',sans-serif;font-size:0.78rem;font-weight:600;letter-spacing:0.08em;cursor:pointer;transition:all 0.2s;width:100%;text-align:center;text-transform:uppercase;}
+.run-btn:hover{opacity:0.9;}
+.animate-in{opacity:0;animation:fadeUp 0.5s ease-out forwards;}
+.slide.active .animate-in:nth-child(1){animation-delay:0.05s;}
+.slide.active .animate-in:nth-child(2){animation-delay:0.15s;}
+.slide.active .animate-in:nth-child(3){animation-delay:0.25s;}
+.slide.active .animate-in:nth-child(4){animation-delay:0.35s;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+</style>
+</head>
+<body>
+<div class="top-ornament"></div>
+<nav>
+  <div class="nav-brand">Marketing · Event & Webinar Registration</div>
+  <div class="nav-dots" id="navDots"></div>
+  <div class="timer" id="timerBadge">⏱ 00:00</div>
+</nav>
+
+<!-- SLIDE 1: HERO -->
+<section class="slide active" id="slide-0">
+  <div class="hero-pattern"></div><div class="hero-glow"></div>
+  <div class="slide-inner">
+    <div class="animate-in"><div class="hero-tag">n8n AI Automation · Marketing</div></div>
+    <div class="animate-in"><h1 class="hero-title">Every Registrant<br>Confirmed. <em>Every</em><br><span>Seat Filled.</span></h1></div>
+    <div class="animate-in"><p class="hero-desc">From registration to attendance to post-event follow-up — fully automated. Personalised reminders, intelligent no-show recovery, and event analytics that convert attendees into customers.</p></div>
+    <div class="animate-in">
+      <div class="kpi-strip">
+        <div class="kpi"><div class="kpi-val">+35%</div><div class="kpi-lbl">Attendance Rate</div></div>
+        <div class="kpi"><div class="kpi-val">100%</div><div class="kpi-lbl">Registrants Followed Up</div></div>
+        <div class="kpi"><div class="kpi-val">AI</div><div class="kpi-lbl">Personalised Reminders</div></div>
+        <div class="kpi"><div class="kpi-val">0</div><div class="kpi-lbl">Manual Admin</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 2: PROBLEM -->
+<section class="slide" id="slide-1">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">01 — The Problem</div><div class="sec-title">You Fill the Room.<br><em>Then Lose the Lead.</em></div><p class="sec-desc">Events and webinars are among the highest-intent marketing touchpoints available. Yet most companies handle registration manually and lose 40–60% of attendees to no-shows — then fail to follow up the rest.</p></div>
+    <div class="animate-in two-col" style="margin-bottom:1.5rem">
+      <div class="card"><div class="card-icon">📧</div><div class="card-title">Confirmation Chaos</div><div class="card-desc">Manual confirmation emails, calendar invites sent one by one, Zoom links copy-pasted into individual replies. Intern spends 3 hours confirming 80 registrants. Error-prone and unscalable.</div></div>
+      <div class="card"><div class="card-icon">👻</div><div class="card-title">No-Show Rate</div><div class="card-desc">Average webinar no-show rate: 40–60%. The biggest driver is forgetting. A single well-timed personalised reminder can increase attendance by 35%. Most companies send zero or one generic reminder.</div></div>
+      <div class="card"><div class="card-icon">🏃</div><div class="card-title">Post-Event Ghost</div><div class="card-desc">Webinar ends. Recording sent 3 days later. No personalised follow-up, no segmentation between attendees and no-shows, no conversion sequence. The highest-intent moment in your funnel left completely cold.</div></div>
+      <div class="card"><div class="card-icon">📊</div><div class="card-title">No Attendance Data</div><div class="card-desc">Who attended? For how long? Which questions did they ask? Without this data, you can't prioritise follow-up, personalise outreach, or demonstrate event ROI to leadership.</div></div>
+    </div>
+    <div class="animate-in"><div class="info-gold">✅ n8n automates every stage: instant confirmation, personalised reminders, live attendance tracking, and targeted post-event sequences — split by attendee vs no-show.</div></div>
+  </div>
+</section>
+
+<!-- SLIDE 3: WORKFLOW -->
+<section class="slide" id="slide-2">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">02 — The Blueprint</div><div class="sec-title">n8n Event Registration<br><span>Automation</span></div><p class="sec-desc">From first click to closed deal — every step of the event journey automated, personalised, and tracked.</p></div>
+    <div class="animate-in wf-canvas">
+      <div class="wf-pattern"></div><div class="wf-glow2"></div>
+      <div class="wf-label">n8n canvas — event registration pipeline</div>
+      <div class="wf-nodes">
+        <div class="wf-stage"><div class="wf-slbl">Register</div>
+          <div style="display:flex;flex-direction:column;gap:0.35rem">
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a1a0a,#78350f);color:#fde68a;border-color:#78350f;">📋</div><div class="wf-nlbl">Form<br>Submit</div><div class="tti">Registration form (Typeform, HubSpot, Eventbrite) submission triggers n8n webhook. All attendee data captured including source and UTM parameters.</div></div>
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#0a1a2a,#1d4ed8);color:#93c5fd;border-color:#1d4ed8;">🔍</div><div class="wf-nlbl">Enrich<br>Profile</div><div class="tti">Clearbit enriches registration email with job title, company, LinkedIn URL. Identifies if registrant is a known lead, customer, or new prospect.</div></div>
+          </div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-stage"><div class="wf-slbl">Confirm</div>
+          <div style="display:flex;flex-direction:column;gap:0.35rem">
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a3a1a,#166534);color:#4ade80;border-color:#166534;">📧</div><div class="wf-nlbl">Confirm<br>Email</div><div class="tti">Personalised confirmation email sent within 60 seconds: attendee name, event details, personalised prep suggestions based on their industry/role.</div></div>
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#0a1a1a,#065f46);color:#6ee7b7;border-color:#065f46;">📅</div><div class="wf-nlbl">Calendar<br>Invite</div><div class="tti">Google Calendar / Outlook invite auto-sent with Zoom/Teams link, agenda, and prep materials. Registered in one click — no manual link sharing.</div></div>
+          </div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-stage"><div class="wf-slbl">Remind</div>
+          <div style="display:flex;flex-direction:column;gap:0.35rem">
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a0a0a,#991b1b);color:#fca5a5;border-color:#991b1b;">🧠</div><div class="wf-nlbl">GPT-4o<br>Remind</div><div class="tti">GPT-4o writes personalised reminders: 3 days before (value teaser), 1 day before (preview what they'll learn), 1 hour before (link + excitement). Each one tailored to their industry.</div></div>
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a0a1a,#7c3aed);color:#d8b4fe;border-color:#7c3aed;">📱</div><div class="wf-nlbl">SMS<br>Reminder</div><div class="tti">30-minute reminder sent via SMS to registrants who opted in. "Your webinar starts in 30 mins — join link: [link]". SMS attendance lift: +18%.</div></div>
+          </div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-stage"><div class="wf-slbl">Track</div>
+          <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a1a0a,#3d3200);color:#fbbf24;border-color:#78350f;">📊</div><div class="wf-nlbl">Live<br>Attendance</div><div class="tti">Zoom/Teams webhook tracks who joins, how long they stay, which polls they answer, which questions they submit. All feeds into post-event segmentation.</div></div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-stage"><div class="wf-slbl">Follow-up</div>
+          <div style="display:flex;flex-direction:column;gap:0.35rem">
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#0a1a1a,#065f46);color:#6ee7b7;border-color:#065f46;">✅</div><div class="wf-nlbl">Attendee<br>Sequence</div><div class="tti">Attendees: recording + summary + personalised resource list + soft CTA. Engagement-scored. High engagers → sales alert within 24 hours.</div></div>
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a0a2e,#6d28d9);color:#c4b5fd;border-color:#6d28d9;">🔄</div><div class="wf-nlbl">No-Show<br>Recovery</div><div class="tti">No-shows: personalised "sorry we missed you" + recording + different CTA angle. Recovers ~20% of no-shows into engaged leads within 48 hours.</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 4: SIM 1 — REGISTRATION -->
+<section class="slide" id="slide-3">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">03 — Simulation 1</div><div class="sec-title">Live: 5 Registrants<br><em>Confirmed Instantly</em></div><p class="sec-desc">Five people just registered for "The Marketing Automation Masterclass." Watch n8n enrich, confirm, calendar-invite, and schedule reminders for all five — in under 90 seconds.</p></div>
+    <div class="animate-in lr">
+      <div style="display:flex;flex-direction:column;gap:1rem">
+        <div class="panel">
+          <h3>Registration Pipeline</h3>
+          <ul class="ps-list" id="evtSteps">
+            <li id="ev1" style="opacity:0.3"><div class="ps-num">1</div><div>5 registrations received — webhooks fire</div></li>
+            <li id="ev2" style="opacity:0.3"><div class="ps-num">2</div><div>Clearbit enriches all 5 profiles simultaneously</div></li>
+            <li id="ev3" style="opacity:0.3"><div class="ps-num">3</div><div>GPT-4o personalises confirmation emails per role</div></li>
+            <li id="ev4" style="opacity:0.3"><div class="ps-num">4</div><div>Calendar invites + Zoom links sent to all 5</div></li>
+            <li id="ev5" style="opacity:0.3"><div class="ps-num">5</div><div>3-day, 1-day & 1-hour reminders scheduled</div></li>
+            <li id="ev6" style="opacity:0.3"><div class="ps-num">6</div><div>Attendee CRM records updated + HubSpot deal linked ✅</div></li>
+          </ul>
+        </div>
+        <button class="run-btn" id="evtBtn" onclick="runEvtSim()">▶ PROCESS 5 REGISTRATIONS</button>
+      </div>
+      <div id="regBoard" style="display:flex;flex-direction:column;gap:0">
+        <div class="reg-card" id="rg1"><div><div class="rc-num">#REG-001</div><div class="rc-name">Fatima Ibrahim</div><div class="rc-company">CMO · GrowthPay · FinTech</div></div><span class="rc-badge rb-new" id="rgb1">Registering...</span></div>
+        <div class="reg-card" id="rg2"><div><div class="rc-num">#REG-002</div><div class="rc-name">Oluwaseun Adeyemi</div><div class="rc-company">VP Marketing · TechVenture</div></div><span class="rc-badge rb-new" id="rgb2">Registering...</span></div>
+        <div class="reg-card" id="rg3"><div><div class="rc-num">#REG-003</div><div class="rc-name">Tunde Fashola</div><div class="rc-company">Head of Growth · RetailCo</div></div><span class="rc-badge rb-new" id="rgb3">Registering...</span></div>
+        <div class="reg-card" id="rg4"><div><div class="rc-num">#REG-004</div><div class="rc-name">Amaka Obi</div><div class="rc-company">Marketing Manager · DataHub</div></div><span class="rc-badge rb-new" id="rgb4">Registering...</span></div>
+        <div class="reg-card" id="rg5"><div><div class="rc-num">#REG-005</div><div class="rc-name">Babatunde Ike</div><div class="rc-company">Digital Lead · CloudBase</div></div><span class="rc-badge rb-new" id="rgb5">Registering...</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 5: SIM 2 — REMINDER EMAIL -->
+<section class="slide" id="slide-4">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">04 — Simulation 2</div><div class="sec-title">Personalised Reminder<br><em>Email Preview</em></div><p class="sec-desc">One day before the event, Fatima receives this reminder — written by GPT-4o, referencing her specific industry and role. Not a generic blast — a personal note.</p></div>
+    <div class="animate-in lr-rev">
+      <div style="display:flex;flex-direction:column;gap:1rem">
+        <div class="panel">
+          <h3>Reminder Sequence</h3>
+          <ul class="steps">
+            <li><div class="step-n">1</div><div><strong>T-3 days:</strong> "What you'll walk away with" — value preview tailored to their industry</div></li>
+            <li><div class="step-n">2</div><div><strong>T-1 day:</strong> "See you tomorrow" — personalised agenda highlight + prep tips</div></li>
+            <li><div class="step-n">3</div><div><strong>T-1 hour:</strong> SMS + email — "Starting in 1 hour" + direct join link</div></li>
+            <li><div class="step-n">4</div><div><strong>During:</strong> Live attendance tracked — join time, duration, questions asked</div></li>
+          </ul>
+        </div>
+        <div class="info-gold">📊 Adding a personalised 3-email reminder sequence increases show-up rate from avg 42% to 65–72%. That's nearly 60% more attendees from the same registrant list.</div>
+      </div>
+      <div>
+        <div class="email-preview">
+          <div class="ep-header">
+            <div class="ep-pre">From: Tobi at GrowthCo · Tomorrow at 2pm</div>
+            <div class="ep-subject">Fatima, your webinar is tomorrow — here's what to expect 🎯</div>
+          </div>
+          <div class="ep-body">
+            Hi <span class="ep-gold">Fatima</span>,<br><br>
+            Tomorrow's Marketing Automation Masterclass is almost here — and I wanted to send you a personal note ahead of the session.<br><br>
+            Given your role as <span class="ep-gold">CMO at GrowthPay</span>, you'll find Section 3 particularly valuable — we're covering how FinTech companies are using n8n to build lead nurture sequences that convert 3× better than standard drip campaigns.<br><br>
+            <strong>Quick agenda for you:</strong><br>
+            ✅ 2:00pm — Live workflow demo (no slides, just the actual tool)<br>
+            ✅ 2:40pm — FinTech-specific automation patterns<br>
+            ✅ 3:15pm — Open Q&A — your questions welcome<br><br>
+            <span style="color:var(--gold2)">Join link: zoom.us/j/mkt-masterclass</span><br><br>
+            <span style="font-size:0.67rem;color:var(--muted)">Auto-personalised by n8n + GPT-4o · Event: Marketing Automation Masterclass</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 6: BEFORE/AFTER -->
+<section class="slide" id="slide-5">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">05 — Business Impact</div><div class="sec-title">Events That <em>Convert</em><br>Not Just Attract</div></div>
+    <div class="animate-in two-col" style="margin-bottom:1.5rem">
+      <div>
+        <div style="font-size:0.62rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--red);margin-bottom:0.75rem;font-weight:600;font-family:'Barlow Condensed',sans-serif">❌ BEFORE</div>
+        <div style="display:flex;flex-direction:column;gap:0.5rem">
+          <div class="ba-bad">Confirmations manually sent — hours of admin per event</div>
+          <div class="ba-bad">One generic reminder email — 40–60% no-show rate</div>
+          <div class="ba-bad">Post-event: recording sent 3 days later, same email to all</div>
+          <div class="ba-bad">No attendance tracking — no idea who showed up or for how long</div>
+          <div class="ba-bad">No-shows abandoned — 50% of registrants left cold permanently</div>
+        </div>
+      </div>
+      <div>
+        <div style="font-size:0.62rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--green);margin-bottom:0.75rem;font-weight:600;font-family:'Barlow Condensed',sans-serif">✅ AFTER</div>
+        <div style="display:flex;flex-direction:column;gap:0.5rem">
+          <div class="ba-good">Confirmation + calendar invite sent within 60 seconds of registration</div>
+          <div class="ba-good">3-touch personalised reminder sequence — show-up rate 65–72%</div>
+          <div class="ba-good">Post-event split: attendees get CTA, no-shows get recovery sequence</div>
+          <div class="ba-good">Full attendance data: join time, duration, questions — drives follow-up priority</div>
+          <div class="ba-good">No-show recovery converts 20% back into engaged leads within 48 hours</div>
+        </div>
+      </div>
+    </div>
+    <div class="animate-in">
+      <div class="quote-block">
+        <div class="quote-text">"A webinar registrant is one of the <strong>highest-intent signals</strong> in your funnel. The automation ensures you never waste that signal — every registrant confirmed, reminded, followed up, and moved toward a decision."</div>
+        <div style="font-size:0.62rem;color:rgba(255,255,255,0.3);font-family:'Barlow Condensed',sans-serif;letter-spacing:0.08em">STACK: n8n · GPT-4o · Typeform/Eventbrite · Zoom API · Gmail · Google Calendar · HubSpot · Twilio · Slack</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="slide-counter" id="slideCounter">Slide 1 of 6</div>
+<div class="slide-nav">
+  <button class="nav-btn" onclick="prevSlide()">← Prev</button>
+  <button class="nav-btn primary" onclick="nextSlide()">Next →</button>
+</div>
+<script>
+const slides=document.querySelectorAll('.slide'),total=slides.length;let cur=0;
+const dots=document.getElementById('navDots');
+for(let i=0;i<total;i++){const d=document.createElement('div');d.className='nav-dot'+(i===0?' active':'');d.onclick=()=>goTo(i);dots.appendChild(d);}
+function goTo(n){slides[cur].classList.remove('active');dots.children[cur].classList.remove('active');if(cur<n)dots.children[cur].classList.add('done');cur=n;slides[cur].classList.add('active');dots.children[cur].classList.add('active');document.getElementById('slideCounter').textContent=`Slide ${cur+1} of ${total}`;}
+function nextSlide(){if(cur<total-1)goTo(cur+1);}function prevSlide(){if(cur>0)goTo(cur-1);}
+document.addEventListener('keydown',e=>{if(e.key==='ArrowRight'||e.key==='ArrowDown')nextSlide();if(e.key==='ArrowLeft'||e.key==='ArrowUp')prevSlide();});
+let secs=0;setInterval(()=>{secs++;const m=String(Math.floor(secs/60)).padStart(2,'0'),s=String(secs%60).padStart(2,'0');document.getElementById('timerBadge').textContent=`⏱ ${m}:${s}`;if(secs>=840)document.getElementById('timerBadge').style.color='#c82828';},1000);
+function delay(ms){return new Promise(r=>setTimeout(r,ms));}
+
+let evtRunning=false;
+async function runEvtSim(){
+  if(evtRunning)return;evtRunning=true;
+  const btn=document.getElementById('evtBtn');btn.textContent='Processing...';
+  for(let i=1;i<=5;i++){const el=document.getElementById('rg'+i);const b=document.getElementById('rgb'+i);if(el)el.className='reg-card';if(b){b.className='rc-badge rb-new';b.textContent='Registering...';}}
+  const steps=['ev1','ev2','ev3','ev4','ev5','ev6'];
+  steps.forEach(id=>{const el=document.getElementById(id);if(el){el.style.opacity='0.3';el.querySelector('.ps-num').style.background='var(--border)';}});
+  const light=(i)=>{steps.forEach(id=>{const el=document.getElementById(id);if(el){el.style.opacity='0.3';el.querySelector('.ps-num').style.background='var(--border)';}});const el=document.getElementById(steps[i]);if(el){el.style.opacity='1';el.style.color='var(--gold)';el.querySelector('.ps-num').style.background='var(--deep)';}};
+  for(let s=0;s<2;s++){light(s);await delay(550);}
+  light(2);
+  for(let i=1;i<=5;i++){
+    await delay(380);
+    const el=document.getElementById('rg'+i);const b=document.getElementById('rgb'+i);
+    if(el)el.classList.add('confirmed');
+    if(b){b.className='rc-badge rb-conf';b.textContent='✅ Confirmed';}
+  }
+  light(3);await delay(500);light(4);await delay(500);light(5);
+  btn.textContent='↺ Reset & Run Again';evtRunning=false;
+}
+</script>
+</body>
+</html>
