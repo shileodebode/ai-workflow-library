@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Operations — IT Helpdesk Automation</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Fira+Code:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f2f8ff;--surface:#ffffff;--surface2:#e4f0ff;--border:#c8ddf5;
+  --ink:#040d1a;--blue:#0f52ba;--blue2:#0a3d8a;--electric:#1e90ff;
+  --cyan:#06b6d4;--sky:#dbeafe;--green:#065f46;--red:#9b1c1c;
+  --amber:#92400e;--purple:#5b21b6;--text:#0a1a32;--muted:#4a6080;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'Space Grotesk',sans-serif;overflow-x:hidden;}
+.top-bar{position:fixed;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,var(--blue),var(--electric),var(--cyan));z-index:200;}
+nav{position:fixed;top:4px;left:0;right:0;z-index:100;background:rgba(242,248,255,0.97);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 2.5rem;height:54px;}
+.nav-brand{font-family:'Fira Code',monospace;font-size:0.7rem;color:var(--blue2);letter-spacing:0.06em;}
+.nav-dots{display:flex;gap:0.3rem;}
+.nav-dot{width:7px;height:7px;border-radius:50%;background:var(--border);cursor:pointer;transition:all 0.2s;}
+.nav-dot.active{background:var(--electric);transform:scale(1.5);}
+.nav-dot.done{background:var(--green);}
+.timer{font-size:0.67rem;color:var(--electric);background:rgba(30,144,255,0.08);border:1px solid rgba(30,144,255,0.2);padding:0.2rem 0.75rem;border-radius:20px;font-family:'Fira Code',monospace;}
+.slide{min-height:100vh;padding:78px 0 50px;display:none;flex-direction:column;align-items:center;justify-content:center;position:relative;overflow:hidden;}
+.slide.active{display:flex;}
+.slide-inner{width:100%;max-width:1140px;padding:0 2.5rem;position:relative;z-index:2;}
+.hero-dots{position:absolute;inset:0;background-image:radial-gradient(circle,rgba(30,144,255,0.07) 1.5px,transparent 1.5px);background-size:32px 32px;pointer-events:none;}
+.hero-mesh{position:absolute;top:-60px;right:-60px;width:500px;height:500px;border-radius:50%;background:radial-gradient(circle,rgba(6,182,212,0.06) 0%,transparent 65%);pointer-events:none;}
+.hero-badge{display:inline-flex;align-items:center;gap:0.5rem;background:var(--sky);border:1px solid rgba(30,144,255,0.2);color:var(--blue2);font-size:0.67rem;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;padding:0.28rem 0.9rem;border-radius:8px;margin-bottom:1.5rem;font-family:'Fira Code',monospace;}
+h1.hero-title{font-family:'Space Grotesk',sans-serif;font-size:clamp(2.8rem,5.5vw,4.8rem);font-weight:700;line-height:1.0;letter-spacing:-0.03em;color:var(--ink);margin-bottom:1.5rem;}
+h1.hero-title span{color:var(--electric);}
+.hero-desc{font-size:0.97rem;color:var(--muted);max-width:510px;line-height:1.78;margin-bottom:2.5rem;font-weight:300;}
+.kpi-strip{display:flex;gap:1px;background:var(--border);border-radius:12px;overflow:hidden;max-width:640px;box-shadow:0 2px 12px rgba(30,144,255,0.08);}
+.kpi{background:white;padding:1.1rem 1.4rem;flex:1;}
+.kpi-val{font-family:'Space Grotesk',sans-serif;font-size:1.85rem;font-weight:700;color:var(--electric);line-height:1;}
+.kpi-lbl{font-size:0.59rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);margin-top:0.2rem;font-family:'Fira Code',monospace;}
+.sec-tag{font-size:0.61rem;letter-spacing:0.22em;text-transform:uppercase;color:var(--electric);margin-bottom:0.4rem;font-weight:600;font-family:'Fira Code',monospace;display:flex;align-items:center;gap:0.4rem;}
+.sec-tag::before{content:'>';font-size:0.8rem;}
+.sec-title{font-family:'Space Grotesk',sans-serif;font-size:clamp(1.9rem,3.8vw,3rem);font-weight:700;line-height:1.05;margin-bottom:0.5rem;color:var(--ink);letter-spacing:-0.02em;}
+.sec-title span{color:var(--blue);}
+.sec-desc{font-size:0.87rem;color:var(--muted);margin-bottom:1.85rem;max-width:540px;line-height:1.78;font-weight:300;}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;}
+.three-col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;}
+.lr{display:grid;grid-template-columns:1.1fr 1fr;gap:2rem;align-items:start;}
+.lr-rev{display:grid;grid-template-columns:1fr 1.15fr;gap:2rem;align-items:start;}
+.card{background:white;border:1px solid var(--border);border-radius:12px;padding:1.25rem;transition:all 0.2s;box-shadow:0 1px 4px rgba(0,0,0,0.04);}
+.card:hover{border-color:var(--electric);transform:translateY(-2px);box-shadow:0 6px 20px rgba(30,144,255,0.1);}
+.card-icon{font-size:1.4rem;margin-bottom:0.5rem;}
+.card-title{font-family:'Space Grotesk',sans-serif;font-size:0.95rem;font-weight:600;margin-bottom:0.3rem;color:var(--ink);}
+.card-desc{font-size:0.72rem;color:var(--muted);line-height:1.65;}
+.panel{background:white;border:1px solid var(--border);border-radius:12px;padding:1.4rem;}
+.panel h3{font-family:'Space Grotesk',sans-serif;font-size:0.88rem;font-weight:700;color:var(--blue2);margin-bottom:0.9rem;display:flex;align-items:center;gap:0.5rem;}
+.panel h3::before{content:'$';color:var(--cyan);font-family:'Fira Code',monospace;}
+.steps{list-style:none;}
+.steps li{display:flex;gap:0.75rem;padding:0.45rem 0;border-bottom:1px solid var(--border);font-size:0.76rem;line-height:1.6;}
+.steps li:last-child{border-bottom:none;}
+.step-n{width:22px;height:22px;border-radius:6px;background:var(--blue);color:white;font-size:0.62rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:'Fira Code',monospace;}
+/* Workflow */
+.wf-canvas{background:var(--ink);border-radius:14px;padding:2rem;position:relative;overflow:hidden;}
+.wf-grid{position:absolute;inset:0;background-image:radial-gradient(circle,rgba(30,144,255,0.18) 1px,transparent 1px);background-size:28px 28px;opacity:0.5;}
+.wf-label{position:absolute;top:0.75rem;left:1rem;font-size:0.57rem;letter-spacing:0.18em;text-transform:uppercase;color:rgba(255,255,255,0.3);display:flex;align-items:center;gap:0.4rem;z-index:3;font-family:'Fira Code',monospace;}
+.wf-label::before{content:'';width:7px;height:7px;border-radius:50%;background:var(--cyan);box-shadow:0 0 8px var(--cyan);animation:cpulse 2s infinite;}
+@keyframes cpulse{0%,100%{opacity:1}50%{opacity:0.2}}
+.wf-nodes{display:flex;align-items:flex-start;gap:0;padding-top:1.5rem;position:relative;z-index:2;flex-wrap:wrap;}
+.wf-stage{display:flex;flex-direction:column;align-items:center;}
+.wf-slbl{font-size:0.51rem;letter-spacing:0.14em;text-transform:uppercase;color:rgba(255,255,255,0.28);margin-bottom:0.3rem;font-family:'Fira Code',monospace;}
+.wf-node{display:flex;flex-direction:column;align-items:center;gap:0.3rem;cursor:pointer;position:relative;}
+.wf-box{width:58px;height:58px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.25rem;border:2px solid transparent;transition:all 0.3s;}
+.wf-node:hover .wf-box{transform:scale(1.1);box-shadow:0 0 20px rgba(30,144,255,0.4);}
+.wf-nlbl{font-size:0.52rem;text-align:center;color:rgba(255,255,255,0.42);max-width:66px;line-height:1.3;font-family:'Fira Code',monospace;}
+.wf-arr{color:rgba(255,255,255,0.18);padding:0 0.2rem;font-size:0.85rem;align-self:flex-start;margin-top:19px;flex-shrink:0;}
+.ttw{position:relative;}
+.tti{position:absolute;bottom:calc(100%+8px);left:50%;transform:translateX(-50%);background:white;border:1px solid var(--border);border-radius:8px;padding:0.6rem 0.9rem;font-size:0.67rem;opacity:0;pointer-events:none;transition:opacity 0.2s;z-index:50;color:var(--ink);line-height:1.5;max-width:200px;white-space:normal;text-align:left;box-shadow:0 4px 16px rgba(0,0,0,0.08);}
+.ttw:hover .tti{opacity:1;}
+/* Ticket row */
+.it-ticket{background:white;border:1px solid var(--border);border-radius:10px;padding:0.8rem 1rem;margin-bottom:0.45rem;display:flex;gap:0.75rem;align-items:flex-start;transition:all 0.3s;}
+.it-ticket.auto-resolved{border-color:var(--green);background:rgba(6,95,70,0.03);}
+.it-ticket.assigned{border-color:var(--electric);background:rgba(30,144,255,0.03);}
+.it-ticket.escalated{border-color:var(--red);background:rgba(155,28,28,0.03);}
+.it-prio{width:6px;border-radius:3px;align-self:stretch;flex-shrink:0;}
+.it-id{font-family:'Fira Code',monospace;font-size:0.6rem;color:var(--muted);margin-bottom:0.15rem;}
+.it-title{font-weight:600;font-size:0.77rem;color:var(--ink);}
+.it-desc{font-size:0.65rem;color:var(--muted);}
+.it-badge{margin-left:auto;font-size:0.58rem;padding:0.1rem 0.42rem;border-radius:20px;font-weight:600;font-family:'Fira Code',monospace;white-space:nowrap;}
+.itb-auto{background:rgba(6,95,70,0.1);color:var(--green);border:1px solid rgba(6,95,70,0.2);}
+.itb-assigned{background:rgba(30,144,255,0.1);color:var(--electric);border:1px solid rgba(30,144,255,0.22);}
+.itb-esc{background:rgba(155,28,28,0.1);color:var(--red);border:1px solid rgba(155,28,28,0.2);}
+.itb-new{background:rgba(74,96,128,0.1);color:var(--muted);border:1px solid rgba(74,96,128,0.18);}
+/* Self-service suggestion */
+.ss-card{background:white;border:1px solid var(--border);border-radius:10px;overflow:hidden;}
+.ss-header{background:linear-gradient(135deg,var(--blue),var(--electric));color:white;padding:0.85rem 1.1rem;display:flex;align-items:center;gap:0.65rem;}
+.ss-icon{font-size:1.2rem;}
+.ss-title{font-family:'Space Grotesk',sans-serif;font-size:0.88rem;font-weight:600;}
+.ss-body{padding:1rem;font-size:0.73rem;line-height:1.72;}
+.ss-solution{background:var(--surface2);border-radius:6px;padding:0.6rem 0.8rem;margin-top:0.6rem;font-size:0.7rem;line-height:1.65;font-family:'Fira Code',monospace;color:var(--blue2);}
+/* PS list */
+.ps-list{list-style:none;}
+.ps-list li{display:flex;gap:0.75rem;padding:0.45rem 0;border-bottom:1px solid var(--border);font-size:0.74rem;line-height:1.5;transition:all 0.3s;}
+.ps-list li:last-child{border-bottom:none;}
+.ps-num{width:20px;height:20px;border-radius:6px;background:var(--border);color:white;font-size:0.6rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;transition:background 0.3s;font-family:'Fira Code',monospace;}
+/* Info */
+.info-blue{padding:0.75rem 1rem;border-radius:8px;font-size:0.77rem;line-height:1.6;background:rgba(30,144,255,0.06);border:1px solid rgba(30,144,255,0.15);color:var(--blue2);}
+.info-green{padding:0.75rem 1rem;border-radius:8px;font-size:0.77rem;line-height:1.6;background:rgba(6,95,70,0.06);border:1px solid rgba(6,95,70,0.15);color:var(--green);}
+.ba-bad{padding:0.6rem 0.9rem;border-radius:8px;font-size:0.76rem;line-height:1.5;background:rgba(155,28,28,0.04);border:1px solid rgba(155,28,28,0.12);}
+.ba-good{padding:0.6rem 0.9rem;border-radius:8px;font-size:0.76rem;line-height:1.5;background:rgba(6,95,70,0.05);border:1px solid rgba(6,95,70,0.14);}
+.quote-block{background:var(--ink);border-radius:14px;padding:1.75rem 2rem;color:white;}
+.quote-text{font-size:1.05rem;line-height:1.78;margin-bottom:0.75rem;font-weight:300;}
+.quote-text strong{color:var(--cyan);}
+.slide-counter{position:fixed;bottom:1.5rem;left:2rem;font-size:0.62rem;color:var(--muted);z-index:100;font-family:'Fira Code',monospace;}
+.slide-nav{position:fixed;bottom:1.5rem;right:2rem;display:flex;gap:0.5rem;z-index:100;}
+.nav-btn{background:white;border:1px solid var(--border);color:var(--text);padding:0.55rem 1.2rem;border-radius:8px;font-family:'Fira Code',monospace;font-size:0.7rem;cursor:pointer;transition:all 0.2s;}
+.nav-btn:hover{border-color:var(--electric);color:var(--electric);}
+.nav-btn.primary{background:var(--blue);border-color:var(--blue);color:white;}
+.nav-btn.primary:hover{background:var(--blue2);}
+.run-btn{background:var(--blue);color:white;border:none;border-radius:8px;padding:0.7rem 1.5rem;font-family:'Fira Code',monospace;font-size:0.72rem;cursor:pointer;transition:all 0.2s;width:100%;text-align:center;}
+.run-btn:hover{background:var(--blue2);}
+.animate-in{opacity:0;animation:fadeUp 0.5s ease-out forwards;}
+.slide.active .animate-in:nth-child(1){animation-delay:0.05s;}
+.slide.active .animate-in:nth-child(2){animation-delay:0.15s;}
+.slide.active .animate-in:nth-child(3){animation-delay:0.25s;}
+.slide.active .animate-in:nth-child(4){animation-delay:0.35s;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+</style>
+</head>
+<body>
+<div class="top-bar"></div>
+<nav>
+  <div class="nav-brand">OPS · IT Helpdesk</div>
+  <div class="nav-dots" id="navDots"></div>
+  <div class="timer" id="timerBadge">⏱ 00:00</div>
+</nav>
+
+<!-- SLIDE 1: HERO -->
+<section class="slide active" id="slide-0">
+  <div class="hero-dots"></div><div class="hero-mesh"></div>
+  <div class="slide-inner">
+    <div class="animate-in"><div class="hero-badge">n8n AI Automation · Operations</div></div>
+    <div class="animate-in"><h1 class="hero-title">IT Issues Fixed.<br><span>Faster.</span><br>Smarter.</h1></div>
+    <div class="animate-in"><p class="hero-desc">60% of IT tickets resolved automatically with AI-powered self-service. The rest triaged, classified, and routed to the right engineer — with full context, right priority, before they even check the queue.</p></div>
+    <div class="animate-in">
+      <div class="kpi-strip">
+        <div class="kpi"><div class="kpi-val">60%</div><div class="kpi-lbl">Auto-Resolved</div></div>
+        <div class="kpi"><div class="kpi-val">5min</div><div class="kpi-lbl">Avg Response Time</div></div>
+        <div class="kpi"><div class="kpi-val">AI</div><div class="kpi-lbl">Smart Triage</div></div>
+        <div class="kpi"><div class="kpi-val">24/7</div><div class="kpi-lbl">Coverage</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 2: PROBLEM -->
+<section class="slide" id="slide-1">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">01 — The Problem</div><div class="sec-title">IT Team Drowning<br><span>in Basic Requests</span></div><p class="sec-desc">Your IT team is highly skilled. Yet they spend most of their time resetting passwords, unlocking accounts, and answering questions any FAQ page could answer. That's expensive talent in the wrong place.</p></div>
+    <div class="animate-in two-col" style="margin-bottom:1.5rem">
+      <div class="card"><div class="card-icon">🔁</div><div class="card-title">Repetitive L1 Tickets</div><div class="card-desc">"I forgot my password." "My VPN won't connect." "How do I set up 2FA?" These represent 60–70% of all IT tickets. Senior engineers answering them is the most expensive way to resolve the cheapest problems.</div></div>
+      <div class="card"><div class="card-icon">🐢</div><div class="card-title">Slow Initial Response</div><div class="card-desc">Ticket lands in the queue. IT team checks the queue once an hour. Employee waits. Productivity stops. For P1 issues like system outages, that delay costs the business money every minute it persists.</div></div>
+      <div class="card"><div class="card-icon">🔀</div><div class="card-title">Wrong Engineer Assignment</div><div class="card-desc">Network issues routed to the security team. Software licences sent to infrastructure. Every misroute adds a handoff delay and a frustrated employee waiting while tickets ping between inboxes.</div></div>
+      <div class="card"><div class="card-icon">📊</div><div class="card-title">No Trend Visibility</div><div class="card-desc">The same VPN issue reported by 8 people in 3 days. Nobody connects the dots. IT fixes each one individually. A systematic fix would have prevented 7 of those tickets. Pattern recognition requires data.</div></div>
+    </div>
+    <div class="animate-in"><div class="info-blue">✅ n8n + GPT-4o auto-resolves 60% of tickets with AI-guided self-service. The rest are intelligently triaged and routed to the right engineer with full diagnosis — before they open the ticket.</div></div>
+  </div>
+</section>
+
+<!-- SLIDE 3: WORKFLOW -->
+<section class="slide" id="slide-2">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">02 — The Blueprint</div><div class="sec-title">n8n IT Helpdesk<br><span>Automation</span></div><p class="sec-desc">Every ticket intelligently processed — AI first, human only when needed. Faster resolution, happier users, and IT team freed for strategic work.</p></div>
+    <div class="animate-in wf-canvas">
+      <div class="wf-grid"></div>
+      <div class="wf-label">n8n canvas — IT helpdesk pipeline</div>
+      <div class="wf-nodes">
+        <div class="wf-stage"><div class="wf-slbl">Submit</div>
+          <div style="display:flex;flex-direction:column;gap:0.35rem">
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#0a1a2a,#1d4ed8);color:#93c5fd;border-color:#1d4ed8;">📧</div><div class="wf-nlbl">Email<br>Ticket</div><div class="tti">Email to it@company.ng captured by n8n. Subject and body parsed for issue type, urgency, and affected systems.</div></div>
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#0a0a1a,#1e3a5f);color:#93c5fd;border-color:#1e3a5f;">💬</div><div class="wf-nlbl">Slack<br>/help</div><div class="tti">Staff type /it-help [description] in Slack. n8n captures immediately. No need to open a separate system.</div></div>
+          </div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-stage"><div class="wf-slbl">Triage</div>
+          <div style="display:flex;flex-direction:column;gap:0.35rem">
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a0a0a,#991b1b);color:#fca5a5;border-color:#991b1b;">🧠</div><div class="wf-nlbl">GPT-4o<br>Classify</div><div class="tti">GPT-4o classifies: Category (Access/Hardware/Network/Software/Security), Priority (P1-P4), likely root cause, and whether it's auto-resolvable.</div></div>
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#0a1a1a,#065f46);color:#6ee7b7;border-color:#065f46;">🔍</div><div class="wf-nlbl">KB<br>Search</div><div class="tti">n8n searches IT knowledge base (Confluence/Notion) for matching solutions. Returns relevant articles and step-by-step fixes for auto-resolution attempt.</div></div>
+          </div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-stage"><div class="wf-slbl">Resolve</div>
+          <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a1a0a,#78350f);color:#fde68a;border-color:#78350f;">🤖</div><div class="wf-nlbl">AI Self-<br>Service</div><div class="tti">GPT-4o sends user a step-by-step resolution guide personalised to their OS, browser, and role. 60% of tickets resolved without engineer involvement.</div></div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-stage"><div class="wf-slbl">Assign</div>
+          <div style="display:flex;flex-direction:column;gap:0.35rem">
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a0a1a,#7c3aed);color:#d8b4fe;border-color:#7c3aed;">👥</div><div class="wf-nlbl">Engineer<br>Match</div><div class="tti">Unresolved tickets matched to engineer by specialisation and workload. P1 issues bypass queue and go directly to on-call engineer via SMS.</div></div>
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#0a1a2a,#0369a1);color:#7dd3fc;border-color:#0369a1;">💬</div><div class="wf-nlbl">Engineer<br>Brief</div><div class="tti">Engineer receives Slack notification with: AI diagnosis, likely root cause, KB articles, similar resolved tickets, and all user context. Arrives prepared — not cold.</div></div>
+          </div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-stage"><div class="wf-slbl">Learn</div>
+          <div style="display:flex;flex-direction:column;gap:0.35rem">
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#0a1a1a,#065f46);color:#6ee7b7;border-color:#065f46;">📊</div><div class="wf-nlbl">Pattern<br>Detect</div><div class="tti">n8n tracks issue patterns. If same issue type spikes (+3 tickets in 24 hrs): IT manager alerted for systemic fix. Repeat issues flagged for KB article creation.</div></div>
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a0a0a,#7f1d1d);color:#fca5a5;border-color:#7f1d1d;">⭐</div><div class="wf-nlbl">CSAT<br>Rate</div><div class="tti">On resolution, one-click satisfaction rating sent. Low scores trigger IT manager review. High scores used to identify what's working and reward engineers.</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 4: SIM 1 — TICKET TRIAGE -->
+<section class="slide" id="slide-3">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">03 — Simulation 1</div><div class="sec-title">Live: 6 Tickets<br><span>Triaged & Routed</span></div><p class="sec-desc">Six IT requests just arrived simultaneously. Watch GPT-4o classify and route each — auto-resolving common issues and assigning complex ones to the right engineer.</p></div>
+    <div class="animate-in lr">
+      <div style="display:flex;flex-direction:column;gap:1rem">
+        <div class="panel">
+          <h3>Triage Pipeline</h3>
+          <ul class="ps-list" id="itSteps">
+            <li id="it1" style="opacity:0.3"><div class="ps-num">1</div><div>6 tickets received across email + Slack</div></li>
+            <li id="it2" style="opacity:0.3"><div class="ps-num">2</div><div>GPT-4o classifies each: category + priority</div></li>
+            <li id="it3" style="opacity:0.3"><div class="ps-num">3</div><div>KB searched — auto-resolution attempted</div></li>
+            <li id="it4" style="opacity:0.3"><div class="ps-num">4</div><div>3 auto-resolved · 3 assigned to engineers</div></li>
+            <li id="it5" style="opacity:0.3"><div class="ps-num">5</div><div>Engineers briefed via Slack with AI diagnosis ✅</div></li>
+          </ul>
+        </div>
+        <div class="info-blue">💡 Auto-resolved tickets get a step-by-step fix sent directly to the user in under 2 minutes. They never wait for an engineer — and the engineer never has to look at it.</div>
+        <button class="run-btn" id="itBtn" onclick="runItSim()">▶ TRIAGE 6 TICKETS NOW</button>
+      </div>
+      <div id="itBoard" style="display:flex;flex-direction:column;gap:0">
+        <div class="it-ticket" id="itt1"><div class="it-prio" style="background:#9b1c1c"></div><div><div class="it-id">#INC-0041</div><div class="it-title">Can't access VPN — working from home</div><div class="it-desc">Password reset needed or config issue</div></div><span class="it-badge itb-new" id="itb1">New</span></div>
+        <div class="it-ticket" id="itt2"><div class="it-prio" style="background:#92400e"></div><div><div class="it-id">#INC-0042</div><div class="it-title">Email not syncing on iPhone</div><div class="it-desc">Exchange profile issue</div></div><span class="it-badge itb-new" id="itb2">New</span></div>
+        <div class="it-ticket" id="itt3"><div class="it-prio" style="background:#9b1c1c"></div><div><div class="it-id">#INC-0043</div><div class="it-title">Server room AC unit alarm — urgent</div><div class="it-desc">Hardware alert, facilities needed</div></div><span class="it-badge itb-new" id="itb3">New</span></div>
+        <div class="it-ticket" id="itt4"><div class="it-prio" style="background:#065f46"></div><div><div class="it-id">#INC-0044</div><div class="it-title">How do I enable 2FA on my account?</div><div class="it-desc">Account security question</div></div><span class="it-badge itb-new" id="itb4">New</span></div>
+        <div class="it-ticket" id="itt5"><div class="it-prio" style="background:#065f46"></div><div><div class="it-id">#INC-0045</div><div class="it-title">Forgot password — locked out</div><div class="it-desc">Standard account reset</div></div><span class="it-badge itb-new" id="itb5">New</span></div>
+        <div class="it-ticket" id="itt6"><div class="it-prio" style="background:#1d4ed8"></div><div><div class="it-id">#INC-0046</div><div class="it-title">Slack keeps crashing on MacBook</div><div class="it-desc">App conflict or update needed</div></div><span class="it-badge itb-new" id="itb6">New</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 5: SIM 2 — SELF-SERVICE -->
+<section class="slide" id="slide-4">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">04 — Simulation 2</div><div class="sec-title">AI Self-Service<br><span>Resolution Preview</span></div><p class="sec-desc">For #INC-0044 (2FA setup), GPT-4o skips the engineer entirely and sends a personalised step-by-step guide directly to the user — resolved in under 2 minutes.</p></div>
+    <div class="animate-in lr-rev">
+      <div style="display:flex;flex-direction:column;gap:1rem">
+        <div class="panel">
+          <h3>Auto-Resolution Logic</h3>
+          <ul class="steps">
+            <li><div class="step-n">1</div><div>GPT-4o classifies as L1 — self-service resolvable</div></li>
+            <li><div class="step-n">2</div><div>KB searched — "2FA setup guide" found (94% match)</div></li>
+            <li><div class="step-n">3</div><div>Guide personalised to user's OS (Windows 11)</div></li>
+            <li><div class="step-n">4</div><div>Step-by-step fix sent to user via Slack/email</div></li>
+            <li><div class="step-n">5</div><div>Ticket auto-closed after user confirms resolution</div></li>
+          </ul>
+        </div>
+        <div class="info-green">📊 60% of all IT tickets are this type — L1 self-service resolvable. Automating them frees the equivalent of 1 full-time IT engineer per 200-staff organisation.</div>
+      </div>
+      <div class="ss-card">
+        <div class="ss-header"><div class="ss-icon">🤖</div><div><div class="ss-title">IT Bot — Auto Resolution</div><div style="font-size:0.62rem;opacity:0.75">Re: #INC-0044 · Ngozi Eze</div></div></div>
+        <div class="ss-body">
+          Hi <strong>Ngozi</strong> 👋 I can help you set up 2FA right now — no engineer needed!<br><br>
+          Based on your Windows 11 device, here's how to enable 2-factor authentication:<br>
+          <div class="ss-solution">
+            1. Open Settings → Accounts → Sign-in options<br>
+            2. Under "Two-factor authentication", click Set up<br>
+            3. Download Microsoft Authenticator on your phone<br>
+            4. Scan the QR code shown on screen<br>
+            5. Enter the 6-digit code to confirm → Done ✅
+          </div>
+          <br>
+          Did this resolve your issue? <span style="color:var(--electric)">Yes ✓</span> or <span style="color:var(--muted)">No, I need more help</span><br><br>
+          <span style="font-size:0.63rem;color:var(--muted)">Auto-generated by n8n + GPT-4o · No engineer needed</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 6: BEFORE/AFTER -->
+<section class="slide" id="slide-5">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">05 — Business Impact</div><div class="sec-title">IT Team Working<br><span>on What Matters</span></div></div>
+    <div class="animate-in two-col" style="margin-bottom:1.5rem">
+      <div>
+        <div style="font-size:0.62rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--red);margin-bottom:0.75rem;font-weight:600;font-family:'Fira Code',monospace">❌ BEFORE</div>
+        <div style="display:flex;flex-direction:column;gap:0.5rem">
+          <div class="ba-bad">Senior engineers resetting passwords all day — skilled talent wasted</div>
+          <div class="ba-bad">Tickets checked hourly — employees wait, productivity drops</div>
+          <div class="ba-bad">Misrouted tickets bounce between teams — delays compound</div>
+          <div class="ba-bad">VPN issue hits 8 staff — each fixed individually, never systemically</div>
+          <div class="ba-bad">No CSAT data — no way to know what's working or failing</div>
+        </div>
+      </div>
+      <div>
+        <div style="font-size:0.62rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--green);margin-bottom:0.75rem;font-weight:600;font-family:'Fira Code',monospace">✅ AFTER</div>
+        <div style="display:flex;flex-direction:column;gap:0.5rem">
+          <div class="ba-good">60% auto-resolved in 2 minutes — no engineer needed</div>
+          <div class="ba-good">P1 issues escalated via SMS to on-call in under 60 seconds</div>
+          <div class="ba-good">Every ticket routed to the right engineer with AI diagnosis</div>
+          <div class="ba-good">Issue pattern detected at 3 tickets — systemic fix triggered</div>
+          <div class="ba-good">CSAT tracked per ticket, per engineer — continuous improvement</div>
+        </div>
+      </div>
+    </div>
+    <div class="animate-in">
+      <div class="quote-block">
+        <div class="quote-text">"Your IT team's value isn't in resetting passwords — it's in <strong>keeping systems secure, scalable, and reliable</strong>. This automation handles the noise so your engineers can focus on the signal."</div>
+        <div style="font-size:0.62rem;color:rgba(255,255,255,0.3);font-family:'Fira Code',monospace">STACK: n8n · GPT-4o · Jira Service Management · Confluence · Slack · Gmail · Twilio · Google Sheets</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="slide-counter" id="slideCounter">Slide 1 of 6</div>
+<div class="slide-nav">
+  <button class="nav-btn" onclick="prevSlide()">← Prev</button>
+  <button class="nav-btn primary" onclick="nextSlide()">Next →</button>
+</div>
+<script>
+const slides=document.querySelectorAll('.slide'),total=slides.length;let cur=0;
+const dots=document.getElementById('navDots');
+for(let i=0;i<total;i++){const d=document.createElement('div');d.className='nav-dot'+(i===0?' active':'');d.onclick=()=>goTo(i);dots.appendChild(d);}
+function goTo(n){slides[cur].classList.remove('active');dots.children[cur].classList.remove('active');if(cur<n)dots.children[cur].classList.add('done');cur=n;slides[cur].classList.add('active');dots.children[cur].classList.add('active');document.getElementById('slideCounter').textContent=`Slide ${cur+1} of ${total}`;}
+function nextSlide(){if(cur<total-1)goTo(cur+1);}function prevSlide(){if(cur>0)goTo(cur-1);}
+document.addEventListener('keydown',e=>{if(e.key==='ArrowRight'||e.key==='ArrowDown')nextSlide();if(e.key==='ArrowLeft'||e.key==='ArrowUp')prevSlide();});
+let secs=0;setInterval(()=>{secs++;const m=String(Math.floor(secs/60)).padStart(2,'0'),s=String(secs%60).padStart(2,'0');document.getElementById('timerBadge').textContent=`⏱ ${m}:${s}`;if(secs>=840)document.getElementById('timerBadge').style.color='#9b1c1c';},1000);
+function delay(ms){return new Promise(r=>setTimeout(r,ms));}
+const itData=[
+  {id:'itt1',b:'itb1',cls:'assigned',txt:'P1 · Network → Babatunde',cls2:'itb-assigned'},
+  {id:'itt2',b:'itb2',cls:'auto-resolved',txt:'Auto ✓ · L1 Fixed',cls2:'itb-auto'},
+  {id:'itt3',b:'itb3',cls:'escalated',txt:'P1 🚨 Escalated',cls2:'itb-esc'},
+  {id:'itt4',b:'itb4',cls:'auto-resolved',txt:'Auto ✓ · L1 Fixed',cls2:'itb-auto'},
+  {id:'itt5',b:'itb5',cls:'auto-resolved',txt:'Auto ✓ · L1 Fixed',cls2:'itb-auto'},
+  {id:'itt6',b:'itb6',cls:'assigned',txt:'P3 · Software → Kemi',cls2:'itb-assigned'},
+];
+let itRunning=false;
+async function runItSim(){
+  if(itRunning)return;itRunning=true;
+  const btn=document.getElementById('itBtn');btn.textContent='Triaging...';
+  itData.forEach(d=>{const el=document.getElementById(d.id);const b=document.getElementById(d.b);if(el)el.className='it-ticket';if(b){b.className='it-badge itb-new';b.textContent='New';}});
+  const steps=['it1','it2','it3','it4','it5'];
+  steps.forEach(id=>{const el=document.getElementById(id);if(el){el.style.opacity='0.3';el.querySelector('.ps-num').style.background='var(--border)';}});
+  const light=(i)=>{steps.forEach(id=>{const el=document.getElementById(id);if(el){el.style.opacity='0.3';el.querySelector('.ps-num').style.background='var(--border)';}});const el=document.getElementById(steps[i]);if(el){el.style.opacity='1';el.style.color='var(--electric)';el.querySelector('.ps-num').style.background='var(--blue)';}};
+  for(let s=0;s<3;s++){light(s);await delay(550);}
+  for(const d of itData){
+    await delay(420);
+    const el=document.getElementById(d.id);const b=document.getElementById(d.b);
+    if(el)el.classList.add(d.cls);
+    if(b){b.className='it-badge '+d.cls2;b.textContent=d.txt;}
+  }
+  light(3);await delay(400);light(4);
+  btn.textContent='↺ Reset & Run Again';itRunning=false;
+}
+</script>
+</body>
+</html>
