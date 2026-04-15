@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Customer Service — FAQ Chatbot Automation</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,300&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f4f9f8;--surface:#ffffff;--surface2:#e8f4f1;--border:#d0e8e2;--ink:#0d2420;--teal:#0d7a68;--teal2:#0a5c4e;--mint:#34c4a8;--foam:#e0f5f1;--green:#1a8a4a;--red:#d42b2b;--amber:#c47a10;--blue:#1a5cb0;--text:#1a3028;--muted:#557a70;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'Plus Jakarta Sans',sans-serif;overflow-x:hidden;}
+.top-wave{position:fixed;top:0;left:0;right:0;height:4px;z-index:200;background:linear-gradient(90deg,var(--teal),var(--mint),var(--teal));}
+nav{position:fixed;top:4px;left:0;right:0;z-index:100;background:rgba(244,249,248,0.97);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 2.5rem;height:54px;}
+.nav-brand{font-family:'Fira Code',monospace;font-size:0.72rem;color:var(--teal2);letter-spacing:0.04em;}
+.nav-dots{display:flex;gap:0.3rem;}
+.nav-dot{width:7px;height:7px;border-radius:50%;background:var(--border);cursor:pointer;transition:all 0.2s;}
+.nav-dot.active{background:var(--teal);transform:scale(1.5);}
+.nav-dot.done{background:var(--green);}
+.timer{font-size:0.67rem;color:var(--teal);background:rgba(13,122,104,0.08);border:1px solid rgba(13,122,104,0.2);padding:0.2rem 0.75rem;border-radius:20px;font-family:'Fira Code',monospace;}
+.slide{min-height:100vh;padding:78px 0 50px;display:none;flex-direction:column;align-items:center;justify-content:center;position:relative;overflow:hidden;}
+.slide.active{display:flex;}
+.slide-inner{width:100%;max-width:1140px;padding:0 2.5rem;position:relative;z-index:2;}
+.hero-orb{position:absolute;top:-60px;right:-60px;width:500px;height:500px;border-radius:50%;background:radial-gradient(circle,rgba(13,122,104,0.07) 0%,transparent 65%);pointer-events:none;}
+.hero-rings{position:absolute;bottom:-100px;left:-100px;width:400px;height:400px;border-radius:50%;border:1px solid rgba(13,122,104,0.06);pointer-events:none;}
+.hero-rings::before{content:'';position:absolute;inset:40px;border-radius:50%;border:1px solid rgba(13,122,104,0.05);}
+.hero-pill{display:inline-flex;align-items:center;gap:0.45rem;background:var(--foam);border:1px solid rgba(13,122,104,0.2);color:var(--teal2);font-size:0.67rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;padding:0.28rem 0.85rem;border-radius:20px;margin-bottom:1.5rem;font-family:'Fira Code',monospace;}
+.hero-pill::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--mint);box-shadow:0 0 6px var(--mint);}
+h1.hero-title{font-family:'Plus Jakarta Sans',sans-serif;font-size:clamp(2.8rem,5.5vw,4.8rem);font-weight:800;line-height:1.0;letter-spacing:-0.03em;color:var(--ink);margin-bottom:1.5rem;}
+h1.hero-title span{color:var(--teal);}
+.hero-desc{font-size:0.97rem;color:var(--muted);max-width:510px;line-height:1.78;margin-bottom:2.5rem;font-weight:300;}
+.kpi-strip{display:flex;gap:0;border:1px solid var(--border);border-radius:12px;overflow:hidden;max-width:600px;background:var(--border);box-shadow:0 2px 12px rgba(13,122,104,0.07);}
+.kpi{background:white;padding:1.1rem 1.4rem;flex:1;border-right:1px solid var(--border);}
+.kpi:last-child{border-right:none;}
+.kpi-val{font-family:'Plus Jakarta Sans',sans-serif;font-size:1.85rem;font-weight:800;color:var(--teal);line-height:1;}
+.kpi-lbl{font-size:0.59rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);margin-top:0.2rem;font-family:'Fira Code',monospace;}
+.sec-tag{font-size:0.61rem;letter-spacing:0.22em;text-transform:uppercase;color:var(--teal);margin-bottom:0.4rem;font-weight:700;font-family:'Fira Code',monospace;}
+.sec-title{font-family:'Plus Jakarta Sans',sans-serif;font-size:clamp(1.9rem,3.8vw,3rem);font-weight:800;line-height:1.05;margin-bottom:0.5rem;color:var(--ink);letter-spacing:-0.02em;}
+.sec-title span{color:var(--teal);}
+.sec-desc{font-size:0.87rem;color:var(--muted);margin-bottom:1.85rem;max-width:540px;line-height:1.78;font-weight:300;}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;}
+.three-col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;}
+.lr{display:grid;grid-template-columns:1fr 1.2fr;gap:2rem;align-items:start;}
+.lr-rev{display:grid;grid-template-columns:1.15fr 1fr;gap:2rem;align-items:start;}
+.card{background:white;border:1px solid var(--border);border-radius:12px;padding:1.25rem;transition:all 0.2s;box-shadow:0 1px 4px rgba(0,0,0,0.04);}
+.card:hover{border-color:var(--teal);transform:translateY(-2px);box-shadow:0 6px 20px rgba(13,122,104,0.1);}
+.card-icon{font-size:1.4rem;margin-bottom:0.5rem;}
+.card-title{font-family:'Plus Jakarta Sans',sans-serif;font-size:0.97rem;font-weight:700;margin-bottom:0.3rem;color:var(--ink);}
+.card-desc{font-size:0.72rem;color:var(--muted);line-height:1.65;}
+.panel{background:white;border:1px solid var(--border);border-radius:12px;padding:1.4rem;box-shadow:0 1px 4px rgba(0,0,0,0.03);}
+.panel h3{font-family:'Plus Jakarta Sans',sans-serif;font-size:0.9rem;font-weight:700;color:var(--teal2);margin-bottom:0.9rem;display:flex;align-items:center;gap:0.5rem;}
+.panel h3::before{content:'▸';color:var(--mint);}
+.steps{list-style:none;}
+.steps li{display:flex;gap:0.75rem;padding:0.45rem 0;border-bottom:1px solid var(--border);font-size:0.76rem;line-height:1.6;}
+.steps li:last-child{border-bottom:none;}
+.step-n{width:22px;height:22px;border-radius:50%;background:var(--teal);color:white;font-size:0.62rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+/* Workflow */
+.wf-canvas{background:var(--ink);border-radius:16px;padding:2rem;position:relative;overflow:hidden;}
+.wf-dots{position:absolute;inset:0;background-image:radial-gradient(circle,rgba(52,196,168,0.15) 1px,transparent 1px);background-size:28px 28px;opacity:0.6;}
+.wf-label{position:absolute;top:0.75rem;left:1rem;font-size:0.57rem;letter-spacing:0.18em;text-transform:uppercase;color:rgba(255,255,255,0.3);display:flex;align-items:center;gap:0.4rem;z-index:3;font-family:'Fira Code',monospace;}
+.wf-label::before{content:'';width:7px;height:7px;border-radius:50%;background:var(--mint);box-shadow:0 0 8px var(--mint);animation:mpulse 2s infinite;}
+@keyframes mpulse{0%,100%{opacity:1}50%{opacity:0.2}}
+.wf-nodes{display:flex;align-items:flex-start;gap:0;padding-top:1.5rem;position:relative;z-index:2;flex-wrap:wrap;}
+.wf-stage{display:flex;flex-direction:column;align-items:center;}
+.wf-slbl{font-size:0.51rem;letter-spacing:0.14em;text-transform:uppercase;color:rgba(255,255,255,0.28);margin-bottom:0.3rem;font-family:'Fira Code',monospace;}
+.wf-node{display:flex;flex-direction:column;align-items:center;gap:0.3rem;cursor:pointer;position:relative;}
+.wf-box{width:58px;height:58px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:1.25rem;border:2px solid transparent;transition:all 0.3s;}
+.wf-node:hover .wf-box{transform:scale(1.1);box-shadow:0 0 20px rgba(52,196,168,0.4);}
+.wf-nlbl{font-size:0.52rem;text-align:center;color:rgba(255,255,255,0.42);max-width:66px;line-height:1.3;font-family:'Fira Code',monospace;}
+.wf-arr{color:rgba(255,255,255,0.18);padding:0 0.2rem;font-size:0.85rem;align-self:flex-start;margin-top:19px;flex-shrink:0;}
+.ttw{position:relative;}
+.tti{position:absolute;bottom:calc(100%+8px);left:50%;transform:translateX(-50%);background:white;border:1px solid var(--border);border-radius:10px;padding:0.6rem 0.9rem;font-size:0.67rem;opacity:0;pointer-events:none;transition:opacity 0.2s;z-index:50;color:var(--ink);line-height:1.5;max-width:200px;white-space:normal;text-align:left;box-shadow:0 4px 16px rgba(0,0,0,0.08);}
+.ttw:hover .tti{opacity:1;}
+/* Chat interface */
+.chat-window{background:white;border:1px solid var(--border);border-radius:16px;overflow:hidden;box-shadow:0 4px 20px rgba(13,122,104,0.08);}
+.chat-header{background:linear-gradient(135deg,var(--teal),var(--mint));color:white;padding:0.85rem 1.1rem;display:flex;align-items:center;gap:0.75rem;}
+.chat-avatar{width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,0.25);display:flex;align-items:center;justify-content:center;font-size:1.1rem;}
+.chat-bot-name{font-weight:700;font-size:0.88rem;}
+.chat-status{font-size:0.62rem;opacity:0.8;}
+.chat-body{padding:1rem;height:300px;overflow-y:auto;display:flex;flex-direction:column;gap:0.65rem;background:var(--bg);}
+.msg{max-width:80%;font-size:0.76rem;line-height:1.6;padding:0.6rem 0.85rem;border-radius:12px;}
+.msg-user{align-self:flex-end;background:var(--teal);color:white;border-bottom-right-radius:4px;}
+.msg-bot{align-self:flex-start;background:white;border:1px solid var(--border);color:var(--text);border-bottom-left-radius:4px;}
+.msg-typing{align-self:flex-start;background:white;border:1px solid var(--border);padding:0.6rem 0.85rem;border-radius:12px;border-bottom-left-radius:4px;}
+.typing-dots{display:flex;gap:0.3rem;align-items:center;}
+.typing-dots span{width:6px;height:6px;border-radius:50%;background:var(--teal);animation:tdot 1.4s infinite;}
+.typing-dots span:nth-child(2){animation-delay:0.2s;}
+.typing-dots span:nth-child(3){animation-delay:0.4s;}
+@keyframes tdot{0%,80%,100%{opacity:0.2;transform:scale(0.8)}40%{opacity:1;transform:scale(1)}}
+.chat-input{border-top:1px solid var(--border);padding:0.75rem 1rem;display:flex;gap:0.5rem;background:white;}
+.chat-inp-field{flex:1;background:var(--bg);border:1px solid var(--border);border-radius:20px;padding:0.5rem 0.85rem;font-size:0.74rem;font-family:'Plus Jakarta Sans',sans-serif;color:var(--text);}
+.chat-send{background:var(--teal);color:white;border:none;border-radius:50%;width:34px;height:34px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:0.9rem;flex-shrink:0;}
+/* PS list */
+.ps-list{list-style:none;}
+.ps-list li{display:flex;gap:0.75rem;padding:0.45rem 0;border-bottom:1px solid var(--border);font-size:0.74rem;line-height:1.5;transition:all 0.3s;}
+.ps-list li:last-child{border-bottom:none;}
+.ps-num{width:20px;height:20px;border-radius:50%;background:var(--border);color:white;font-size:0.6rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;transition:background 0.3s;}
+/* FAQ topics */
+.faq-topic{background:white;border:1px solid var(--border);border-radius:10px;padding:0.75rem 1rem;margin-bottom:0.45rem;display:flex;align-items:center;gap:0.85rem;transition:all 0.2s;}
+.faq-topic:hover{border-color:var(--teal);transform:translateX(3px);}
+.faq-topic-icon{font-size:1.1rem;}
+.faq-topic-name{font-weight:600;font-size:0.78rem;color:var(--ink);}
+.faq-topic-count{font-size:0.62rem;color:var(--muted);}
+.faq-pct{margin-left:auto;font-family:'Fira Code',monospace;font-size:0.7rem;font-weight:700;color:var(--teal);}
+/* Escalation display */
+.esc-card{background:white;border:1px solid var(--border);border-radius:10px;padding:0.85rem 1rem;margin-bottom:0.5rem;display:flex;gap:0.85rem;align-items:flex-start;transition:all 0.3s;}
+.esc-card.human{border-color:var(--amber);background:rgba(196,122,16,0.03);}
+.esc-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;margin-top:4px;}
+.esc-subject{font-weight:600;font-size:0.78rem;color:var(--ink);margin-bottom:0.15rem;}
+.esc-reason{font-size:0.67rem;color:var(--muted);}
+.esc-badge{margin-left:auto;font-size:0.59rem;padding:0.1rem 0.45rem;border-radius:20px;font-weight:600;font-family:'Fira Code',monospace;white-space:nowrap;}
+.eb-auto{background:rgba(13,122,104,0.1);color:var(--teal);border:1px solid rgba(13,122,104,0.2);}
+.eb-human{background:rgba(196,122,16,0.1);color:var(--amber);border:1px solid rgba(196,122,16,0.2);}
+/* Info boxes */
+.info-teal{padding:0.75rem 1rem;border-radius:10px;font-size:0.77rem;line-height:1.6;background:rgba(13,122,104,0.06);border:1px solid rgba(13,122,104,0.15);color:var(--teal2);}
+.ba-bad{padding:0.6rem 0.9rem;border-radius:8px;font-size:0.76rem;line-height:1.5;background:rgba(212,43,43,0.04);border:1px solid rgba(212,43,43,0.12);}
+.ba-good{padding:0.6rem 0.9rem;border-radius:8px;font-size:0.76rem;line-height:1.5;background:rgba(26,138,74,0.05);border:1px solid rgba(26,138,74,0.14);}
+.quote-block{background:var(--ink);border-radius:14px;padding:1.75rem 2rem;color:white;}
+.quote-text{font-size:1.05rem;line-height:1.78;margin-bottom:0.75rem;font-weight:300;}
+.quote-text strong{color:var(--mint);}
+.slide-counter{position:fixed;bottom:1.5rem;left:2rem;font-size:0.62rem;color:var(--muted);z-index:100;font-family:'Fira Code',monospace;}
+.slide-nav{position:fixed;bottom:1.5rem;right:2rem;display:flex;gap:0.5rem;z-index:100;}
+.nav-btn{background:white;border:1px solid var(--border);color:var(--text);padding:0.55rem 1.2rem;border-radius:8px;font-family:'Fira Code',monospace;font-size:0.7rem;cursor:pointer;transition:all 0.2s;}
+.nav-btn:hover{border-color:var(--teal);color:var(--teal);}
+.nav-btn.primary{background:var(--teal);border-color:var(--teal);color:white;}
+.nav-btn.primary:hover{background:var(--teal2);}
+.run-btn{background:var(--teal);color:white;border:none;border-radius:10px;padding:0.7rem 1.5rem;font-family:'Fira Code',monospace;font-size:0.72rem;cursor:pointer;transition:all 0.2s;width:100%;text-align:center;}
+.run-btn:hover{background:var(--teal2);}
+.animate-in{opacity:0;animation:fadeUp 0.5s ease-out forwards;}
+.slide.active .animate-in:nth-child(1){animation-delay:0.05s;}
+.slide.active .animate-in:nth-child(2){animation-delay:0.15s;}
+.slide.active .animate-in:nth-child(3){animation-delay:0.25s;}
+.slide.active .animate-in:nth-child(4){animation-delay:0.35s;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+</style>
+</head>
+<body>
+<div class="top-wave"></div>
+<nav>
+  <div class="nav-brand">CS · FAQ Chatbot</div>
+  <div class="nav-dots" id="navDots"></div>
+  <div class="timer" id="timerBadge">⏱ 00:00</div>
+</nav>
+
+<!-- SLIDE 1: HERO -->
+<section class="slide active" id="slide-0">
+  <div class="hero-orb"></div><div class="hero-rings"></div>
+  <div class="slide-inner">
+    <div class="animate-in"><div class="hero-pill">n8n AI Automation · Customer Service</div></div>
+    <div class="animate-in"><h1 class="hero-title">Answer <span>Every</span><br>Question.<br>Instantly.</h1></div>
+    <div class="animate-in"><p class="hero-desc">An AI chatbot powered by your own knowledge base that resolves 70% of customer questions without agent involvement — 24/7, in any language, in seconds.</p></div>
+    <div class="animate-in">
+      <div class="kpi-strip">
+        <div class="kpi"><div class="kpi-val">70%</div><div class="kpi-lbl">Auto-Resolved</div></div>
+        <div class="kpi"><div class="kpi-val">24/7</div><div class="kpi-lbl">Availability</div></div>
+        <div class="kpi"><div class="kpi-val">&lt;3s</div><div class="kpi-lbl">Response Time</div></div>
+        <div class="kpi"><div class="kpi-val">0</div><div class="kpi-lbl">Agent Hours Spent</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 2: PROBLEM -->
+<section class="slide" id="slide-1">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">01 — The Problem</div><div class="sec-title">The Same 10 Questions.<br><span>1,000 Times.</span></div><p class="sec-desc">The majority of support tickets are variations of the same questions. Your agents answer them manually, all day, every day — when a bot could handle them in 3 seconds.</p></div>
+    <div class="animate-in two-col" style="margin-bottom:1.5rem">
+      <div class="card"><div class="card-icon">🔁</div><div class="card-title">Repetitive Questions</div><div class="card-desc">"How do I reset my password?" "What's your refund policy?" "Where's my order?" The top 10 question types cover 65–70% of all support volume. Agents answer them manually thousands of times a week.</div></div>
+      <div class="card"><div class="card-icon">🌙</div><div class="card-title">No Out-of-Hours Support</div><div class="card-desc">Customers in different time zones or late-night shoppers hit a wall. No chat, no answer — just a form and a 24-hour wait. Meanwhile, competitors have 24/7 chat live.</div></div>
+      <div class="card"><div class="card-icon">📞</div><div class="card-title">Agent Burnout</div><div class="card-desc">Talented support agents spend 60%+ of their time on questions any FAQ page could answer. Low engagement, high turnover, and wasted expertise on problems that shouldn't need a human.</div></div>
+      <div class="card"><div class="card-icon">🌍</div><div class="card-title">Language Barriers</div><div class="card-desc">Global customer base, English-only support. Customers struggle to explain issues clearly. Agents struggle to understand them. CSAT drops. GPT-4o resolves this entirely.</div></div>
+    </div>
+    <div class="animate-in"><div class="info-teal">✅ n8n + GPT-4o builds a chatbot trained on your knowledge base that resolves 70% of questions instantly — and hands off complex ones to the right human agent seamlessly.</div></div>
+  </div>
+</section>
+
+<!-- SLIDE 3: WORKFLOW -->
+<section class="slide" id="slide-2">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">02 — The Blueprint</div><div class="sec-title">n8n FAQ Chatbot<br><span>Architecture</span></div><p class="sec-desc">Every conversation handled intelligently. Simple questions resolved instantly. Complex ones escalated with full context — no dead ends, no lost conversations.</p></div>
+    <div class="animate-in wf-canvas">
+      <div class="wf-dots"></div><div class="wf-label">n8n canvas — FAQ chatbot pipeline</div>
+      <div class="wf-nodes">
+        <div class="wf-stage"><div class="wf-slbl">Receive</div>
+          <div style="display:flex;flex-direction:column;gap:0.35rem">
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#0a1a1a,#065f46);color:#6ee7b7;border-color:#065f46;">🌐</div><div class="wf-nlbl">Website<br>Chat</div><div class="tti">Chat widget on your website sends messages to n8n via webhook. Conversation session tracked for context window.</div></div>
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a0a1a,#4c1d95);color:#c4b5fd;border-color:#4c1d95;">📱</div><div class="wf-nlbl">WhatsApp<br>Bot</div><div class="tti">WhatsApp Business API integration. Customer messages trigger n8n workflow. Replies sent from your business number.</div></div>
+          </div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-stage"><div class="wf-slbl">Understand</div>
+          <div style="display:flex;flex-direction:column;gap:0.35rem">
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a0a0a,#991b1b);color:#fca5a5;border-color:#991b1b;">🧠</div><div class="wf-nlbl">GPT-4o<br>Intent</div><div class="tti">GPT-4o classifies intent: FAQ/Account/Billing/Technical/Complaint/Human-needed. Extracts key entities (order number, email, product).</div></div>
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#0a1a2a,#1d4ed8);color:#93c5fd;border-color:#1d4ed8;">📚</div><div class="wf-nlbl">KB<br>Search</div><div class="tti">Vector search across your knowledge base (Notion, Confluence, Help articles). Returns most relevant chunks for GPT-4o to synthesise.</div></div>
+          </div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-stage"><div class="wf-slbl">Decide</div>
+          <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a1a0a,#78350f);color:#fde68a;border-color:#78350f;">🔀</div><div class="wf-nlbl">Confidence<br>Router</div><div class="tti">If KB match confidence >85%: auto-answer. 60–85%: answer with "did this help?" check. &lt;60% or "human" intent: escalate to live agent.</div></div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-stage"><div class="wf-slbl">Respond</div>
+          <div style="display:flex;flex-direction:column;gap:0.35rem">
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#0a1a1a,#065f46);color:#6ee7b7;border-color:#065f46;">💬</div><div class="wf-nlbl">Auto<br>Answer</div><div class="tti">GPT-4o composes a natural, brand-voice response using KB content. Not a canned reply — a contextual answer in your company's tone.</div></div>
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a1a0a,#3d3200);color:#fbbf24;border-color:#78350f;">👤</div><div class="wf-nlbl">Human<br>Handoff</div><div class="tti">On escalation: full conversation history sent to agent in Zendesk. Agent sees everything — no "please repeat your issue" moments.</div></div>
+          </div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-stage"><div class="wf-slbl">Learn</div>
+          <div style="display:flex;flex-direction:column;gap:0.35rem">
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#0a1a2a,#0369a1);color:#7dd3fc;border-color:#0369a1;">⭐</div><div class="wf-nlbl">CSAT<br>Collect</div><div class="tti">After resolution: one-click satisfaction rating. Negative ratings logged for KB improvement review. Positive ratings help train confidence thresholds.</div></div>
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a0a2e,#6d28d9);color:#c4b5fd;border-color:#6d28d9;">📊</div><div class="wf-nlbl">Analytics<br>Log</div><div class="tti">Every conversation logged: intent, resolution type (auto/human), confidence score, CSAT. Dashboard shows top topics, escalation rate, improvement opportunities.</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 4: SIM 1 — LIVE CHAT -->
+<section class="slide" id="slide-3">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">03 — Simulation 1</div><div class="sec-title">Live: Chatbot<br><span>Handles 3 Questions</span></div><p class="sec-desc">Watch the bot handle a refund question, a billing query, and a complex escalation — demonstrating full range from instant answer to smooth human handoff.</p></div>
+    <div class="animate-in lr">
+      <div style="display:flex;flex-direction:column;gap:1rem">
+        <div class="panel">
+          <h3>Pipeline Steps</h3>
+          <ul class="ps-list" id="chatSteps">
+            <li id="ch1" style="opacity:0.3"><div class="ps-num">1</div><div>Customer message received via chat widget</div></li>
+            <li id="ch2" style="opacity:0.3"><div class="ps-num">2</div><div>GPT-4o classifies intent — FAQ detected</div></li>
+            <li id="ch3" style="opacity:0.3"><div class="ps-num">3</div><div>Knowledge base searched — 94% confidence match</div></li>
+            <li id="ch4" style="opacity:0.3"><div class="ps-num">4</div><div>GPT-4o composes natural, brand-voice response</div></li>
+            <li id="ch5" style="opacity:0.3"><div class="ps-num">5</div><div>Response sent — conversation logged + CSAT offered</div></li>
+            <li id="ch6" style="opacity:0.3"><div class="ps-num">6</div><div>Complex query → escalated with full context to agent ✅</div></li>
+          </ul>
+        </div>
+        <button class="run-btn" id="chatBtn" onclick="runChatSim()">▶ START CHAT SIMULATION</button>
+      </div>
+      <div>
+        <div class="chat-window">
+          <div class="chat-header">
+            <div class="chat-avatar">🤖</div>
+            <div><div class="chat-bot-name">Aria — Support Bot</div><div class="chat-status">● Online · Powered by n8n + GPT-4o</div></div>
+          </div>
+          <div class="chat-body" id="chatBody">
+            <div class="msg msg-bot">Hi! I'm Aria 👋 How can I help you today?</div>
+          </div>
+          <div class="chat-input">
+            <div class="chat-inp-field" id="chatInp" style="min-height:34px"></div>
+            <button class="chat-send">→</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 5: SIM 2 — FAQ ANALYTICS -->
+<section class="slide" id="slide-4">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">04 — Simulation 2</div><div class="sec-title">FAQ Topic Analytics<br><span>& Auto-Resolve Rate</span></div><p class="sec-desc">n8n tracks every question category. Management sees exactly what customers ask, how often, and how well the bot resolves it — enabling constant knowledge base improvement.</p></div>
+    <div class="animate-in lr-rev">
+      <div style="display:flex;flex-direction:column;gap:0.5rem;">
+        <div style="font-size:0.61rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);margin-bottom:0.1rem;font-family:'Fira Code',monospace">Top Question Categories (Last 30 days)</div>
+        <div class="faq-topic"><div class="faq-topic-icon">🔑</div><div><div class="faq-topic-name">Password Reset / Account Access</div><div class="faq-topic-count">1,248 questions · 97% auto-resolved</div></div><div class="faq-pct">22%</div></div>
+        <div class="faq-topic"><div class="faq-topic-icon">💳</div><div><div class="faq-topic-name">Billing & Payment Questions</div><div class="faq-topic-count">982 questions · 84% auto-resolved</div></div><div class="faq-pct">17%</div></div>
+        <div class="faq-topic"><div class="faq-topic-icon">📦</div><div><div class="faq-topic-name">Order Status & Tracking</div><div class="faq-topic-count">876 questions · 91% auto-resolved</div></div><div class="faq-pct">15%</div></div>
+        <div class="faq-topic"><div class="faq-topic-icon">🔄</div><div><div class="faq-topic-name">Returns & Refund Policy</div><div class="faq-topic-count">754 questions · 89% auto-resolved</div></div><div class="faq-pct">13%</div></div>
+        <div class="faq-topic"><div class="faq-topic-icon">⚙️</div><div><div class="faq-topic-name">Technical / How-to Questions</div><div class="faq-topic-count">612 questions · 72% auto-resolved</div></div><div class="faq-pct">11%</div></div>
+        <div class="faq-topic"><div class="faq-topic-icon">😤</div><div><div class="faq-topic-name">Complaints & Escalations</div><div class="faq-topic-count">438 questions · 0% auto-resolved</div></div><div class="faq-pct" style="color:var(--amber)">8%</div></div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:1rem">
+        <div class="panel">
+          <h3>What the Data Drives</h3>
+          <ul class="steps">
+            <li><div class="step-n">1</div><div>Low auto-resolve topics → KB gap identified → articles added</div></li>
+            <li><div class="step-n">2</div><div>High-volume questions → proactive FAQ pop-ups on key pages</div></li>
+            <li><div class="step-n">3</div><div>New question patterns → GPT-4o retrained monthly</div></li>
+            <li><div class="step-n">4</div><div>Complaints spike → CS manager notified via Slack</div></li>
+          </ul>
+        </div>
+        <div class="info-teal">📊 <strong>Overall auto-resolve rate: 71%</strong><br>This means 71% of all support conversations are fully resolved without any agent involvement — at 3am on a Sunday or 9am on Monday.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 6: SIM 3 — ESCALATION -->
+<section class="slide" id="slide-5">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">05 — Simulation 3</div><div class="sec-title">Human Handoff —<br><span>Seamless Escalation</span></div><p class="sec-desc">The bot knows its limits. When it can't resolve — or detects frustration — it escalates with the full conversation context. No dead ends, no cold transfers.</p></div>
+    <div class="animate-in two-col" style="margin-bottom:1.25rem">
+      <div style="display:flex;flex-direction:column;gap:0.5rem">
+        <div style="font-size:0.61rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);font-family:'Fira Code',monospace;margin-bottom:0.1rem">Conversation Queue</div>
+        <div class="esc-card"><div class="esc-dot" style="background:var(--green)"></div><div><div class="esc-subject">Reset password + account access</div><div class="esc-reason">Kemi — 94% confidence match</div></div><span class="esc-badge eb-auto">Auto ✓</span></div>
+        <div class="esc-card"><div class="esc-dot" style="background:var(--green)"></div><div><div class="esc-subject">Refund policy for digital products</div><div class="esc-reason">Tunde — 91% confidence match</div></div><span class="esc-badge eb-auto">Auto ✓</span></div>
+        <div class="esc-card"><div class="esc-dot" style="background:var(--green)"></div><div><div class="esc-subject">How do I cancel my subscription?</div><div class="esc-reason">Ngozi — 96% confidence match</div></div><span class="esc-badge eb-auto">Auto ✓</span></div>
+        <div class="esc-card human"><div class="esc-dot" style="background:var(--amber)"></div><div><div class="esc-subject">Dispute — charged after cancellation</div><div class="esc-reason">Amaka — complaint detected + low confidence</div></div><span class="esc-badge eb-human">Human 👤</span></div>
+        <div class="esc-card human"><div class="esc-dot" style="background:var(--amber)"></div><div><div class="esc-subject">Account compromised — need urgent help</div><div class="esc-reason">Babatunde — security flag + human request</div></div><span class="esc-badge eb-human">Human 👤</span></div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:0.85rem">
+        <div style="background:var(--ink);border-radius:12px;padding:1.1rem;color:white;font-size:0.75rem;line-height:1.75">
+          <div style="font-family:'Fira Code',monospace;font-size:0.6rem;color:var(--mint);margin-bottom:0.5rem">💬 Zendesk ticket — Amaka escalation</div>
+          <strong style="color:var(--mint)">Conversation handed off to agent Kemi A.</strong><br><br>
+          Customer: Amaka Obi<br>
+          Intent: Billing dispute (charged post-cancellation)<br>
+          Sentiment: Frustrated (3 messages, escalating tone)<br>
+          Bot attempts: 2 (low confidence — escalated)<br><br>
+          <strong>Conversation history:</strong><br>
+          <span style="color:rgba(255,255,255,0.6)">Amaka: "I cancelled 2 weeks ago and was still charged..."<br>Bot: "I can see your account..."<br>Amaka: "This is unacceptable, I want a human..."</span><br><br>
+          <span style="color:rgba(255,255,255,0.35);font-size:0.62rem">Auto-routed by n8n · Agent has full context</span>
+        </div>
+        <div class="info-teal">✅ The agent sees everything. No "can you explain your issue again?" — just a fully briefed handoff where the human starts where the bot left off.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 7: BEFORE/AFTER -->
+<section class="slide" id="slide-6">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">06 — Business Impact</div><div class="sec-title">Support at<br><span>Every Hour</span></div></div>
+    <div class="animate-in two-col" style="margin-bottom:1.5rem">
+      <div>
+        <div style="font-size:0.62rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--red);margin-bottom:0.75rem;font-weight:700">❌ BEFORE</div>
+        <div style="display:flex;flex-direction:column;gap:0.5rem">
+          <div class="ba-bad">Agents answer same 10 questions 500 times per week</div>
+          <div class="ba-bad">Zero support outside business hours — customers wait overnight</div>
+          <div class="ba-bad">Escalations lose context — customer repeats full story to agent</div>
+          <div class="ba-bad">No visibility into what customers are actually asking most</div>
+          <div class="ba-bad">Non-English speakers get poor or delayed support</div>
+        </div>
+      </div>
+      <div>
+        <div style="font-size:0.62px;letter-spacing:0.15em;text-transform:uppercase;color:var(--green);margin-bottom:0.75rem;font-weight:700;font-size:0.62rem">✅ AFTER</div>
+        <div style="display:flex;flex-direction:column;gap:0.5rem">
+          <div class="ba-good">71% of tickets auto-resolved — agents handle only complex issues</div>
+          <div class="ba-good">24/7 instant answers — 3am customer gets resolved in 3 seconds</div>
+          <div class="ba-good">Full conversation context passed on escalation — zero repetition</div>
+          <div class="ba-good">Topic analytics drive KB improvements — resolve rate grows monthly</div>
+          <div class="ba-good">GPT-4o responds in 50+ languages — global support, same quality</div>
+        </div>
+      </div>
+    </div>
+    <div class="animate-in">
+      <div class="quote-block">
+        <div class="quote-text">"The best support experience is one where the customer <strong>never needs to wait</strong>. A bot that resolves 71% of questions instantly — and escalates the rest with full context — is not replacing your team. It's freeing them for the work that actually needs a human."</div>
+        <div style="font-size:0.62rem;color:rgba(255,255,255,0.3);font-family:'Fira Code',monospace">STACK: n8n · GPT-4o · Pinecone/Supabase Vector · Zendesk · WhatsApp API · Notion KB · Slack</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="slide-counter" id="slideCounter">Slide 1 of 7</div>
+<div class="slide-nav">
+  <button class="nav-btn" onclick="prevSlide()">← Prev</button>
+  <button class="nav-btn primary" onclick="nextSlide()">Next →</button>
+</div>
+<script>
+const slides=document.querySelectorAll('.slide'),total=slides.length;let cur=0;
+const dots=document.getElementById('navDots');
+for(let i=0;i<total;i++){const d=document.createElement('div');d.className='nav-dot'+(i===0?' active':'');d.onclick=()=>goTo(i);dots.appendChild(d);}
+function goTo(n){slides[cur].classList.remove('active');dots.children[cur].classList.remove('active');if(cur<n)dots.children[cur].classList.add('done');cur=n;slides[cur].classList.add('active');dots.children[cur].classList.add('active');document.getElementById('slideCounter').textContent=`Slide ${cur+1} of ${total}`;}
+function nextSlide(){if(cur<total-1)goTo(cur+1);}function prevSlide(){if(cur>0)goTo(cur-1);}
+document.addEventListener('keydown',e=>{if(e.key==='ArrowRight'||e.key==='ArrowDown')nextSlide();if(e.key==='ArrowLeft'||e.key==='ArrowUp')prevSlide();});
+let secs=0;setInterval(()=>{secs++;const m=String(Math.floor(secs/60)).padStart(2,'0'),s=String(secs%60).padStart(2,'0');document.getElementById('timerBadge').textContent=`⏱ ${m}:${s}`;if(secs>=840)document.getElementById('timerBadge').style.color='#d42b2b';},1000);
+function delay(ms){return new Promise(r=>setTimeout(r,ms));}
+
+const chatConvo=[
+  {role:'user',text:"Hi, what's your refund policy for digital products?"},
+  {role:'typing'},
+  {role:'bot',text:"Great question! For digital products, we offer a 14-day money-back guarantee from the date of purchase — no questions asked. If you'd like to request a refund, just email billing@company.com with your order number and we'll process it within 3 business days. Can I help with anything else? 😊"},
+  {role:'user',text:"And what if I was charged after I cancelled my subscription?"},
+  {role:'typing'},
+  {role:'bot',text:"I'm sorry to hear that — that shouldn't happen! This sounds like a billing dispute that needs a human agent to review your account directly. Let me connect you with Kemi who can resolve this immediately. I'm sending her your full conversation history now so you won't need to repeat yourself. 🤝"},
+  {role:'handoff',text:"✅ Handed off to Kemi A. (Billing Specialist) — ETA 4 minutes"},
+];
+
+let chatRunning=false;
+async function runChatSim(){
+  if(chatRunning)return;chatRunning=true;
+  const btn=document.getElementById('chatBtn');btn.textContent='Running...';
+  const body=document.getElementById('chatBody');
+  body.innerHTML='<div class="msg msg-bot">Hi! I\'m Aria 👋 How can I help you today?</div>';
+  const steps=['ch1','ch2','ch3','ch4','ch5','ch6'];
+  steps.forEach(id=>{const el=document.getElementById(id);if(el){el.style.opacity='0.3';el.querySelector('.ps-num').style.background='var(--border)';}});
+  const light=(i)=>{steps.forEach(id=>{const el=document.getElementById(id);if(el){el.style.opacity='0.3';el.querySelector('.ps-num').style.background='var(--border)';}});const el=document.getElementById(steps[i]);if(el){el.style.opacity='1';el.style.color='var(--teal)';el.querySelector('.ps-num').style.background='var(--teal)';}};
+  let stepIdx=0;
+  for(const msg of chatConvo){
+    await delay(msg.role==='typing'?200:700);
+    if(msg.role==='user'){
+      const el=document.createElement('div');el.className='msg msg-user';el.textContent=msg.text;body.appendChild(el);body.scrollTop=body.scrollHeight;
+      if(stepIdx<steps.length){light(stepIdx);stepIdx++;}
+    } else if(msg.role==='typing'){
+      const t=document.createElement('div');t.className='msg-typing';t.innerHTML='<div class="typing-dots"><span></span><span></span><span></span></div>';body.appendChild(t);body.scrollTop=body.scrollHeight;
+      await delay(1200);body.removeChild(t);
+      if(stepIdx<steps.length){light(stepIdx);stepIdx++;}
+    } else if(msg.role==='bot'){
+      const el=document.createElement('div');el.className='msg msg-bot';el.textContent=msg.text;body.appendChild(el);body.scrollTop=body.scrollHeight;
+      if(stepIdx<steps.length){light(stepIdx);stepIdx++;}
+    } else if(msg.role==='handoff'){
+      const el=document.createElement('div');el.style.cssText='background:rgba(13,122,104,0.08);border:1px solid rgba(13,122,104,0.2);border-radius:8px;padding:0.5rem 0.75rem;font-size:0.68rem;color:var(--teal2);text-align:center;';el.textContent=msg.text;body.appendChild(el);body.scrollTop=body.scrollHeight;
+      if(stepIdx<steps.length){light(steps.length-1);}
+    }
+  }
+  btn.textContent='↺ Reset & Run Again';chatRunning=false;
+}
+</script>
+</body>
+</html>
