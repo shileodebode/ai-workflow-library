@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Booking Confirmations & Pre-Arrival Automation — n8n for Hotels</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400&family=Barlow+Condensed:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #faf7f2;
+  --navy: #1a2a4a;
+  --gold: #c89030;
+  --gold-light: #f0d890;
+  --text: #1a2a4a;
+  --muted: #6b7a8d;
+  --card: #ffffff;
+  --border: rgba(26,42,74,0.12);
+  --radius: 12px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;overflow:hidden;background:var(--bg);font-family:'Barlow Condensed',sans-serif;color:var(--text)}
+
+/* TIMER */
+#timer{position:fixed;top:18px;right:22px;z-index:9999;background:var(--navy);color:#fff;font-family:'Barlow Condensed',sans-serif;font-size:13px;letter-spacing:2px;padding:6px 14px;border-radius:20px;transition:background .4s}
+#timer.red{background:#b91c1c}
+
+/* SLIDE COUNTER */
+#counter{position:fixed;bottom:18px;left:22px;z-index:9999;font-family:'Barlow Condensed',sans-serif;font-size:12px;letter-spacing:1.5px;color:var(--muted);text-transform:uppercase}
+
+/* NAV */
+nav{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);z-index:9999;display:flex;gap:8px;align-items:center;background:rgba(255,255,255,0.85);backdrop-filter:blur(8px);padding:8px 16px;border-radius:30px;border:1px solid var(--border)}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--border);border:1.5px solid var(--muted);cursor:pointer;transition:all .3s}
+.dot.active{background:var(--navy);border-color:var(--navy);width:22px;border-radius:4px}
+
+/* SLIDES */
+#deck{width:100%;height:100%;position:relative}
+.slide{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:60px 80px;opacity:0;pointer-events:none;transition:opacity .5s ease}
+.slide.active{opacity:1;pointer-events:all}
+
+/* ========== SLIDE 1: HERO ========== */
+#s1{background:var(--bg)}
+.hero-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(200,144,48,0.12);border:1px solid rgba(200,144,48,0.35);color:var(--gold);padding:6px 16px;border-radius:20px;font-size:12px;letter-spacing:2.5px;text-transform:uppercase;margin-bottom:28px}
+.hero-badge span{width:6px;height:6px;border-radius:50%;background:var(--gold);display:inline-block;animation:pulse 1.8s infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.6)}}
+.hero-title{font-family:'Cormorant Garamond',serif;font-size:clamp(42px,5vw,72px);font-weight:600;line-height:1.05;color:var(--navy);max-width:760px;text-align:center;margin-bottom:20px}
+.hero-title em{color:var(--gold);font-style:italic}
+.hero-desc{font-size:16px;color:var(--muted);max-width:600px;text-align:center;line-height:1.65;margin-bottom:48px;font-weight:400;letter-spacing:.3px}
+.kpi-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;width:100%;max-width:820px}
+.kpi{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px 16px;text-align:center;box-shadow:0 2px 12px rgba(26,42,74,0.06)}
+.kpi-val{font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:700;color:var(--navy);line-height:1}
+.kpi-label{font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-top:6px}
+
+/* ========== SLIDE 2: PROBLEM ========== */
+#s2{background:var(--bg)}
+.section-eyebrow{font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--gold);margin-bottom:10px}
+.section-title{font-family:'Cormorant Garamond',serif;font-size:clamp(34px,4vw,54px);font-weight:600;color:var(--navy);margin-bottom:12px;line-height:1.1}
+.section-desc{font-size:15px;color:var(--muted);max-width:580px;line-height:1.65;margin-bottom:40px}
+.problem-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;width:100%;max-width:920px}
+.prob-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:24px 20px;position:relative;overflow:hidden}
+.prob-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--gold),var(--gold-light))}
+.prob-icon{font-size:28px;margin-bottom:12px}
+.prob-title{font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:600;color:var(--navy);margin-bottom:8px}
+.prob-text{font-size:13px;color:var(--muted);line-height:1.6}
+
+/* ========== SLIDE 3: WORKFLOW CANVAS ========== */
+#s3{background:var(--bg);padding:40px 60px}
+.canvas-wrap{width:100%;max-width:1000px;border-radius:16px;overflow:hidden;border:1.5px solid rgba(26,42,74,0.15);box-shadow:0 8px 40px rgba(26,42,74,0.18)}
+.canvas-header{background:#0d1b2e;padding:12px 20px;display:flex;align-items:center;gap:10px}
+.canvas-dot{width:10px;height:10px;border-radius:50%}
+.canvas-header span{font-size:12px;color:#8090a0;letter-spacing:1.5px;margin-left:8px;font-family:'Barlow Condensed',sans-serif}
+.pulse-ind{width:8px;height:8px;border-radius:50%;background:#22c55e;margin-left:auto;animation:pulse 1.5s infinite;box-shadow:0 0 6px #22c55e}
+.canvas-body{background:#060e18;background-image:radial-gradient(circle,#1e3050 1px,transparent 1px);background-size:22px 22px;padding:28px 24px;overflow-x:auto}
+.workflow-row{display:flex;align-items:center;gap:0;margin-bottom:10px}
+.stage-label{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:#4a6080;width:90px;flex-shrink:0;font-family:'Barlow Condensed',sans-serif}
+.nodes-row{display:flex;align-items:center;gap:4px;flex:1}
+.wf-node{position:relative;display:flex;flex-direction:column;align-items:center;cursor:pointer}
+.wf-node-box{background:#111e30;border:1.5px solid #2a4060;border-radius:8px;padding:7px 10px;font-size:10px;color:#c8d8e8;white-space:nowrap;display:flex;align-items:center;gap:6px;font-family:'Barlow Condensed',sans-serif;letter-spacing:.5px;transition:border-color .2s,background .2s}
+.wf-node-box:hover{border-color:var(--gold);background:#1a2e44}
+.wf-node-box .icon{font-size:14px}
+.wf-arrow{color:#2a4060;font-size:16px;flex-shrink:0;padding:0 2px}
+.tooltip{display:none;position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);background:#0d1b2e;border:1px solid #2a4060;border-radius:8px;padding:10px 14px;font-size:11px;color:#a8c0d8;width:200px;text-align:left;z-index:100;line-height:1.55;font-family:'Barlow Condensed',sans-serif;box-shadow:0 4px 20px rgba(0,0,0,.5)}
+.wf-node:hover .tooltip{display:block}
+/* node colours */
+.n-trigger .wf-node-box{border-color:#c89030;background:#1a1500}
+.n-ai .wf-node-box{border-color:#6366f1;background:#12102a}
+.n-send .wf-node-box{border-color:#22c55e;background:#0a1a10}
+.n-pay .wf-node-box{border-color:#f97316;background:#1a0e00}
+.n-crm .wf-node-box{border-color:#e879f9;background:#18001a}
+
+/* ========== SLIDE 4: SIMULATION ========== */
+#s4{background:var(--bg);gap:32px}
+.sim-container{display:grid;grid-template-columns:1fr 1fr;gap:32px;width:100%;max-width:940px;align-items:start}
+.sim-left h3{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:600;color:var(--navy);margin-bottom:6px}
+.sim-left p{font-size:13px;color:var(--muted);margin-bottom:20px;line-height:1.6}
+.sim-steps{list-style:none;display:flex;flex-direction:column;gap:10px}
+.sim-step{display:flex;align-items:flex-start;gap:12px;padding:12px 14px;border-radius:8px;border:1px solid var(--border);background:var(--card);transition:all .4s;opacity:.4}
+.sim-step.active{opacity:1;border-color:var(--gold);background:rgba(200,144,48,0.06);box-shadow:0 0 0 1px rgba(200,144,48,0.2)}
+.sim-step.done{opacity:1;border-color:rgba(34,197,94,.4);background:rgba(34,197,94,0.05)}
+.step-num{width:24px;height:24px;border-radius:50%;background:var(--border);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;color:var(--muted);flex-shrink:0;transition:all .4s}
+.sim-step.active .step-num{background:var(--gold);color:#fff}
+.sim-step.done .step-num{background:#22c55e;color:#fff}
+.step-txt{font-size:13px;line-height:1.5;color:var(--text)}
+.step-txt strong{display:block;font-size:12px;color:var(--navy);margin-bottom:2px}
+/* output card */
+.sim-right{display:flex;flex-direction:column;gap:16px}
+.booking-card{background:var(--card);border:1.5px solid var(--border);border-radius:14px;overflow:hidden;opacity:0;transform:translateY(10px);transition:all .6s;box-shadow:0 4px 24px rgba(26,42,74,0.1)}
+.booking-card.show{opacity:1;transform:translateY(0)}
+.card-header{background:var(--navy);padding:16px 20px;display:flex;justify-content:space-between;align-items:center}
+.card-header h4{font-family:'Cormorant Garamond',serif;font-size:18px;color:#fff;font-weight:600}
+.card-header span{font-size:11px;color:var(--gold-light);letter-spacing:1px}
+.card-body{padding:20px}
+.card-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px}
+.card-row:last-child{border:none}
+.card-row .label{color:var(--muted);letter-spacing:.5px}
+.card-row .val{color:var(--navy);font-weight:500}
+.card-status{display:flex;align-items:center;gap:8px;margin-top:14px;padding:10px 14px;background:rgba(34,197,94,0.08);border-radius:8px;border:1px solid rgba(34,197,94,.3)}
+.card-status span{font-size:12px;color:#16a34a;letter-spacing:.5px}
+.whatsapp-msg{background:#dcfce7;border-radius:12px;padding:14px 16px;font-size:12px;line-height:1.65;color:#166534;position:relative;opacity:0;transform:translateY(6px);transition:all .6s}
+.whatsapp-msg.show{opacity:1;transform:translateY(0)}
+.whatsapp-msg::before{content:'WhatsApp · sent';display:block;font-size:10px;color:#16a34a;margin-bottom:6px;letter-spacing:1px;font-weight:600}
+.sim-restart{margin-top:16px;padding:8px 20px;background:var(--navy);color:#fff;border:none;border-radius:8px;font-family:'Barlow Condensed',sans-serif;font-size:13px;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;transition:background .2s}
+.sim-restart:hover{background:var(--gold)}
+
+/* ========== SLIDE 5: BEFORE/AFTER ========== */
+#s5{background:var(--bg)}
+.ba-wrap{display:grid;grid-template-columns:1fr 1fr;gap:24px;width:100%;max-width:860px}
+.ba-col{border-radius:var(--radius);padding:28px 24px}
+.ba-before{background:#fff;border:1.5px solid #fca5a5;position:relative}
+.ba-after{background:var(--navy);color:#fff}
+.ba-col-title{font-size:12px;letter-spacing:2.5px;text-transform:uppercase;margin-bottom:20px;font-weight:600}
+.ba-before .ba-col-title{color:#ef4444}
+.ba-after .ba-col-title{color:var(--gold-light)}
+.ba-list{list-style:none;display:flex;flex-direction:column;gap:12px}
+.ba-item{display:flex;gap:10px;font-size:14px;line-height:1.5}
+.ba-icon{flex-shrink:0;font-size:16px}
+.ba-before .ba-item{color:#7f1d1d}
+.ba-after .ba-item{color:#c8d8e8}
+.ba-after .ba-item strong{color:#fff}
+
+/* ========== SLIDE 6: QUOTE ========== */
+#s6{background:var(--navy)}
+.quote-wrap{max-width:720px;text-align:center}
+.quote-mark{font-family:'Cormorant Garamond',serif;font-size:80px;color:rgba(200,144,48,.3);line-height:.7;margin-bottom:8px}
+.quote-text{font-family:'Cormorant Garamond',serif;font-size:clamp(24px,3.2vw,38px);font-style:italic;color:#e8e8e8;line-height:1.45;margin-bottom:24px}
+.quote-text strong{color:var(--gold);font-style:normal}
+.quote-author{font-size:13px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.5);margin-bottom:32px}
+.stack-line{font-family:'Barlow Condensed',sans-serif;font-size:11px;letter-spacing:3px;color:rgba(200,144,48,.6);border:1px solid rgba(200,144,48,.25);padding:8px 20px;border-radius:20px;text-transform:uppercase}
+
+/* shared layout helpers */
+.center-col{display:flex;flex-direction:column;align-items:center;text-align:center}
+</style>
+</head>
+<body>
+
+<div id="timer">00:00</div>
+<div id="counter">Slide 1 of 6</div>
+
+<nav>
+  <div class="dot active" onclick="goTo(0)"></div>
+  <div class="dot" onclick="goTo(1)"></div>
+  <div class="dot" onclick="goTo(2)"></div>
+  <div class="dot" onclick="goTo(3)"></div>
+  <div class="dot" onclick="goTo(4)"></div>
+  <div class="dot" onclick="goTo(5)"></div>
+</nav>
+
+<div id="deck">
+
+<!-- SLIDE 1: HERO -->
+<section class="slide active center-col" id="s1">
+  <div class="hero-badge"><span></span>n8n for Hospitality · Lagos · 2025</div>
+  <h1 class="hero-title">Every Booking <em>Confirmed.</em><br>Every Guest Welcomed.</h1>
+  <p class="hero-desc">Instant booking confirmation, pre-arrival upsell offers 48hrs before arrival, day-of check-in instructions, and post-stay review requests — all automated. Guests feel valued before they even arrive.</p>
+  <div class="kpi-strip">
+    <div class="kpi"><div class="kpi-val">2min</div><div class="kpi-label">Confirmation</div></div>
+    <div class="kpi"><div class="kpi-val">Auto</div><div class="kpi-label">Pre-arrival comms</div></div>
+    <div class="kpi"><div class="kpi-val">+22%</div><div class="kpi-label">Upsell revenue</div></div>
+    <div class="kpi"><div class="kpi-val">0</div><div class="kpi-label">No-shows missed</div></div>
+  </div>
+</section>
+
+<!-- SLIDE 2: PROBLEM -->
+<section class="slide center-col" id="s2">
+  <div class="section-eyebrow">The Challenge</div>
+  <h2 class="section-title">Manual Processes, Missed Revenue</h2>
+  <p class="section-desc">Nigerian hotels lose thousands in revenue daily because guest communication is slow, inconsistent, and entirely manual — staff overwhelmed, guests underserved.</p>
+  <div class="problem-grid">
+    <div class="prob-card">
+      <div class="prob-icon">⏳</div>
+      <div class="prob-title">Slow Confirmations</div>
+      <p class="prob-text">Guests wait hours for booking confirmation emails. Some never arrive. Doubt triggers cancellations.</p>
+    </div>
+    <div class="prob-card">
+      <div class="prob-icon">💸</div>
+      <div class="prob-title">Zero Upsell Touch</div>
+      <p class="prob-text">No automated offer to upgrade rooms or add packages before arrival. Revenue left on the table daily.</p>
+    </div>
+    <div class="prob-card">
+      <div class="prob-icon">📭</div>
+      <div class="prob-title">No Pre-Arrival Comms</div>
+      <p class="prob-text">Guests arrive not knowing WiFi codes, parking details, or check-in procedures — causing front desk queues.</p>
+    </div>
+    <div class="prob-card">
+      <div class="prob-icon">🌟</div>
+      <div class="prob-title">Reviews Not Requested</div>
+      <p class="prob-text">Happy guests leave without a prompt to review. Hotels gain no ratings, no TripAdvisor momentum.</p>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 3: WORKFLOW -->
+<section class="slide center-col" id="s3">
+  <div class="section-eyebrow" style="margin-bottom:14px">n8n Automation Workflow</div>
+  <div class="canvas-wrap">
+    <div class="canvas-header">
+      <div class="canvas-dot" style="background:#ff5f57"></div>
+      <div class="canvas-dot" style="background:#febc2e"></div>
+      <div class="canvas-dot" style="background:#28c840"></div>
+      <span>Grand Continental Hotel · Booking Workflow</span>
+      <div class="pulse-ind"></div>
+    </div>
+    <div class="canvas-body">
+
+      <!-- Row 1: Intake -->
+      <div class="workflow-row">
+        <div class="stage-label">INTAKE</div>
+        <div class="nodes-row">
+          <div class="wf-node n-trigger">
+            <div class="wf-node-box"><span class="icon">🔗</span>Booking.com Webhook</div>
+            <div class="tooltip">Receives real-time booking events from Booking.com. Triggers the entire automation the moment a reservation is confirmed — no manual checking required.</div>
+          </div>
+          <span class="wf-arrow">→</span>
+          <div class="wf-node n-crm">
+            <div class="wf-node-box"><span class="icon">👤</span>Guest Profile Load</div>
+            <div class="tooltip">Fetches the guest's history from the PMS — past stays, preferences, dietary notes. Amaka's returning guest profile is loaded in under 1 second.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Row 2: AI Generate -->
+      <div class="workflow-row">
+        <div class="stage-label">AI WRITE</div>
+        <div class="nodes-row">
+          <div class="wf-node n-ai">
+            <div class="wf-node-box"><span class="icon">🤖</span>GPT-4o Personalise</div>
+            <div class="tooltip">Writes a warm, personalised confirmation in the hotel's brand voice. References Amaka by name, mentions her booked room type, and includes a relevant loyalty message.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Row 3: Delivery -->
+      <div class="workflow-row">
+        <div class="stage-label">DELIVER</div>
+        <div class="nodes-row">
+          <div class="wf-node n-send">
+            <div class="wf-node-box"><span class="icon">📱</span>WhatsApp + Email</div>
+            <div class="tooltip">Sends confirmation simultaneously via WhatsApp Business API and Gmail — branded template with booking reference, room details, and hotel contacts.</div>
+          </div>
+          <span class="wf-arrow">→</span>
+          <div class="wf-node n-pay">
+            <div class="wf-node-box"><span class="icon">⬆️</span>T-48hr Upsell</div>
+            <div class="tooltip">48 hours before arrival, sends a personalised suite upgrade offer for ₦15,000 extra — with a Paystack payment link. Amaka accepted, adding ₦15k to revenue.</div>
+          </div>
+          <span class="wf-arrow">→</span>
+          <div class="wf-node n-send">
+            <div class="wf-node-box"><span class="icon">🏨</span>Check-in Brief</div>
+            <div class="tooltip">Morning of arrival, sends WiFi password, parking map link, early check-in availability, and restaurant reservation link. Reduces front desk enquiries by 60%.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Row 4: Post-stay -->
+      <div class="workflow-row">
+        <div class="stage-label">POST-STAY</div>
+        <div class="nodes-row">
+          <div class="wf-node n-ai">
+            <div class="wf-node-box"><span class="icon">⭐</span>Review Request</div>
+            <div class="tooltip">24 hours after checkout, GPT-4o sends a personal thank-you note with a Google Reviews and TripAdvisor link. Review rates increase 3× vs manual follow-up.</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 4: SIMULATION -->
+<section class="slide" id="s4" style="flex-direction:column;gap:20px">
+  <div style="text-align:center;margin-bottom:4px">
+    <div class="section-eyebrow">Live Demo</div>
+    <h2 class="section-title" style="font-size:30px">Watch the Workflow Run</h2>
+  </div>
+  <div class="sim-container">
+    <div class="sim-left">
+      <h3>Amaka's Booking Journey</h3>
+      <p>Deluxe Room · 2 nights · Grand Continental Hotel Lagos</p>
+      <ul class="sim-steps" id="simSteps">
+        <li class="sim-step" id="step1">
+          <div class="step-num">1</div>
+          <div class="step-txt"><strong>Booking received</strong>Booking.com webhook fires — reservation #GCH-2847 confirmed</div>
+        </li>
+        <li class="sim-step" id="step2">
+          <div class="step-num">2</div>
+          <div class="step-txt"><strong>GPT-4o writes confirmation</strong>Personalised message drafted with Amaka's name and room details</div>
+        </li>
+        <li class="sim-step" id="step3">
+          <div class="step-num">3</div>
+          <div class="step-txt"><strong>Sent within 2 minutes</strong>Branded email + WhatsApp delivered simultaneously</div>
+        </li>
+        <li class="sim-step" id="step4">
+          <div class="step-num">4</div>
+          <div class="step-txt"><strong>T-48hr upsell sent & accepted</strong>Suite upgrade offer for ₦15,000 — Amaka accepted via Paystack link</div>
+        </li>
+        <li class="sim-step" id="step5">
+          <div class="step-num">5</div>
+          <div class="step-txt"><strong>Morning check-in brief sent</strong>WiFi: GCH_Guest2025 · Parking: Level B2 · Restaurant opens 6:30am</div>
+        </li>
+      </ul>
+      <button class="sim-restart" onclick="runSim()">↺ Replay</button>
+    </div>
+    <div class="sim-right">
+      <div class="booking-card" id="bookingCard">
+        <div class="card-header">
+          <h4>Booking Confirmed ✓</h4>
+          <span>#GCH-2847</span>
+        </div>
+        <div class="card-body">
+          <div class="card-row"><span class="label">Guest</span><span class="val">Amaka Okonkwo</span></div>
+          <div class="card-row"><span class="label">Room</span><span class="val">Executive Suite (upgraded)</span></div>
+          <div class="card-row"><span class="label">Check-in</span><span class="val">Wed, 14 Aug 2025</span></div>
+          <div class="card-row"><span class="label">Check-out</span><span class="val">Fri, 16 Aug 2025</span></div>
+          <div class="card-row"><span class="label">Total</span><span class="val">₦210,000</span></div>
+          <div class="card-row"><span class="label">Upsell</span><span class="val" style="color:#16a34a">+₦15,000 suite ✓</span></div>
+          <div class="card-status"><span>✓ Confirmation sent · WhatsApp + Email delivered</span></div>
+        </div>
+      </div>
+      <div class="whatsapp-msg" id="waMsg">
+        Good morning Amaka! 🌟 Your check-in at Grand Continental is today. Your Executive Suite (Room 501) is ready from 3pm.<br><br>
+        📶 WiFi: <strong>GCH_Guest2025</strong><br>
+        🅿️ Parking: Level B2 (complimentary)<br>
+        🍳 Restaurant opens 6:30am<br><br>
+        We look forward to welcoming you! — Grand Continental Lagos
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 5: BEFORE / AFTER -->
+<section class="slide center-col" id="s5">
+  <div class="section-eyebrow" style="margin-bottom:14px">Impact Comparison</div>
+  <h2 class="section-title" style="margin-bottom:28px;font-size:34px">Before & After Automation</h2>
+  <div class="ba-wrap">
+    <div class="ba-col ba-before">
+      <div class="ba-col-title">✕ Before n8n</div>
+      <ul class="ba-list">
+        <li class="ba-item"><span class="ba-icon">⏰</span><span>Confirmation emails sent manually — sometimes hours later, often forgotten</span></li>
+        <li class="ba-item"><span class="ba-icon">💬</span><span>No pre-arrival communication — guests arrived anxious and uninformed</span></li>
+        <li class="ba-item"><span class="ba-icon">📉</span><span>Upsells only at front desk check-in — low acceptance, awkward pressure</span></li>
+        <li class="ba-item"><span class="ba-icon">🌙</span><span>No follow-up after checkout — review rates below 3% of checkouts</span></li>
+        <li class="ba-item"><span class="ba-icon">👩‍💼</span><span>Front desk staff overwhelmed with basic enquiries every morning</span></li>
+      </ul>
+    </div>
+    <div class="ba-col ba-after">
+      <div class="ba-col-title">✓ After n8n</div>
+      <ul class="ba-list">
+        <li class="ba-item"><span class="ba-icon">⚡</span><span><strong>2-minute confirmation</strong> sent automatically with branded email + WhatsApp</span></li>
+        <li class="ba-item"><span class="ba-icon">🎯</span><span><strong>48hr upsell</strong> sent to every guest — +22% upsell revenue, Paystack-enabled</span></li>
+        <li class="ba-item"><span class="ba-icon">📲</span><span><strong>Check-in brief</strong> sent automatically — WiFi, parking, restaurant details</span></li>
+        <li class="ba-item"><span class="ba-icon">⭐</span><span><strong>3× more reviews</strong> from automated post-stay requests with direct links</span></li>
+        <li class="ba-item"><span class="ba-icon">🏆</span><span><strong>Zero manual intervention</strong> — staff focus on in-person guest experience</span></li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 6: QUOTE -->
+<section class="slide center-col" id="s6">
+  <div class="quote-wrap">
+    <div class="quote-mark">"</div>
+    <p class="quote-text">We stopped chasing confirmations and started <strong>growing revenue on autopilot.</strong> Every guest now feels like a VIP before they arrive.</p>
+    <div class="quote-author">General Manager · Grand Continental Hotel, Lagos</div>
+    <div class="stack-line">n8n · GPT-4o · WhatsApp API · Booking.com · Gmail · Paystack · Slack</div>
+  </div>
+</section>
+
+</div>
+
+<script>
+// ---- TIMER ----
+let seconds = 0;
+setInterval(() => {
+  seconds++;
+  const m = String(Math.floor(seconds/60)).padStart(2,'0');
+  const s = String(seconds%60).padStart(2,'0');
+  const el = document.getElementById('timer');
+  el.textContent = m+':'+s;
+  if(seconds >= 840) el.classList.add('red');
+}, 1000);
+
+// ---- SLIDES ----
+const slides = document.querySelectorAll('.slide');
+const dots = document.querySelectorAll('.dot');
+let current = 0;
+
+function goTo(n) {
+  slides[current].classList.remove('active');
+  dots[current].classList.remove('active');
+  current = n;
+  slides[current].classList.add('active');
+  dots[current].classList.add('active');
+  document.getElementById('counter').textContent = `Slide ${current+1} of ${slides.length}`;
+  if(current === 3) runSim();
+}
+
+document.addEventListener('keydown', e => {
+  if(e.key === 'ArrowRight' && current < slides.length-1) goTo(current+1);
+  if(e.key === 'ArrowLeft' && current > 0) goTo(current-1);
+});
+
+// ---- SIMULATION ----
+let simRunning = false;
+function runSim() {
+  if(simRunning) return;
+  simRunning = true;
+  const steps = ['step1','step2','step3','step4','step5'];
+  steps.forEach(id => {
+    const el = document.getElementById(id);
+    el.classList.remove('active','done');
+  });
+  document.getElementById('bookingCard').classList.remove('show');
+  document.getElementById('waMsg').classList.remove('show');
+
+  let i = 0;
+  function next() {
+    if(i > 0) {
+      document.getElementById(steps[i-1]).classList.remove('active');
+      document.getElementById(steps[i-1]).classList.add('done');
+    }
+    if(i < steps.length) {
+      document.getElementById(steps[i]).classList.add('active');
+      i++;
+      const delay = i === 4 ? 2000 : 1400;
+      setTimeout(next, delay);
+    } else {
+      document.getElementById('bookingCard').classList.add('show');
+      setTimeout(() => document.getElementById('waMsg').classList.add('show'), 800);
+      simRunning = false;
+    }
+  }
+  setTimeout(next, 400);
+}
+</script>
+</body>
+</html>
