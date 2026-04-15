@@ -1,0 +1,987 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Automation Workflow Library — Digital Loop Int'l Ltd</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --orange:#E34A24; --blue:#009FD4; --navy:#0D1B2A;
+  --card:#162D44;   --white:#fff;   --lgray:#8DA3B0;
+  --offwhite:#F5F7FA; --dgray:#2C3E50; --border:#E0E6ED;
+  --green:#27AE60;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{background:var(--offwhite);color:var(--dgray);font-family:'Outfit',sans-serif;overflow-x:hidden;}
+
+/* ── NAV ── */
+nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(13,27,42,0.97);backdrop-filter:blur(12px);
+  border-bottom:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;
+  justify-content:space-between;padding:0 2.5rem;height:60px;}
+.nav-logo{display:flex;align-items:center;gap:0.6rem;}
+.nav-logo span.d{color:var(--orange);font-weight:800;font-size:1.1rem;}
+.nav-logo span.l{color:var(--blue);font-weight:800;font-size:1.1rem;}
+.nav-tag{font-family:'JetBrains Mono',monospace;font-size:0.65rem;color:var(--lgray);letter-spacing:0.1em;}
+.nav-cta{background:var(--orange);color:#fff;font-size:0.8rem;font-weight:600;
+  padding:0.45rem 1.2rem;border-radius:6px;text-decoration:none;transition:opacity 0.2s;}
+.nav-cta:hover{opacity:0.85;}
+
+/* ── HERO ── */
+.hero{min-height:92vh;background:var(--navy);display:flex;align-items:center;
+  justify-content:center;text-align:center;padding:100px 2rem 4rem;position:relative;overflow:hidden;}
+.hero-orb1{position:absolute;top:-100px;right:-80px;width:500px;height:500px;border-radius:50%;
+  background:radial-gradient(circle,rgba(227,74,36,0.12) 0%,transparent 65%);pointer-events:none;}
+.hero-orb2{position:absolute;bottom:-80px;left:-80px;width:400px;height:400px;border-radius:50%;
+  background:radial-gradient(circle,rgba(0,159,212,0.10) 0%,transparent 65%);pointer-events:none;}
+.hero-grid{position:absolute;inset:0;background-image:radial-gradient(circle,rgba(255,255,255,0.06) 1px,transparent 1px);
+  background-size:32px 32px;opacity:0.4;}
+.hero-inner{position:relative;z-index:2;max-width:860px;}
+.hero-badge{display:inline-flex;align-items:center;gap:0.5rem;background:rgba(227,74,36,0.15);
+  border:1px solid rgba(227,74,36,0.3);color:var(--orange);font-size:0.68rem;font-weight:700;
+  letter-spacing:0.14em;text-transform:uppercase;padding:0.35rem 1rem;border-radius:20px;
+  margin-bottom:1.8rem;font-family:'JetBrains Mono',monospace;}
+.hero-badge::before{content:'●';font-size:0.5rem;animation:blink 1.5s infinite;}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.2}}
+h1{font-size:clamp(2.8rem,6vw,5rem);font-weight:800;line-height:1.0;letter-spacing:-0.03em;
+  color:#fff;margin-bottom:0.5rem;}
+h1 span.o{color:var(--orange);}
+h1 span.b{color:var(--blue);}
+.hero-sub{font-size:1.1rem;color:var(--lgray);max-width:620px;margin:1.2rem auto 2.5rem;line-height:1.7;font-weight:300;}
+.hero-stats{display:flex;gap:0;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);
+  border-radius:12px;overflow:hidden;max-width:580px;margin:0 auto 2.5rem;}
+.stat{padding:1.2rem 2rem;flex:1;border-right:1px solid rgba(255,255,255,0.08);}
+.stat:last-child{border-right:none;}
+.stat-val{font-size:2rem;font-weight:800;color:var(--orange);}
+.stat-lbl{font-size:0.58rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--lgray);
+  margin-top:0.2rem;font-family:'JetBrains Mono',monospace;}
+.hero-author{font-size:0.85rem;color:var(--lgray);}
+.hero-author strong{color:#fff;}
+.scroll-down{margin-top:3rem;display:flex;flex-direction:column;align-items:center;gap:0.4rem;
+  color:var(--lgray);font-size:0.75rem;font-family:'JetBrains Mono',monospace;animation:float 2s infinite;}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(6px)}}
+.scroll-down::after{content:'↓';font-size:1.2rem;color:var(--orange);}
+
+/* ── SEARCH ── */
+.search-bar{background:#fff;border-bottom:1px solid var(--border);padding:1.2rem 2.5rem;
+  position:sticky;top:60px;z-index:90;display:flex;align-items:center;gap:1rem;
+  box-shadow:0 2px 10px rgba(0,0,0,0.06);}
+.search-input{flex:1;max-width:520px;border:1.5px solid var(--border);border-radius:8px;
+  padding:0.6rem 1rem 0.6rem 2.8rem;font-size:0.9rem;font-family:'Outfit',sans-serif;
+  outline:none;transition:border-color 0.2s;background:var(--offwhite);}
+.search-input:focus{border-color:var(--orange);}
+.search-wrap{position:relative;flex:1;max-width:520px;}
+.search-icon{position:absolute;left:0.9rem;top:50%;transform:translateY(-50%);
+  font-size:0.9rem;color:var(--lgray);}
+.filter-chips{display:flex;gap:0.5rem;flex-wrap:wrap;}
+.chip{padding:0.35rem 0.9rem;border-radius:20px;font-size:0.76rem;font-weight:600;cursor:pointer;
+  border:1.5px solid var(--border);background:#fff;transition:all 0.2s;white-space:nowrap;}
+.chip:hover,.chip.active{border-color:var(--orange);background:var(--orange);color:#fff;}
+.result-count{font-size:0.78rem;color:var(--lgray);white-space:nowrap;font-family:'JetBrains Mono',monospace;}
+
+/* ── SECTIONS ── */
+.section{padding:4rem 2.5rem;max-width:1280px;margin:0 auto;}
+.sec-header{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:2rem;
+  padding-bottom:1rem;border-bottom:2px solid var(--border);}
+.sec-header-left{}
+.sec-eyebrow{font-size:0.65rem;letter-spacing:0.2em;text-transform:uppercase;
+  color:var(--orange);font-family:'JetBrains Mono',monospace;margin-bottom:0.3rem;}
+.sec-title{font-size:1.6rem;font-weight:800;color:var(--navy);line-height:1.1;}
+.sec-desc{font-size:0.85rem;color:var(--lgray);margin-top:0.3rem;max-width:480px;line-height:1.6;}
+.sec-count{font-family:'JetBrains Mono',monospace;font-size:0.7rem;color:var(--lgray);
+  background:var(--offwhite);border:1px solid var(--border);padding:0.3rem 0.8rem;border-radius:20px;}
+
+/* ── GRID ── */
+.workflow-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1.2rem;}
+.wf-card{background:#fff;border:1.5px solid var(--border);border-radius:12px;padding:1.4rem;
+  text-decoration:none;color:inherit;display:flex;flex-direction:column;gap:0.6rem;
+  transition:all 0.22s;position:relative;overflow:hidden;}
+.wf-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;
+  background:linear-gradient(90deg,var(--orange),var(--blue));transform:scaleX(0);
+  transform-origin:left;transition:transform 0.25s;}
+.wf-card:hover{border-color:var(--orange);transform:translateY(-3px);
+  box-shadow:0 8px 28px rgba(227,74,36,0.12);}
+.wf-card:hover::before{transform:scaleX(1);}
+.wf-card-top{display:flex;align-items:flex-start;justify-content:space-between;gap:0.5rem;}
+.wf-icon{font-size:1.6rem;flex-shrink:0;}
+.wf-arrow{font-size:0.9rem;color:var(--lgray);transition:all 0.2s;margin-top:0.2rem;}
+.wf-card:hover .wf-arrow{color:var(--orange);transform:translate(2px,-2px);}
+.wf-label{font-size:0.6rem;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;
+  color:var(--orange);font-family:'JetBrains Mono',monospace;display:flex;align-items:center;gap:0.4rem;}
+.wf-label::before{content:'';width:14px;height:2px;background:var(--orange);border-radius:1px;}
+.wf-name{font-size:0.97rem;font-weight:700;color:var(--navy);line-height:1.3;}
+.wf-desc{font-size:0.78rem;color:var(--lgray);line-height:1.6;flex:1;}
+.wf-tags{display:flex;gap:0.4rem;flex-wrap:wrap;margin-top:0.4rem;}
+.wf-tag{font-size:0.6rem;padding:0.18rem 0.6rem;border-radius:4px;background:var(--offwhite);
+  color:var(--lgray);font-weight:600;font-family:'JetBrains Mono',monospace;}
+.wf-footer{display:flex;align-items:center;justify-content:space-between;
+  padding-top:0.8rem;border-top:1px solid var(--border);margin-top:auto;}
+.wf-steps{font-size:0.68rem;color:var(--lgray);font-family:'JetBrains Mono',monospace;}
+.wf-btn{font-size:0.72rem;font-weight:700;color:var(--orange);display:flex;align-items:center;gap:0.3rem;}
+
+/* ── HIDDEN for filter ── */
+.wf-card.hidden{display:none;}
+.section.hidden{display:none;}
+
+/* ── CTA ── */
+.cta-section{background:var(--navy);padding:5rem 2.5rem;text-align:center;}
+.cta-inner{max-width:700px;margin:0 auto;}
+.cta-tag{display:inline-block;font-size:0.65rem;letter-spacing:0.2em;text-transform:uppercase;
+  color:var(--orange);font-family:'JetBrains Mono',monospace;margin-bottom:1rem;}
+.cta-title{font-size:clamp(2rem,4vw,3.2rem);font-weight:800;color:#fff;line-height:1.1;margin-bottom:1rem;}
+.cta-sub{font-size:1rem;color:var(--lgray);line-height:1.7;margin-bottom:2.5rem;}
+.cta-buttons{display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;}
+.btn-primary{background:var(--orange);color:#fff;padding:0.9rem 2rem;border-radius:8px;
+  font-weight:700;font-size:0.9rem;text-decoration:none;transition:opacity 0.2s;}
+.btn-primary:hover{opacity:0.85;}
+.btn-secondary{background:transparent;color:#fff;padding:0.9rem 2rem;border-radius:8px;
+  font-weight:700;font-size:0.9rem;text-decoration:none;border:1.5px solid rgba(255,255,255,0.25);
+  transition:border-color 0.2s;}
+.btn-secondary:hover{border-color:#fff;}
+
+/* ── FOOTER ── */
+footer{background:var(--navy);border-top:1px solid rgba(255,255,255,0.06);
+  padding:2rem 2.5rem;text-align:center;}
+footer p{font-size:0.8rem;color:var(--lgray);}
+footer a{color:var(--orange);text-decoration:none;}
+
+/* ── RESPONSIVE ── */
+@media(max-width:768px){
+  .search-bar{flex-wrap:wrap;padding:1rem;}
+  .sec-header{flex-direction:column;align-items:flex-start;gap:0.5rem;}
+  .hero-stats{flex-direction:column;}
+  .stat{border-right:none;border-bottom:1px solid rgba(255,255,255,0.08);}
+  h1{font-size:2.4rem;}
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">
+    <span class="d">digital</span><span class="l">LOOP</span>
+    <span class="nav-tag">| AI Workflow Library</span>
+  </div>
+  <a class="nav-cta" href="mailto:shileodebode@gmail.com">Book AI Strategy Call</a>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-orb1"></div>
+  <div class="hero-orb2"></div>
+  <div class="hero-grid"></div>
+  <div class="hero-inner">
+    <div class="hero-badge">Live AI Automation Demos</div>
+    <h1>AI Workflows for<br><span class="o">Every</span> <span class="b">Industry</span></h1>
+    <p class="hero-sub">60 interactive AI automation workflow guides across 14 industries — built to show exactly how artificial intelligence can transform your organization's operations.</p>
+    <div class="hero-stats">
+      <div class="stat"><div class="stat-val">60</div><div class="stat-lbl">Automation Workflows</div></div>
+      <div class="stat"><div class="stat-val">14</div><div class="stat-lbl">Industries Covered</div></div>
+      <div class="stat"><div class="stat-val">100%</div><div class="stat-lbl">Interactive & Free</div></div>
+    </div>
+    <p class="hero-author">Built by <strong>Adeshile Odebode</strong> · AI Transformation Strategist · <strong>Digital Loop Int'l Ltd</strong></p>
+    <div class="scroll-down">Explore all workflows</div>
+  </div>
+</section>
+
+<!-- SEARCH & FILTER -->
+<div class="search-bar">
+  <div class="search-wrap">
+    <span class="search-icon">🔍</span>
+    <input class="search-input" id="searchInput" type="text" placeholder="Search workflows… e.g. 'recruitment', 'invoice', 'patient'">
+  </div>
+  <div class="filter-chips" id="filterChips">
+    <span class="chip active" data-cat="all">All (60)</span>
+    <span class="chip" data-cat="banking">Banking</span>
+    <span class="chip" data-cat="cs">Customer Service</span>
+    <span class="chip" data-cat="ecom">E-commerce</span>
+    <span class="chip" data-cat="edu">Education</span>
+    <span class="chip" data-cat="fin">Finance & Ops</span>
+    <span class="chip" data-cat="hc">Healthcare</span>
+    <span class="chip" data-cat="hosp">Hospitality</span>
+    <span class="chip" data-cat="hr">HR</span>
+    <span class="chip" data-cat="log">Logistics</span>
+    <span class="chip" data-cat="mfg">Manufacturing</span>
+    <span class="chip" data-cat="mkt">Marketing</span>
+    <span class="chip" data-cat="og">Oil & Gas</span>
+    <span class="chip" data-cat="ops">Operations</span>
+    <span class="chip" data-cat="re">Real Estate & Sales</span>
+  </div>
+  <span class="result-count" id="resultCount">60 workflows</span>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- BANKING -->
+<div class="section" id="sec-banking" data-cat="banking">
+  <div class="sec-header">
+    <div class="sec-header-left">
+      <div class="sec-eyebrow">Industry 01</div>
+      <div class="sec-title">🏦 Banking & Financial Services</div>
+      <div class="sec-desc">AI-powered automation for KYC, compliance, loan processing, fraud detection, and customer onboarding — cutting processing time while improving accuracy and regulatory adherence.</div>
+    </div>
+    <span class="sec-count">4 workflows</span>
+  </div>
+  <div class="workflow-grid">
+    <a class="wf-card" href="workflows/bank-kyc-onboarding.html" target="_blank" data-cat="banking" data-name="KYC Customer Onboarding" data-desc="automate identity verification document collection compliance checks customer welcome">
+      <div class="wf-card-top"><div class="wf-icon">🪪</div><div class="wf-arrow">↗</div></div>
+      <div class="wf-label">Banking</div>
+      <div class="wf-name">KYC & Customer Onboarding Automation</div>
+      <div class="wf-desc">Automates identity verification, document collection, compliance checks, risk scoring, and customer welcome sequences — reducing onboarding from days to hours.</div>
+      <div class="wf-tags"><span class="wf-tag">KYC</span><span class="wf-tag">Compliance</span><span class="wf-tag">Onboarding</span></div>
+      <div class="wf-footer"><span class="wf-steps">⚡ 6-step workflow</span><span class="wf-btn">View Demo ↗</span></div>
+    </a>
+    <a class="wf-card" href="workflows/bank-loan-processing.html" target="_blank" data-cat="banking" data-name="Loan Processing" data-desc="loan application credit scoring approval disbursement automated">
+      <div class="wf-card-top"><div class="wf-icon">💳</div><div class="wf-arrow">↗</div></div>
+      <div class="wf-label">Banking</div>
+      <div class="wf-name">Loan Processing Automation</div>
+      <div class="wf-desc">End-to-end loan lifecycle automation — from application intake and credit scoring to approval routing, customer notification, and disbursement tracking.</div>
+      <div class="wf-tags"><span class="wf-tag">Loans</span><span class="wf-tag">Credit Scoring</span><span class="wf-tag">Approvals</span></div>
+      <div class="wf-footer"><span class="wf-steps">⚡ 7-step workflow</span><span class="wf-btn">View Demo ↗</span></div>
+    </a>
+    <a class="wf-card" href="workflows/bank-regulatory-compliance.html" target="_blank" data-cat="banking" data-name="Regulatory Compliance Reporting" data-desc="compliance reporting regulatory audit AML financial">
+      <div class="wf-card-top"><div class="wf-icon">📋</div><div class="wf-arrow">↗</div></div>
+      <div class="wf-label">Banking</div>
+      <div class="wf-name">Regulatory Compliance Reporting</div>
+      <div class="wf-desc">Automated data gathering, report generation, and submission workflows for AML, regulatory filings, and audit trails — ensuring timely compliance without manual effort.</div>
+      <div class="wf-tags"><span class="wf-tag">AML</span><span class="wf-tag">Reporting</span><span class="wf-tag">Audit</span></div>
+      <div class="wf-footer"><span class="wf-steps">⚡ 5-step workflow</span><span class="wf-btn">View Demo ↗</span></div>
+    </a>
+    <a class="wf-card" href="workflows/bank-transaction-alerts-fraud.html" target="_blank" data-cat="banking" data-name="Transaction Alerts Fraud Detection" data-desc="fraud detection transaction monitoring alerts suspicious activity">
+      <div class="wf-card-top"><div class="wf-icon">🛡️</div><div class="wf-arrow">↗</div></div>
+      <div class="wf-label">Banking</div>
+      <div class="wf-name">Transaction Alerts & Fraud Detection</div>
+      <div class="wf-desc">Real-time transaction monitoring, AI-powered anomaly detection, instant customer alerts, and automated fraud escalation workflows — protecting customers at scale.</div>
+      <div class="wf-tags"><span class="wf-tag">Fraud</span><span class="wf-tag">Alerts</span><span class="wf-tag">Security</span></div>
+      <div class="wf-footer"><span class="wf-steps">⚡ 6-step workflow</span><span class="wf-btn">View Demo ↗</span></div>
+    </a>
+  </div>
+</div>
+
+<!-- CUSTOMER SERVICE -->
+<div class="section" id="sec-cs" data-cat="cs">
+  <div class="sec-header">
+    <div class="sec-header-left">
+      <div class="sec-eyebrow">Industry 02</div>
+      <div class="sec-title">🎧 Customer Service</div>
+      <div class="sec-desc">Intelligent ticket routing, AI chatbots, complaint escalation, and post-resolution surveys — delivering faster, more consistent customer experiences at lower cost.</div>
+    </div>
+    <span class="sec-count">4 workflows</span>
+  </div>
+  <div class="workflow-grid">
+    <a class="wf-card" href="workflows/cs-ticket-routing.html" target="_blank" data-cat="cs" data-name="Support Ticket Routing" data-desc="ticket routing customer service support helpdesk triage">
+      <div class="wf-card-top"><div class="wf-icon">🎫</div><div class="wf-arrow">↗</div></div>
+      <div class="wf-label">Customer Service</div>
+      <div class="wf-name">Support Ticket Routing Automation</div>
+      <div class="wf-desc">AI classifies incoming support requests by priority, category, and urgency — then routes them to the right agent or department automatically, with full audit trail.</div>
+      <div class="wf-tags"><span class="wf-tag">Routing</span><span class="wf-tag">Triage</span><span class="wf-tag">Helpdesk</span></div>
+      <div class="wf-footer"><span class="wf-steps">⚡ 5-step workflow</span><span class="wf-btn">View Demo ↗</span></div>
+    </a>
+    <a class="wf-card" href="workflows/cs-faq-chatbot.html" target="_blank" data-cat="cs" data-name="FAQ Chatbot" data-desc="faq chatbot customer questions automated responses ai chat">
+      <div class="wf-card-top"><div class="wf-icon">🤖</div><div class="wf-arrow">↗</div></div>
+      <div class="wf-label">Customer Service</div>
+      <div class="wf-name">FAQ Chatbot Automation</div>
+      <div class="wf-desc">AI-powered FAQ chatbot that handles common customer queries instantly, 24/7 — with intelligent fallback to human agents for complex or sensitive issues.</div>
+      <div class="wf-tags"><span class="wf-tag">Chatbot</span><span class="wf-tag">FAQ</span><span class="wf-tag">24/7</span></div>
+      <div class="wf-footer"><span class="wf-steps">⚡ 4-step workflow</span><span class="wf-btn">View Demo ↗</span></div>
+    </a>
+    <a class="wf-card" href="workflows/cs-complaint-escalation.html" target="_blank" data-cat="cs" data-name="Complaint Escalation" data-desc="complaint escalation customer complaints resolution management">
+      <div class="wf-card-top"><div class="wf-icon">⚠️</div><div class="wf-arrow">↗</div></div>
+      <div class="wf-label">Customer Service</div>
+      <div class="wf-name">Complaint Escalation Automation</div>
+      <div class="wf-desc">Automatically detects high-priority complaints, triggers escalation to senior agents or management, tracks resolution timelines, and notifies customers at each stage.</div>
+      <div class="wf-tags"><span class="wf-tag">Escalation</span><span class="wf-tag">Complaints</span><span class="wf-tag">Resolution</span></div>
+      <div class="wf-footer"><span class="wf-steps">⚡ 5-step workflow</span><span class="wf-btn">View Demo ↗</span></div>
+    </a>
+    <a class="wf-card" href="workflows/cs-post-resolution-surveys.html" target="_blank" data-cat="cs" data-name="Post-Resolution Surveys" data-desc="satisfaction survey CSAT NPS feedback customer post resolution">
+      <div class="wf-card-top"><div class="wf-icon">⭐</div><div class="wf-arrow">↗</div></div>
+      <div class="wf-label">Customer Service</div>
+      <div class="wf-name">Post-Resolution Survey Automation</div>
+      <div class="wf-desc">Automatically sends CSAT/NPS surveys after ticket resolution, collects responses, flags low scores for follow-up, and aggregates feedback into real-time dashboards.</div>
+      <div class="wf-tags"><span class="wf-tag">CSAT</span><span class="wf-tag">NPS</span><span class="wf-tag">Feedback</span></div>
+      <div class="wf-footer"><span class="wf-steps">⚡ 4-step workflow</span><span class="wf-btn">View Demo ↗</span></div>
+    </a>
+  </div>
+</div>
+
+<!-- E-COMMERCE -->
+<div class="section" id="sec-ecom" data-cat="ecom">
+  <div class="sec-header">
+    <div class="sec-header-left">
+      <div class="sec-eyebrow">Industry 03</div>
+      <div class="sec-title">🛒 E-commerce & Retail</div>
+      <div class="sec-desc">From abandoned cart recovery to returns management and inventory alerts — AI automation that drives revenue, reduces churn, and keeps operations running smoothly.</div>
+    </div>
+    <span class="sec-count">4 workflows</span>
+  </div>
+  <div class="workflow-grid">
+    <a class="wf-card" href="workflows/ecom-order-management.html" target="_blank" data-cat="ecom" data-name="Order Management" data-desc="order processing fulfillment confirmation shipping ecommerce">
+      <div class="wf-card-top"><div class="wf-icon">📦</div><div class="wf-arrow">↗</div></div>
+      <div class="wf-label">E-commerce</div>
+      <div class="wf-name">Order Management Automation</div>
+      <div class="wf-desc">Automates the full order lifecycle — from purchase confirmation and payment verification to warehouse picking, shipping notifications, and delivery confirmation.</div>
+      <div class="wf-tags"><span class="wf-tag">Orders</span><span class="wf-tag">Fulfillment</span><span class="wf-tag">Shipping</span></div>
+      <div class="wf-footer"><span class="wf-steps">⚡ 6-step workflow</span><span class="wf-btn">View Demo ↗</span></div>
+    </a>
+    <a class="wf-card" href="workflows/ecom-abandoned-cart-recovery.html" target="_blank" data-cat="ecom" data-name="Abandoned Cart Recovery" data-desc="cart abandonment recovery email sms win back revenue">
+      <div class="wf-card-top"><div class="wf-icon">🛍️</div><div class="wf-arrow">↗</div></div>
+      <div class="wf-label">E-commerce</div>
+      <div class="wf-name">Abandoned Cart Recovery Automation</div>
+      <div class="wf-desc">Multi-touch recovery sequences — email, SMS, and WhatsApp — triggered automatically when a customer leaves without completing purchase, with dynamic discount logic.</div>
+      <div class="wf-tags"><span class="wf-tag">Revenue</span><span class="wf-tag">Recovery</span><span class="wf-tag">Email/SMS</span></div>
+      <div class="wf-footer"><span class="wf-steps">⚡ 5-step workflow</span><span class="wf-btn">View Demo ↗</span></div>
+    </a>
+    <a class="wf-card" href="workflows/ecom-returns-refunds.html" target="_blank" data-cat="ecom" data-name="Returns and Refunds" data-desc="returns refunds customer return process automation">
+      <div class="wf-card-top"><div class="wf-icon">↩️</div><div class="wf-arrow">↗</div></div>
+      <div class="wf-label">E-commerce</div>
+      <div class="wf-name">Returns & Refunds Automation</div>
+      <div class="wf-desc">Streamlines the returns process from customer request to label generation, warehouse inspection, and refund processing — reducing handling time and improving satisfaction.</div>
+      <div class="wf-tags"><span class="wf-tag">Returns</span><span class="wf-tag">Refunds</span><span class="wf-tag">CX</span></div>
+      <div class="wf-footer"><span class="wf-steps">⚡ 5-step workflow</span><span class="wf-btn">View Demo ↗</span></div>
+    </a>
+    <a class="wf-card" href="workflows/ecom-inventory-alerts.html" target="_blank" data-cat="ecom" data-name="Inventory Alerts Management" data-desc="inventory stock low stock alerts reorder management">
+      <div class="wf-card-top"><div class="wf-icon">📊</div><div class="wf-arrow">↗</div></div>
+      <div class="wf-label">E-commerce</div>
+      <div class="wf-name">Inventory Alerts & Management</div>
+      <div class="wf-desc">Real-time stock monitoring with automated low-stock alerts, reorder triggers, supplier notifications, and inventory reconciliation — preventing stockouts automatically.</div>
+      <div class="wf-tags"><span class="wf-tag">Inventory</span><span class="wf-tag">Alerts</span><span class="wf-tag">Reorder</span></div>
+      <div class="wf-footer"><span class="wf-steps">⚡ 4-step workflow</span><span class="wf-btn">View Demo ↗</span></div>
+    </a>
+  </div>
+</div>
+
+<!-- EDUCATION -->
+<div class="section" id="sec-edu" data-cat="edu">
+  <div class="sec-header">
+    <div class="sec-header-left">
+      <div class="sec-eyebrow">Industry 04</div>
+      <div class="sec-title">🎓 Education & Universities</div>
+      <div class="sec-desc">AI automation for admissions, fee management, result notifications, and parent communications — letting educators focus on learning, not admin.</div>
+    </div>
+    <span class="sec-count">4 workflows</span>
+  </div>
+  <div class="workflow-grid">
+    <a class="wf-card" href="workflows/edu-student-admissions.html" target="_blank" data-cat="edu" data-name="Student Admissions" data-desc="admissions applications student university enrollment">
+      <div class="wf-card-top"><div class="wf-icon">📝</div><div class="wf-arrow">↗</div></div>
+      <div class="wf-label">Education</div>
+      <div class="wf-name">Student Admissions Automation</div>
+      <div class="wf-desc">From enquiry capture via WhatsApp or web form, to application processing, document verification, offer letters, and enrollment confirmation — fully automated.</div>
+      <div class="wf-tags"><span class="wf-tag">Admissions</span><span class="wf-tag">WhatsApp</span><span class="wf-tag">Enrollment</span></div>
+      <div class="wf-footer"><span class="wf-steps">⚡ 7-step workflow</span><span class="wf-btn">View Demo ↗</span></div>
+    </a>
+    <a class="wf-card" href="workflows/edu-fee-reminders-payments.html" target="_blank" data-cat="edu" data-name="Fee Reminders Payments" data-desc="school fees payment reminders tuition billing students">
+      <div class="wf-card-top"><div class="wf-icon">💰</div><div class="wf-arrow">↗</div></div>
+      <div class="wf-label">Education</div>
+      <div class="wf-name">Fee Reminders & Payments Automation</div>
+      <div class="wf-desc">Automated fee reminder sequences via SMS, email, and WhatsApp — with payment tracking, receipt generation, and escalation for overdue accounts.</div>
+      <div class="wf-tags"><span class="wf-tag">Fees</span><span class="wf-tag">Payments</span><span class="wf-tag">Reminders</span></div>
+      <div class="wf-footer"><span class="wf-steps">⚡ 5-step workflow</span><span class="wf-btn">View Demo ↗</span></div>
+    </a>
+    <a class="wf-card" href="workflows/edu-result-notifications.html" target="_blank" data-cat="edu" data-name="Result Notifications" data-desc="exam results grades student notifications academic">
+      <div class="wf-card-top"><div class="wf-icon">📊</div><div class="wf-arrow">↗</div></div>
+      <div class="wf-label">Education</div>
+      <div class="wf-name">Result Notifications Automation</div>
+      <div class="wf-desc">Automatically generates and distributes result notifications to students and parents via multiple channels — with grade summaries, remarks, and next-step guidance.</div>
+      <div class="wf-tags"><span class="wf-tag">Results</span><span class="wf-tag">Grades</span><span class="wf-tag">Notifications</span></div>
+      <div class="wf-footer"><span class="wf-steps">⚡ 4-step workflow</span><span class="wf-btn">View Demo ↗</span></div>
+    </a>
+    <a class="wf-card" href="workflows/edu-parent-communications.html" target="_blank" data-cat="edu" data-name="Parent Communications" data-desc="parent communication school updates announcements engagement">
+      <div class="wf-card-top"><div class="wf-icon">👨‍👩‍👧</div><div class="wf-arrow">↗</div></div>
+      <div class="wf-label">Education</div>
+      <div class="wf-name">Parent Communications Automation</div>
+      <div class="wf-desc">Scheduled and triggered communications to parents — attendance alerts, event reminders, progress updates, and emergency notifications — across SMS, email, and WhatsApp.</div>
+      <div class="wf-tags"><span class="wf-tag">Parents</span><span class="wf-tag">Updates</span><span class="wf-tag">Alerts</span></div>
+      <div class="wf-footer"><span class="wf-steps">⚡ 5-step workflow</span><span class="wf-btn">View Demo ↗</span></div>
+    </a>
+  </div>
+</div>
+
+<!-- FINANCE & OPS -->
+<div class="section" id="sec-fin" data-cat="fin">
+  <div class="sec-header">
+    <div class="sec-header-left">
+      <div class="sec-eyebrow">Industry 05</div>
+      <div class="sec-title">💼 Finance & Operations</div>
+      <div class="sec-desc">Expense approvals, invoice management, financial reporting, and vendor onboarding — automating the workflows that keep finance teams buried in paperwork.</div>
+    </div>
+    <span class="sec-count">4 workflows</span>
+  </div>
+  <div class="workflow-grid">
+    <a class="wf-card" href="workflows/fin-expense-approvals.html" target="_blank" data-cat="fin" data-name="Expense Approvals" data-desc="expense approval finance claims reimbursement workflow">
+      <div class="wf-card-top"><div class="wf-icon">🧾</div><div class="wf-arrow">↗</div></div>
+      <div class="wf-label">Finance & Ops</div>
+      <div class="wf-name">Expense Approvals Automation</div>
+      <div class="wf-desc">Digitizes expense submission, routes claims to approvers based on amount thresholds, sends reminders, and triggers reimbursement — ending paper-based expense chaos.</div>
+      <div class="wf-tags"><span class="wf-tag">Expenses</span><span class="wf-tag">Approvals</span><span class="wf-tag">Finance</span></div>
+      <div class="wf-footer"><span class="wf-steps">⚡ 5-step workflow</span><span class="wf-btn">View Demo ↗</span></div>
+    </a>
+    <a class="wf-card" href="workflows/fin-invoice-payment-reminders.html" target="_blank" data-cat="fin" data-name="Invoice Payment Reminders" data-desc="invoice billing payment reminder overdue accounts receivable">
+      <div class="wf-card-top"><div class="wf-icon">📄</div><div class="wf-arrow">↗</div></div>
+      <div class="wf-label">Finance & Ops</div>
+      <div class="wf-name">Invoice & Payment Reminders Automation</div>
+      <div class="wf-desc">Automated invoice generation, delivery, and multi-touch payment reminder sequences — with real-time payment tracking, reconciliation alerts, and overdue escalation.</div>
+      <div class="wf-tags"><span class="wf-tag">Invoicing</span><span class="wf-tag">Payments</span><span class="wf-tag">AR</span></div>
+      <div class="wf-footer"><span class="wf-steps">⚡ 6-step workflow</span><span class="wf-btn">View Demo ↗</span></div>
+    </a>
+    <a class="wf-card" href="workflows/fin-financial-reporting.html" target="_blank" data-cat="fin" data-name="Financial Reporting" data-desc="financial reports dashboards automated reporting finance">
+      <div class="wf-card-top"><div class="wf-icon">📈</div><div class="wf-arrow">↗</div></div>
+      <div class="wf-label">Finance & Ops</div>
+      <div class="wf-name">Financial Reporting Automation</div>
+      <div class="wf-desc">Automatically pulls data from multiple sources, generates financial summaries and dashboards, and distributes reports to stakeholders on a scheduled or triggered basis.</div>
+      <div class="wf-tags"><span class="wf-tag">Reports</span><span class="wf-tag">Dashboards</span><span class="wf-tag">BI</span></div>
+      <div class="wf-footer"><span class="wf-steps">⚡ 5-step workflow</span><span class="wf-btn">View Demo ↗</span></div>
+    </a>
+    <a class="wf-card" href="workflows/fin-vendor-onboarding.html" target="_blank" data-cat="fin" data-name="Vendor Onboarding" data-desc="vendor supplier onboarding procurement registration">
+      <div class="wf-card-top"><div class="wf-icon">🤝</div><div class="wf-arrow">↗</div></div>
+      <div class="wf-label">Finance & Ops</div>
+      <div class="wf-name">Vendor Onboarding Automation</div>
+      <div class="wf-desc">Streamlines vendor registration, document collection, compliance checks, contract signing, and system setup — cutting vendor onboarding time from weeks to days.</div>
+      <div class="wf-tags"><span class="wf-tag">Vendors</span><span class="wf-tag">Procurement</span><span class="wf-tag">Contracts</span></div>
+      <div class="wf-footer"><span class="wf-steps">⚡ 6-step workflow</span><span class="wf-btn">View Demo ↗</span></div>
+    </a>
+  </div>
+</div>
+
+<!-- HEALTHCARE -->
+<div class="section" id="sec-hc" data-cat="hc">
+  <div class="sec-header">
+    <div class="sec-header-left">
+      <div class="sec-eyebrow">Industry 06</div>
+      <div class="sec-title">🏥 Healthcare</div>
+      <div class="sec-desc">Patient intake, appointment reminders, lab result notifications, and staff scheduling — AI automation that frees healthcare staff to focus on patient care.</div>
+    </div>
+    <span class="sec-count">4 workflows</span>
+  </div>
+  <div class="workflow-grid">
+    <a class="wf-card" href="workflows/hc-patient-intake-registration.html" target="_blank" data-cat="hc" data-name="Patient Intake Registration" data-desc="patient intake registration hospital clinic healthcare admission">
+      <div class="wf-card-top"><div class="wf-icon">🏥</div><div class="wf-arrow">↗</div></div>
+      <div class="wf-label">Healthcare</div>
+      <div class="wf-name">Patient Intake & Registration Automation</div>
+      <div class="wf-desc">Digital patient registration from form submission through insurance verification, triage categorization, and appointment confirmation — reducing waiting room admin by 70%.</div>
+      <div class="wf-tags"><span class="wf-tag">Intake</span><span class="wf-tag">Registration</span><span class="wf-tag">Triage</span></div>
+      <div class="wf-footer"><span class="wf-steps">⚡ 6-step workflow</span><span class="wf-btn">View Demo ↗</span></div>
+    </a>
+    <a class="wf-card" href="workflows/hc-appointment-reminders.html" target="_blank" data-cat="hc" data-name="Appointment Reminders" data-desc="appointment reminder healthcare doctor patient no-show">
+      <div class="wf-card-top"><div class="wf-icon">📅</div><div class="wf-arrow">↗</div></div>
+      <div class="wf-label">Healthcare</div>
+      <div class="wf-name">Appointment Reminders Automation</div>
+      <div class="wf-desc">Multi-channel appointment reminders (SMS, WhatsApp, email) with confirmation collection, rescheduling links, and no-show follow-up — significantly reducing appointment DNA rates.</div>
+      <div class="wf-tags"><span class="wf-tag">Reminders</span><span class="wf-tag">No-shows</span><span class="wf-tag">Scheduling</span></div>
+      <div class="wf-footer"><span class="wf-steps">⚡ 4-step workflow</span><span class="wf-btn">View Demo ↗</span></div>
+    </a>
+    <a class="wf-card" href="workflows/hc-lab-results-notifications.html" target="_blank" data-cat="hc" data-name="Lab Results Notifications" data-desc="lab results test results patient notification healthcare">
+      <div class="wf-card-top"><div class="wf-icon">🧪</div><div class="wf-arrow">↗</div></div>
+      <div class="wf-label">Healthcare</div>
+      <div class="wf-name">Lab Results & Notifications Automation</div>
+      <div class="wf-desc">Automatically notifies patients when lab results are ready, routes critical findings to physicians, and schedules follow-up appointments — all without manual intervention.</div>
+      <div class="wf-tags"><span class="wf-tag">Lab Results</span><span class="wf-tag">Critical</span><span class="wf-tag">Follow-up</span></div>
+      <div class="wf-footer"><span class="wf-steps">⚡ 5-step workflow</span><span class="wf-btn">View Demo ↗</span></div>
+    </a>
+    <a class="wf-card" href="workflows/hc-staff-scheduling.html" target="_blank" data-cat="hc" data-name="Staff Scheduling" data-desc="staff scheduling healthcare shift management roster nursing">
+      <div class="wf-card-top"><div class="wf-icon">👩‍⚕️</div><div class="wf-arrow">↗</div></div>
+      <div class="wf-label">Healthcare</div>
+      <div class="wf-name">Staff Scheduling Automation</div>
+      <div class="wf-desc">AI-optimized shift scheduling that accounts for skills, availability, and demand — with automated notifications, swap requests, and gap-filling alerts for managers.</div>
+      <div class="wf-tags"><span class="wf-tag">Scheduling</span><span class="wf-tag">Shifts</span><span class="wf-tag">HR</span></div>
+      <div class="wf-footer"><span class="wf-steps">⚡ 5-step workflow</span><span class="wf-btn">View Demo ↗</span></div>
+    </a>
+  </div>
+</div>
+
+<!-- HOSPITALITY -->
+<div class="section" id="sec-hosp" data-cat="hosp">
+  <div class="sec-header">
+    <div class="sec-header-left">
+      <div class="sec-eyebrow">Industry 07</div>
+      <div class="sec-title">🏨 Hospitality Services</div>
+      <div class="sec-desc">Booking confirmations, guest experience management, housekeeping scheduling, and review management — AI that makes every guest feel like a priority.</div>
+    </div>
+    <span class="sec-count">4 workflows</span>
+  </div>
+  <div class="workflow-grid">
+    <a class="wf-card" href="workflows/hosp-booking-confirmations.html" target="_blank" data-cat="hosp" data-name="Booking Confirmations Pre-Arrival" data-desc="hotel booking confirmation reservation pre-arrival guest">
+      <div class="wf-card-top"><div class="wf-icon">🏨</div><div class="wf-arrow">↗</div></div>
+      <div class="wf-label">Hospitality</div>
+      <div class="wf-name">Booking Confirmations & Pre-Arrival</div>
+      <div class="wf-desc">Automated booking confirmation, pre-arrival communication sequences, upsell offers, check-in instructions, and local recommendations — delivered across email and WhatsApp.</div>
+      <div class="wf-tags"><span class="wf-tag">Bookings</span><span class="wf-tag">Pre-arrival</span><span class="wf-tag">Upsell</span></div>
+      <div class="wf-footer"><span class="wf-steps">⚡ 5-step workflow</span><span class="wf-btn">View Demo ↗</span></div>
+    </a>
+    <a class="wf-card" href="workflows/hosp-guest-experience.html" target="_blank" data-cat="hosp" data-name="Guest Experience In-Stay" data-desc="guest experience hotel requests in-stay service concierge">
+      <div class="wf-card-top"><div class="wf-icon">🛎️</div><div class="wf-arrow">↗</div></div>
+      <div class="wf-label">Hospitality</div>
+      <div class="wf-name">In-Stay Guest Request Management</div>
+      <div class="wf-desc">AI-powered guest request handling via WhatsApp or in-room tablet — routing housekeeping, maintenance, dining, and concierge requests to the right team instantly.</div>
+      <div class="wf-tags"><span class="wf-tag">Guest Requests</span><span class="wf-tag">Concierge</span><span class="wf-tag">Service</span></div>
+      <div class="wf-footer"><span class="wf-steps">⚡ 4-step workflow</span><span class="wf-btn">View Demo ↗</span></div>
+    </a>
+    <a class="wf-card" href="workflows/hosp-housekeeping-scheduling.html" target="_blank" data-cat="hosp" data-name="Housekeeping Scheduling Room Status" data-desc="housekeeping room status hotel cleaning schedule management">
+      <div class="wf-card-top"><div class="wf-icon">🧹</div><div class="wf-arrow">↗</div></div>
+      <div class="wf-label">Hospitality</div>
+      <div class="wf-name">Housekeeping Scheduling & Room Status</div>
+      <div class="wf-desc">Real-time room status tracking, automated housekeeping task assignments, priority-based scheduling, and instant manager alerts for rooms ready for check-in.</div>
+      <div class="wf-tags"><span class="wf-tag">Housekeeping</span><span class="wf-tag">Scheduling</span><span class="wf-tag">Ops</span></div>
+      <div class="wf-footer"><span class="wf-steps">⚡ 4-step workflow</span><span class="wf-btn">View Demo ↗</span></div>
+    </a>
+    <a class="wf-card" href="workflows/hosp-reviews-reputation.html" target="_blank" data-cat="hosp" data-name="Reviews Reputation Management" data-desc="hotel reviews google tripadvisor reputation management response">
+      <div class="wf-card-top"><div class="wf-icon">⭐</div><div class="wf-arrow">↗</div></div>
+      <div class="wf-label">Hospitality</div>
+      <div class="wf-name">Reviews & Reputation Management</div>
+      <div class="wf-desc">Automatically requests guest reviews post-checkout, monitors review platforms, drafts AI-powered responses, and alerts management to negative feedback for immediate action.</div>
+      <div class="wf-tags"><span class="wf-tag">Reviews</span><span class="wf-tag">Reputation</span><span class="wf-tag">Google</span></div>
+      <div class="wf-footer"><span class="wf-steps">⚡ 5-step workflow</span><span class="wf-btn">View Demo ↗</span></div>
+    </a>
+  </div>
+</div>
+
+<!-- HR -->
+<div class="section" id="sec-hr" data-cat="hr">
+  <div class="sec-header">
+    <div class="sec-header-left">
+      <div class="sec-eyebrow">Industry 08</div>
+      <div class="sec-title">👥 Human Resources</div>
+      <div class="sec-desc">AI automation for the full employee lifecycle — from CV screening and interview scheduling to onboarding, offboarding, and everything in between.</div>
+    </div>
+    <span class="sec-count">4 workflows</span>
+  </div>
+  <div class="workflow-grid">
+    <a class="wf-card" href="workflows/hr-recruitment-cv-screening.html" target="_blank" data-cat="hr" data-name="Recruitment CV Screening" data-desc="recruitment cv screening hiring applicant tracking candidates">
+      <div class="wf-card-top"><div class="wf-icon">📋</div><div class="wf-arrow">↗</div></div>
+      <div class="wf-label">HR</div>
+      <div class="wf-name">Recruitment & CV Screening Automation</div>
+      <div class="wf-desc">AI screens incoming CVs against job criteria, scores and ranks candidates, sends acknowledgement emails, and surfaces top applicants to hiring managers — instantly.</div>
+      <div class="wf-tags"><span class="wf-tag">Recruitment</span><span class="wf-tag">CV Screening</span><span class="wf-tag">AI</span></div>
+      <div class="wf-footer"><span class="wf-steps">⚡ 6-step workflow</span><span class="wf-btn">View Demo ↗</span></div>
+    </a>
+    <a class="wf-card" href="workflows/hr-interview-scheduling.html" target="_blank" data-cat="hr" data-name="Interview Scheduling" data-desc="interview scheduling calendar booking candidates hiring managers">
+      <div class="wf-card-top"><div class="wf-icon">📅</div><div class="wf-arrow">↗</div></div>
+      <div class="wf-label">HR</div>
+      <div class="wf-name">Interview Scheduling Automation</div>
+      <div class="wf-desc">Automated interview invitation, candidate availability collection, calendar coordination with hiring managers, and confirmation/reminder sequences — zero back-and-forth.</div>
+      <div class="wf-tags"><span class="wf-tag">Interviews</span><span class="wf-tag">Scheduling</span><span class="wf-tag">Calendar</span></div>
+      <div class="wf-footer"><span class="wf-steps">⚡ 5-step workflow</span><span class="wf-btn">View Demo ↗</span></div>
+    </a>
+    <a class="wf-card" href="workflows/hr-employee-onboarding.html" target="_blank" data-cat="hr" data-name="Employee Onboarding" data-desc="employee onboarding new hire orientation training welcome">
+      <div class="wf-card-top"><div class="wf-icon">🎉</div><div class="wf-arrow">↗</div></div>
+      <div class="wf-label">HR</div>
+      <div class="wf-name">Employee Onboarding Automation</div>
+      <div class="wf-desc">Digitizes the full onboarding journey — offer letters, document collection, IT provisioning, orientation scheduling, manager introductions, and 30/60/90-day check-ins.</div>
+      <div class="wf-tags"><span class="wf-tag">Onboarding</span><span class="wf-tag">New Hire</span><span class="wf-tag">HR</span></div>
+      <div class="wf-footer"><span class="wf-steps">⚡ 7-step workflow</span><span class="wf-btn">View Demo ↗</span></div>
+    </a>
+    <a class="wf-card" href="workflows/hr-offboarding-exit.html" target="_blank" data-cat="hr" data-name="Offboarding Exit" data-desc="offboarding exit interview employee leaving resignation termination">
+      <div class="wf-card-top"><div class="wf-icon">🚪</div><div class="wf-arrow">↗</div></div>
+      <div class="wf-label">HR</div>
+      <div class="wf-name">Offboarding & Exit Automation</div>
+      <div class="wf-desc">Structured offboarding checklists, IT access revocation triggers, exit interview scheduling, payroll finalization, and knowledge transfer coordination — all automated.</div>
+      <div class="wf-tags"><span class="wf-tag">Offboarding</span><span class="wf-tag">Exit</span><span class="wf-tag">Compliance</span></div>
+      <div class="wf-footer"><span class="wf-steps">⚡ 6-step workflow</span><span class="wf-btn">View Demo ↗</span></div>
+    </a>
+  </div>
+</div>
+
+<!-- LOGISTICS -->
+<div class="section" id="sec-log" data-cat="log">
+  <div class="sec-header">
+    <div class="sec-header-left">
+      <div class="sec-eyebrow">Industry 09</div>
+      <div class="sec-title">🚚 Logistics & Supply Chain</div>
+      <div class="sec-desc">Shipment tracking, driver communications, delivery confirmation, and fleet management — AI automation that keeps goods moving and customers informed.</div>
+    </div>
+    <span class="sec-count">4 workflows</span>
+  </div>
+  <div class="workflow-grid">
+    <a class="wf-card" href="workflows/log-shipment-tracking.html" target="_blank" data-cat="log" data-name="Shipment Tracking" data-desc="shipment tracking delivery logistics supply chain customer">
+      <div class="wf-card-top"><div class="wf-icon">📍</div><div class="wf-arrow">↗</div></div>
+      <div class="wf-label">Logistics</div>
+      <div class="wf-name">Shipment Tracking Automation</div>
+      <div class="wf-desc">Real-time shipment tracking with automated status updates to customers via SMS and WhatsApp, delay alerts, ETD notifications, and exception management workflows.</div>
+      <div class="wf-tags"><span class="wf-tag">Tracking</span><span class="wf-tag">Updates</span><span class="wf-tag">Delivery</span></div>
+      <div class="wf-footer"><span class="wf-steps">⚡ 5-step workflow</span><span class="wf-btn">View Demo ↗</span></div>
+    </a>
+    <a class="wf-card" href="workflows/log-driver-alerts-comms.html" target="_blank" data-cat="log" data-name="Driver Alerts Communications" data-desc="driver communication logistics fleet alerts dispatch">
+      <div class="wf-card-top"><div class="wf-icon">🚛</div><div class="wf-arrow">↗</div></div>
+      <div class="wf-label">Logistics</div>
+      <div class="wf-name">Driver Alerts & Communication Automation</div>
+      <div class="wf-desc">Automated driver briefings, route updates, delivery instructions, break alerts, and incident reporting — keeping drivers informed and dispatchers in control.</div>
+      <div class="wf-tags"><span class="wf-tag">Drivers</span><span class="wf-tag">Dispatch</span><span class="wf-tag">Alerts</span></div>
+      <div class="wf-footer"><span class="wf-steps">⚡ 4-step workflow</span><span class="wf-btn">View Demo ↗</span></div>
+    </a>
+    <a class="wf-card" href="workflows/log-delivery-confirmation.html" target="_blank" data-cat="log" data-name="Delivery Confirmation" data-desc="delivery confirmation proof of delivery customer sign-off">
+      <div class="wf-card-top"><div class="wf-icon">✅</div><div class="wf-arrow">↗</div></div>
+      <div class="wf-label">Logistics</div>
+      <div class="wf-name">Delivery Confirmation Automation</div>
+      <div class="wf-desc">Digital proof-of-delivery capture, automated customer confirmation messages, failed delivery workflows, and real-time dashboard updates for operations teams.</div>
+      <div class="wf-tags"><span class="wf-tag">POD</span><span class="wf-tag">Confirmation</span><span class="wf-tag">Customer</span></div>
+      <div class="wf-footer"><span class="wf-steps">⚡ 4-step workflow</span><span class="wf-btn">View Demo ↗</span></div>
+    </a>
+    <a class="wf-card" href="workflows/log-fleet-management.html" target="_blank" data-cat="log" data-name="Fleet Management" data-desc="fleet management vehicle maintenance logistics tracking">
+      <div class="wf-card-top"><div class="wf-icon">🚌</div><div class="wf-arrow">↗</div></div>
+      <div class="wf-label">Logistics</div>
+      <div class="wf-name">Fleet Management Automation</div>
+      <div class="wf-desc">Vehicle maintenance scheduling, service alerts, insurance renewal reminders, driver assignment optimization, and fleet performance reporting — fully automated.</div>
+      <div class="wf-tags"><span class="wf-tag">Fleet</span><span class="wf-tag">Maintenance</span><span class="wf-tag">Tracking</span></div>
+      <div class="wf-footer"><span class="wf-steps">⚡ 5-step workflow</span><span class="wf-btn">View Demo ↗</span></div>
+    </a>
+  </div>
+</div>
+
+<!-- MANUFACTURING -->
+<div class="section" id="sec-mfg" data-cat="mfg">
+  <div class="sec-header">
+    <div class="sec-header-left">
+      <div class="sec-eyebrow">Industry 10</div>
+      <div class="sec-title">🏭 Manufacturing</div>
+      <div class="sec-desc">Production tracking, quality control, supplier management, and maintenance scheduling — AI automation for the factory floor and beyond.</div>
+    </div>
+    <span class="sec-count">4 workflows</span>
+  </div>
+  <div class="workflow-grid">
+    <a class="wf-card" href="workflows/mfg-production-tracking.html" target="_blank" data-cat="mfg" data-name="Production Order Tracking" data-desc="production tracking manufacturing order status factory">
+      <div class="wf-card-top"><div class="wf-icon">🏭</div><div class="wf-arrow">↗</div></div>
+      <div class="wf-label">Manufacturing</div>
+      <div class="wf-name">Production Order Tracking Automation</div>
+      <div class="wf-desc">Real-time production order monitoring, automated status updates to sales and logistics teams, bottleneck alerts, and output tracking dashboards — all connected.</div>
+      <div class="wf-tags"><span class="wf-tag">Production</span><span class="wf-tag">Tracking</span><span class="wf-tag">Orders</span></div>
+      <div class="wf-footer"><span class="wf-steps">⚡ 5-step workflow</span><span class="wf-btn">View Demo ↗</span></div>
+    </a>
+    <a class="wf-card" href="workflows/mfg-quality-control.html" target="_blank" data-cat="mfg" data-name="Quality Control Defect Reporting" data-desc="quality control defect reporting QC inspection manufacturing">
+      <div class="wf-card-top"><div class="wf-icon">🔍</div><div class="wf-arrow">↗</div></div>
+      <div class="wf-label">Manufacturing</div>
+      <div class="wf-name">Quality Control & Defect Reporting</div>
+      <div class="wf-desc">Automated defect capture, severity classification, corrective action routing, supplier notification for material faults, and QC trend reporting for continuous improvement.</div>
+      <div class="wf-tags"><span class="wf-tag">QC</span><span class="wf-tag">Defects</span><span class="wf-tag">Compliance</span></div>
+      <div class="wf-footer"><span class="wf-steps">⚡ 5-step workflow</span><span class="wf-btn">View Demo ↗</span></div>
+    </a>
+    <a class="wf-card" href="workflows/mfg-supplier-management.html" target="_blank" data-cat="mfg" data-name="Supplier Raw Material Management" data-desc="supplier management raw materials procurement manufacturing">
+      <div class="wf-card-top"><div class="wf-icon">📦</div><div class="wf-arrow">↗</div></div>
+      <div class="wf-label">Manufacturing</div>
+      <div class="wf-name">Supplier & Raw Material Management</div>
+      <div class="wf-desc">Automated purchase order generation, supplier communication, delivery tracking, quality receipt confirmation, and inventory update — end-to-end supply chain visibility.</div>
+      <div class="wf-tags"><span class="wf-tag">Suppliers</span><span class="wf-tag">Raw Materials</span><span class="wf-tag">PO</span></div>
+      <div class="wf-footer"><span class="wf-steps">⚡ 6-step workflow</span><span class="wf-btn">View Demo ↗</span></div>
+    </a>
+    <a class="wf-card" href="workflows/mfg-maintenance-scheduling.html" target="_blank" data-cat="mfg" data-name="Preventive Maintenance Scheduling" data-desc="maintenance scheduling preventive equipment downtime manufacturing">
+      <div class="wf-card-top"><div class="wf-icon">🔧</div><div class="wf-arrow">↗</div></div>
+      <div class="wf-label">Manufacturing</div>
+      <div class="wf-name">Preventive Maintenance Scheduling</div>
+      <div class="wf-desc">AI-scheduled preventive maintenance based on usage cycles and manufacturer guidelines — with technician assignment, spare parts alerts, and downtime minimization workflows.</div>
+      <div class="wf-tags"><span class="wf-tag">Maintenance</span><span class="wf-tag">Scheduling</span><span class="wf-tag">Equipment</span></div>
+      <div class="wf-footer"><span class="wf-steps">⚡ 5-step workflow</span><span class="wf-btn">View Demo ↗</span></div>
+    </a>
+  </div>
+</div>
+
+<!-- MARKETING -->
+<div class="section" id="sec-mkt" data-cat="mkt">
+  <div class="sec-header">
+    <div class="sec-header-left">
+      <div class="sec-eyebrow">Industry 11</div>
+      <div class="sec-title">📣 Marketing</div>
+      <div class="sec-desc">Lead nurturing, social media scheduling, campaign reporting, and event registration — AI that keeps your marketing engine running 24/7.</div>
+    </div>
+    <span class="sec-count">4 workflows</span>
+  </div>
+  <div class="workflow-grid">
+    <a class="wf-card" href="workflows/mkt-lead-magnet-nurture.html" target="_blank" data-cat="mkt" data-name="Lead Magnet Nurture" data-desc="lead magnet nurture email marketing funnel automation">
+      <div class="wf-card-top"><div class="wf-icon">🧲</div><div class="wf-arrow">↗</div></div>
+      <div class="wf-label">Marketing</div>
+      <div class="wf-name">Lead Magnet & Nurture Automation</div>
+      <div class="wf-desc">Automated lead magnet delivery, segmented nurture email sequences, engagement scoring, and handoff to sales — turning cold leads into warm prospects systematically.</div>
+      <div class="wf-tags"><span class="wf-tag">Leads</span><span class="wf-tag">Nurture</span><span class="wf-tag">Email</span></div>
+      <div class="wf-footer"><span class="wf-steps">⚡ 6-step workflow</span><span class="wf-btn">View Demo ↗</span></div>
+    </a>
+    <a class="wf-card" href="workflows/mkt-social-media-scheduling.html" target="_blank" data-cat="mkt" data-name="Social Media Scheduling" data-desc="social media content scheduling posting linkedin twitter instagram">
+      <div class="wf-card-top"><div class="wf-icon">📱</div><div class="wf-arrow">↗</div></div>
+      <div class="wf-label">Marketing</div>
+      <div class="wf-name">Social Media Scheduling Automation</div>
+      <div class="wf-desc">AI-assisted content calendar management, multi-platform post scheduling, performance monitoring, and engagement alerts — keeping your brand consistently visible.</div>
+      <div class="wf-tags"><span class="wf-tag">Social Media</span><span class="wf-tag">Content</span><span class="wf-tag">Scheduling</span></div>
+      <div class="wf-footer"><span class="wf-steps">⚡ 4-step workflow</span><span class="wf-btn">View Demo ↗</span></div>
+    </a>
+    <a class="wf-card" href="workflows/mkt-campaign-reporting.html" target="_blank" data-cat="mkt" data-name="Campaign Reporting" data-desc="marketing campaign reporting analytics performance dashboard">
+      <div class="wf-card-top"><div class="wf-icon">📊</div><div class="wf-arrow">↗</div></div>
+      <div class="wf-label">Marketing</div>
+      <div class="wf-name">Campaign Reporting Automation</div>
+      <div class="wf-desc">Automated multi-channel campaign performance aggregation, report generation, stakeholder distribution, and anomaly alerts — real-time marketing intelligence without manual pulls.</div>
+      <div class="wf-tags"><span class="wf-tag">Analytics</span><span class="wf-tag">Reporting</span><span class="wf-tag">ROI</span></div>
+      <div class="wf-footer"><span class="wf-steps">⚡ 4-step workflow</span><span class="wf-btn">View Demo ↗</span></div>
+    </a>
+    <a class="wf-card" href="workflows/mkt-event-webinar-registration.html" target="_blank" data-cat="mkt" data-name="Event Webinar Registration" data-desc="event webinar registration automation email reminder marketing">
+      <div class="wf-card-top"><div class="wf-icon">🎟️</div><div class="wf-arrow">↗</div></div>
+      <div class="wf-label">Marketing</div>
+      <div class="wf-name">Event & Webinar Registration Automation</div>
+      <div class="wf-desc">End-to-end event registration — from sign-up confirmation and calendar invites to reminder sequences, day-of instructions, recording distribution, and post-event follow-up.</div>
+      <div class="wf-tags"><span class="wf-tag">Events</span><span class="wf-tag">Webinars</span><span class="wf-tag">Registration</span></div>
+      <div class="wf-footer"><span class="wf-steps">⚡ 6-step workflow</span><span class="wf-btn">View Demo ↗</span></div>
+    </a>
+  </div>
+</div>
+
+<!-- OIL & GAS -->
+<div class="section" id="sec-og" data-cat="og">
+  <div class="sec-header">
+    <div class="sec-header-left">
+      <div class="sec-eyebrow">Industry 12</div>
+      <div class="sec-title">⛽ Oil & Gas</div>
+      <div class="sec-desc">Equipment maintenance, HSE compliance, contractor onboarding, and incident reporting — AI automation built for the operational demands of the energy sector.</div>
+    </div>
+    <span class="sec-count">4 workflows</span>
+  </div>
+  <div class="workflow-grid">
+    <a class="wf-card" href="workflows/og-maintenance-scheduling.html" target="_blank" data-cat="og" data-name="Equipment Maintenance Inspection Scheduling" data-desc="equipment maintenance oil gas inspection scheduling preventive">
+      <div class="wf-card-top"><div class="wf-icon">⚙️</div><div class="wf-arrow">↗</div></div>
+      <div class="wf-label">Oil & Gas</div>
+      <div class="wf-name">Equipment Maintenance & Inspection Scheduling</div>
+      <div class="wf-desc">AI-driven preventive maintenance scheduling for critical equipment, with inspection checklists, technician assignments, parts procurement triggers, and compliance documentation.</div>
+      <div class="wf-tags"><span class="wf-tag">Maintenance</span><span class="wf-tag">Inspection</span><span class="wf-tag">Safety</span></div>
+      <div class="wf-footer"><span class="wf-steps">⚡ 6-step workflow</span><span class="wf-btn">View Demo ↗</span></div>
+    </a>
+    <a class="wf-card" href="workflows/og-compliance-reporting.html" target="_blank" data-cat="og" data-name="HSE Regulatory Compliance Reporting" data-desc="compliance reporting oil gas HSE regulatory audit environmental">
+      <div class="wf-card-top"><div class="wf-icon">📋</div><div class="wf-arrow">↗</div></div>
+      <div class="wf-label">Oil & Gas</div>
+      <div class="wf-name">HSE & Regulatory Compliance Reporting</div>
+      <div class="wf-desc">Automated collection, compilation, and submission of HSE and regulatory compliance reports — with deadline tracking, approver routing, and regulatory body filing support.</div>
+      <div class="wf-tags"><span class="wf-tag">HSE</span><span class="wf-tag">Compliance</span><span class="wf-tag">Regulatory</span></div>
+      <div class="wf-footer"><span class="wf-steps">⚡ 5-step workflow</span><span class="wf-btn">View Demo ↗</span></div>
+    </a>
+    <a class="wf-card" href="workflows/og-contractor-onboarding.html" target="_blank" data-cat="og" data-name="Contractor Vendor Onboarding" data-desc="contractor vendor onboarding oil gas compliance documents">
+      <div class="wf-card-top"><div class="wf-icon">👷</div><div class="wf-arrow">↗</div></div>
+      <div class="wf-label">Oil & Gas</div>
+      <div class="wf-name">Contractor & Vendor Onboarding</div>
+      <div class="wf-desc">Streamlines contractor pre-qualification, document verification, safety induction scheduling, access badge issuance, and system provisioning — cutting onboarding from weeks to days.</div>
+      <div class="wf-tags"><span class="wf-tag">Contractors</span><span class="wf-tag">Onboarding</span><span class="wf-tag">Safety</span></div>
+      <div class="wf-footer"><span class="wf-steps">⚡ 6-step workflow</span><span class="wf-btn">View Demo ↗</span></div>
+    </a>
+    <a class="wf-card" href="workflows/og-hse-incident-reporting.html" target="_blank" data-cat="og" data-name="HSE Incident Reporting Investigation" data-desc="HSE incident reporting investigation safety oil gas">
+      <div class="wf-card-top"><div class="wf-icon">🚨</div><div class="wf-arrow">↗</div></div>
+      <div class="wf-label">Oil & Gas</div>
+      <div class="wf-name">HSE Incident Reporting & Investigation</div>
+      <div class="wf-desc">Digital incident capture, severity classification, immediate notification to safety officers and management, investigation workflow trigger, and regulatory reporting automation.</div>
+      <div class="wf-tags"><span class="wf-tag">Incidents</span><span class="wf-tag">Safety</span><span class="wf-tag">Investigation</span></div>
+      <div class="wf-footer"><span class="wf-steps">⚡ 5-step workflow</span><span class="wf-btn">View Demo ↗</span></div>
+    </a>
+  </div>
+</div>
+
+<!-- OPERATIONS -->
+<div class="section" id="sec-ops" data-cat="ops">
+  <div class="sec-header">
+    <div class="sec-header-left">
+      <div class="sec-eyebrow">Industry 13</div>
+      <div class="sec-title">⚙️ Operations</div>
+      <div class="sec-desc">Internal task management, procurement approvals, IT helpdesk, and compliance audits — the operational backbone every organization needs automated.</div>
+    </div>
+    <span class="sec-count">4 workflows</span>
+  </div>
+  <div class="workflow-grid">
+    <a class="wf-card" href="workflows/ops-internal-task-management.html" target="_blank" data-cat="ops" data-name="Internal Task Management" data-desc="task management internal operations project workflow productivity">
+      <div class="wf-card-top"><div class="wf-icon">✅</div><div class="wf-arrow">↗</div></div>
+      <div class="wf-label">Operations</div>
+      <div class="wf-name">Internal Task Management Automation</div>
+      <div class="wf-desc">Automated task creation, assignment, deadline tracking, escalation for overdue items, and progress reporting — keeping teams accountable without constant manager follow-up.</div>
+      <div class="wf-tags"><span class="wf-tag">Tasks</span><span class="wf-tag">Productivity</span><span class="wf-tag">Teams</span></div>
+      <div class="wf-footer"><span class="wf-steps">⚡ 4-step workflow</span><span class="wf-btn">View Demo ↗</span></div>
+    </a>
+    <a class="wf-card" href="workflows/ops-procurement-approvals.html" target="_blank" data-cat="ops" data-name="Procurement Approvals" data-desc="procurement purchase order approvals operations workflow">
+      <div class="wf-card-top"><div class="wf-icon">🛒</div><div class="wf-arrow">↗</div></div>
+      <div class="wf-label">Operations</div>
+      <div class="wf-name">Procurement & Approvals Automation</div>
+      <div class="wf-desc">Purchase requisition routing, multi-level approval workflows, budget check automation, PO generation, and supplier order placement — streamlining procurement end-to-end.</div>
+      <div class="wf-tags"><span class="wf-tag">Procurement</span><span class="wf-tag">PO</span><span class="wf-tag">Approvals</span></div>
+      <div class="wf-footer"><span class="wf-steps">⚡ 5-step workflow</span><span class="wf-btn">View Demo ↗</span></div>
+    </a>
+    <a class="wf-card" href="workflows/ops-it-helpdesk.html" target="_blank" data-cat="ops" data-name="IT Helpdesk" data-desc="IT helpdesk support tickets technology operations staff">
+      <div class="wf-card-top"><div class="wf-icon">💻</div><div class="wf-arrow">↗</div></div>
+      <div class="wf-label">Operations</div>
+      <div class="wf-name">IT Helpdesk Automation</div>
+      <div class="wf-desc">AI-powered IT ticket triage, knowledge base auto-responses for common issues, escalation routing to IT specialists, SLA tracking, and resolution confirmation workflows.</div>
+      <div class="wf-tags"><span class="wf-tag">IT Support</span><span class="wf-tag">Helpdesk</span><span class="wf-tag">SLA</span></div>
+      <div class="wf-footer"><span class="wf-steps">⚡ 5-step workflow</span><span class="wf-btn">View Demo ↗</span></div>
+    </a>
+    <a class="wf-card" href="workflows/ops-compliance-audits.html" target="_blank" data-cat="ops" data-name="Compliance Audits" data-desc="compliance audit internal auditing reporting operations governance">
+      <div class="wf-card-top"><div class="wf-icon">🔒</div><div class="wf-arrow">↗</div></div>
+      <div class="wf-label">Operations</div>
+      <div class="wf-name">Compliance & Audits Automation</div>
+      <div class="wf-desc">Scheduled compliance check workflows, automated evidence collection, audit trail generation, non-compliance flagging, and remediation task assignment — audit-ready always.</div>
+      <div class="wf-tags"><span class="wf-tag">Compliance</span><span class="wf-tag">Audit</span><span class="wf-tag">Governance</span></div>
+      <div class="wf-footer"><span class="wf-steps">⚡ 5-step workflow</span><span class="wf-btn">View Demo ↗</span></div>
+    </a>
+  </div>
+</div>
+
+<!-- REAL ESTATE & BANKING / SALES -->
+<div class="section" id="sec-re" data-cat="re">
+  <div class="sec-header">
+    <div class="sec-header-left">
+      <div class="sec-eyebrow">Industry 14</div>
+      <div class="sec-title">🏠 Real Estate, Sales & Banking Services</div>
+      <div class="sec-desc">Property enquiries, tenant onboarding, lease renewals, KYC, and full sales pipeline automation — closing deals faster with less manual effort.</div>
+    </div>
+    <span class="sec-count">12 workflows</span>
+  </div>
+  <div class="workflow-grid">
+    <a class="wf-card" href="workflows/re1-property-enquiries.html" target="_blank" data-cat="re" data-name="Property Enquiries" data-desc="real estate property enquiries leads prospects agents">
+      <div class="wf-card-top"><div class="wf-icon">🏘️</div><div class="wf-arrow">↗</div></div>
+      <div class="wf-label">Real Estate</div>
+      <div class="wf-name">Property Enquiries Automation</div>
+      <div class="wf-desc">Captures property enquiries from portals, website, and WhatsApp — auto-qualifies prospects, matches them to listings, and routes hot leads to agents instantly.</div>
+      <div class="wf-tags"><span class="wf-tag">Enquiries</span><span class="wf-tag">Leads</span><span class="wf-tag">CRM</span></div>
+      <div class="wf-footer"><span class="wf-steps">⚡ 5-step workflow</span><span class="wf-btn">View Demo ↗</span></div>
+    </a>
+    <a class="wf-card" href="workflows/re2-viewing-scheduling.html" target="_blank" data-cat="re" data-name="Property Viewing Scheduling" data-desc="property viewing scheduling appointment real estate agent">
+      <div class="wf-card-top"><div class="wf-icon">📅</div><div class="wf-arrow">↗</div></div>
+      <div class="wf-label">Real Estate</div>
+      <div class="wf-name">Viewing Scheduling Automation</div>
+      <div class="wf-desc">Automated viewing request handling, agent calendar coordination, confirmation and reminder sequences, and post-viewing feedback collection — zero scheduling friction.</div>
+      <div class="wf-tags"><span class="wf-tag">Viewings</span><span class="wf-tag">Scheduling</span><span class="wf-tag">Agents</span></div>
+      <div class="wf-footer"><span class="wf-steps">⚡ 4-step workflow</span><span class="wf-btn">View Demo ↗</span></div>
+    </a>
+    <a class="wf-card" href="workflows/re3-tenant-onboarding.html" target="_blank" data-cat="re" data-name="Tenant Onboarding" data-desc="tenant onboarding rental lease property management">
+      <div class="wf-card-top"><div class="wf-icon">🔑</div><div class="wf-arrow">↗</div></div>
+      <div class="wf-label">Real Estate</div>
+      <div class="wf-name">Tenant Onboarding Automation</div>
+      <div class="wf-desc">Digital tenant onboarding — from document collection and referencing to lease signing, deposit processing, key handover coordination, and welcome pack delivery.</div>
+      <div class="wf-tags"><span class="wf-tag">Tenant</span><span class="wf-tag">Onboarding</span><span class="wf-tag">Lease</span></div>
+      <div class="wf-footer"><span class="wf-steps">⚡ 6-step workflow</span><span class="wf-btn">View Demo ↗</span></div>
+    </a>
+    <a class="wf-card" href="workflows/re4-lease-renewals.html" target="_blank" data-cat="re" data-name="Lease Renewals" data-desc="lease renewal tenant retention real estate property management">
+      <div class="wf-card-top"><div class="wf-icon">📄</div><div class="wf-arrow">↗</div></div>
+      <div class="wf-label">Real Estate</div>
+      <div class="wf-name">Lease Renewals Automation</div>
+      <div class="wf-desc">Proactive lease renewal outreach, automated negotiation flows, digital contract updates, payment schedule generation, and tenant retention scoring — reducing vacancy rates.</div>
+      <div class="wf-tags"><span class="wf-tag">Renewals</span><span class="wf-tag">Retention</span><span class="wf-tag">Contracts</span></div>
+      <div class="wf-footer"><span class="wf-steps">⚡ 5-step workflow</span><span class="wf-btn">View Demo ↗</span></div>
+    </a>
+    <a class="wf-card" href="workflows/sales-lead-capture-qualification.html" target="_blank" data-cat="re" data-name="Sales Lead Capture Qualification" data-desc="sales lead capture qualification scoring pipeline CRM">
+      <div class="wf-card-top"><div class="wf-icon">🎯</div><div class="wf-arrow">↗</div></div>
+      <div class="wf-label">Sales</div>
+      <div class="wf-name">Lead Capture & Qualification Automation</div>
+      <div class="wf-desc">Multi-source lead capture, AI qualification scoring, segment-based routing to sales reps, and instant follow-up sequences — so no lead ever goes cold again.</div>
+      <div class="wf-tags"><span class="wf-tag">Leads</span><span class="wf-tag">Qualification</span><span class="wf-tag">Pipeline</span></div>
+      <div class="wf-footer"><span class="wf-steps">⚡ 5-step workflow</span><span class="wf-btn">View Demo ↗</span></div>
+    </a>
+    <a class="wf-card" href="workflows/sales-crm-followup-sequences.html" target="_blank" data-cat="re" data-name="CRM Follow-up Sequences" data-desc="CRM follow up sales sequences automation pipeline nurture">
+      <div class="wf-card-top"><div class="wf-icon">🔄</div><div class="wf-arrow">↗</div></div>
+      <div class="wf-label">Sales</div>
+      <div class="wf-name">CRM & Follow-up Sequences Automation</div>
+      <div class="wf-desc">Automated CRM data entry, task creation, personalized follow-up email and WhatsApp sequences, engagement tracking, and deal stage progression triggers.</div>
+      <div class="wf-tags"><span class="wf-tag">CRM</span><span class="wf-tag">Follow-up</span><span class="wf-tag">Sequences</span></div>
+      <div class="wf-footer"><span class="wf-steps">⚡ 6-step workflow</span><span class="wf-btn">View Demo ↗</span></div>
+    </a>
+    <a class="wf-card" href="workflows/sales-invoicing-quotes.html" target="_blank" data-cat="re" data-name="Sales Invoicing Quotes" data-desc="sales invoice quote generation proposal automation">
+      <div class="wf-card-top"><div class="wf-icon">💼</div><div class="wf-arrow">↗</div></div>
+      <div class="wf-label">Sales</div>
+      <div class="wf-name">Invoicing & Quotes Automation</div>
+      <div class="wf-desc">Instant AI-generated quotes and proposals, automated approval routing, digital signature collection, invoice generation on deal close, and payment tracking.</div>
+      <div class="wf-tags"><span class="wf-tag">Quotes</span><span class="wf-tag">Invoices</span><span class="wf-tag">Proposals</span></div>
+      <div class="wf-footer"><span class="wf-steps">⚡ 5-step workflow</span><span class="wf-btn">View Demo ↗</span></div>
+    </a>
+    <a class="wf-card" href="workflows/sales-contract-deal-closing.html" target="_blank" data-cat="re" data-name="Contract Deal Closing" data-desc="sales contract closing deal signature CRM win">
+      <div class="wf-card-top"><div class="wf-icon">🤝</div><div class="wf-arrow">↗</div></div>
+      <div class="wf-label">Sales</div>
+      <div class="wf-name">Contract & Deal Closing Automation</div>
+      <div class="wf-desc">Digital contract generation, e-signature workflows, legal review routing, CRM deal closure updates, commission calculation triggers, and new customer onboarding handoff.</div>
+      <div class="wf-tags"><span class="wf-tag">Contracts</span><span class="wf-tag">Closing</span><span class="wf-tag">eSign</span></div>
+      <div class="wf-footer"><span class="wf-steps">⚡ 6-step workflow</span><span class="wf-btn">View Demo ↗</span></div>
+    </a>
+    <a class="wf-card" href="workflows/bank-kyc-onboarding.html" target="_blank" data-cat="re" data-name="Banking KYC Onboarding" data-desc="banking KYC customer onboarding identity verification">
+      <div class="wf-card-top"><div class="wf-icon">🪪</div><div class="wf-arrow">↗</div></div>
+      <div class="wf-label">Banking Services</div>
+      <div class="wf-name">KYC & Customer Onboarding</div>
+      <div class="wf-desc">End-to-end KYC automation for banks and financial services — identity verification, document checks, risk scoring, and welcome onboarding in hours, not days.</div>
+      <div class="wf-tags"><span class="wf-tag">KYC</span><span class="wf-tag">Banking</span><span class="wf-tag">Compliance</span></div>
+      <div class="wf-footer"><span class="wf-steps">⚡ 6-step workflow</span><span class="wf-btn">View Demo ↗</span></div>
+    </a>
+    <a class="wf-card" href="workflows/bank-loan-processing.html" target="_blank" data-cat="re" data-name="Banking Loan Processing" data-desc="bank loan processing credit approval application">
+      <div class="wf-card-top"><div class="wf-icon">💳</div><div class="wf-arrow">↗</div></div>
+      <div class="wf-label">Banking Services</div>
+      <div class="wf-name">Loan Processing Automation</div>
+      <div class="wf-desc">AI-powered loan application processing — credit checks, documentation, underwriting support, approval routing, customer updates, and disbursement coordination.</div>
+      <div class="wf-tags"><span class="wf-tag">Loans</span><span class="wf-tag">Credit</span><span class="wf-tag">Banking</span></div>
+      <div class="wf-footer"><span class="wf-steps">⚡ 7-step workflow</span><span class="wf-btn">View Demo ↗</span></div>
+    </a>
+    <a class="wf-card" href="workflows/bank-transaction-alerts-fraud.html" target="_blank" data-cat="re" data-name="Transaction Alerts Fraud Detection" data-desc="fraud detection transaction banking security alerts">
+      <div class="wf-card-top"><div class="wf-icon">🛡️</div><div class="wf-arrow">↗</div></div>
+      <div class="wf-label">Banking Services</div>
+      <div class="wf-name">Transaction Alerts & Fraud Detection</div>
+      <div class="wf-desc">Real-time transaction monitoring and AI-powered fraud detection — instant customer alerts, account freeze triggers, and investigation workflows that protect customers.</div>
+      <div class="wf-tags"><span class="wf-tag">Fraud</span><span class="wf-tag">Monitoring</span><span class="wf-tag">Security</span></div>
+      <div class="wf-footer"><span class="wf-steps">⚡ 6-step workflow</span><span class="wf-btn">View Demo ↗</span></div>
+    </a>
+    <a class="wf-card" href="workflows/bank-regulatory-compliance.html" target="_blank" data-cat="re" data-name="Banking Regulatory Compliance Reporting" data-desc="regulatory compliance reporting banking AML audit">
+      <div class="wf-card-top"><div class="wf-icon">📋</div><div class="wf-arrow">↗</div></div>
+      <div class="wf-label">Banking Services</div>
+      <div class="wf-name">Regulatory Compliance Reporting</div>
+      <div class="wf-desc">Automated regulatory report generation, data aggregation from multiple systems, compliance deadline tracking, and submission workflows for financial regulatory bodies.</div>
+      <div class="wf-tags"><span class="wf-tag">Regulatory</span><span class="wf-tag">Compliance</span><span class="wf-tag">Reporting</span></div>
+      <div class="wf-footer"><span class="wf-steps">⚡ 5-step workflow</span><span class="wf-btn">View Demo ↗</span></div>
+    </a>
+  </div>
+</div>
+
+<!-- CTA SECTION -->
+<section class="cta-section">
+  <div class="cta-inner">
+    <div class="cta-tag">Work With Digital Loop</div>
+    <h2 class="cta-title">Ready to Implement AI Automation in Your Organization?</h2>
+    <p class="cta-sub">These workflows aren't just demos — they're real systems we build and deploy for organizations across Africa. From strategy to implementation, Digital Loop guides you every step of the way.</p>
+    <div class="cta-buttons">
+      <a class="btn-primary" href="mailto:shileodebode@gmail.com">Book a Free AI Strategy Call</a>
+      <a class="btn-secondary" href="https://www.linkedin.com/in/adeshile-odebode/" target="_blank">Connect on LinkedIn</a>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <p>Built by <a href="https://www.linkedin.com/in/adeshile-odebode/" target="_blank">Adeshile Odebode</a> · AI Transformation Strategist · <strong style="color:#fff">Digital Loop Int'l Ltd</strong> · <a href="mailto:shileodebode@gmail.com">shileodebode@gmail.com</a></p>
+  <p style="margin-top:0.5rem;font-size:0.7rem;">© 2025 Digital Loop Int'l Ltd · All rights reserved</p>
+</footer>
+
+<script>
+const searchInput = document.getElementById('searchInput');
+const chips = document.querySelectorAll('.chip');
+const cards = document.querySelectorAll('.wf-card');
+const sections = document.querySelectorAll('.section');
+const resultCount = document.getElementById('resultCount');
+let activeCategory = 'all';
+
+function updateCount(){
+  const visible = document.querySelectorAll('.wf-card:not(.hidden)').length;
+  resultCount.textContent = `${visible} workflow${visible!==1?'s':''}`;
+}
+
+function applyFilters(){
+  const query = searchInput.value.toLowerCase().trim();
+  cards.forEach(card=>{
+    const cat = card.dataset.cat;
+    const name = (card.dataset.name||'').toLowerCase();
+    const desc = (card.dataset.desc||'').toLowerCase();
+    const text = card.textContent.toLowerCase();
+    const catMatch = activeCategory==='all' || cat===activeCategory;
+    const searchMatch = !query || name.includes(query) || desc.includes(query) || text.includes(query);
+    card.classList.toggle('hidden', !(catMatch && searchMatch));
+  });
+  sections.forEach(sec=>{
+    const visibleCards = sec.querySelectorAll('.wf-card:not(.hidden)').length;
+    sec.classList.toggle('hidden', visibleCards===0);
+  });
+  updateCount();
+}
+
+chips.forEach(chip=>{
+  chip.addEventListener('click',()=>{
+    chips.forEach(c=>c.classList.remove('active'));
+    chip.classList.add('active');
+    activeCategory = chip.dataset.cat;
+    applyFilters();
+  });
+});
+
+searchInput.addEventListener('input', applyFilters);
+updateCount();
+</script>
+</body>
+</html>
