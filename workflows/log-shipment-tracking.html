@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Logistics — Shipment Tracking Automation</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@300;400;500;600;700;800&family=Barlow+Condensed:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#fffaf4;--surface:#ffffff;--surface2:#fff3e4;--border:#f0dfc0;
+  --ink:#140800;--orange:#d46010;--orange2:#b04808;--amber:#e88020;
+  --warm:#f5c040;--cream:#fff8ec;--green:#1a6830;--red:#c02020;
+  --blue:#1a4a8a;--text:#281408;--muted:#8a6838;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;overflow-x:hidden;}
+.top-stripe{position:fixed;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,var(--orange),var(--amber),var(--warm),var(--amber),var(--orange));z-index:200;}
+nav{position:fixed;top:4px;left:0;right:0;z-index:100;background:rgba(255,250,244,0.97);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 2.5rem;height:54px;}
+.nav-brand{font-family:'Space Mono',monospace;font-size:0.7rem;color:var(--orange2);letter-spacing:0.06em;}
+.nav-dots{display:flex;gap:0.3rem;}
+.nav-dot{width:7px;height:7px;border-radius:2px;background:var(--border);cursor:pointer;transition:all 0.2s;}
+.nav-dot.active{background:var(--orange);transform:scale(1.4);}
+.nav-dot.done{background:var(--green);}
+.timer{font-size:0.67rem;color:var(--orange);background:rgba(212,96,16,0.08);border:1px solid rgba(212,96,16,0.2);padding:0.2rem 0.75rem;border-radius:4px;font-family:'Space Mono',monospace;}
+.slide{min-height:100vh;padding:78px 0 50px;display:none;flex-direction:column;align-items:center;justify-content:center;position:relative;overflow:hidden;}
+.slide.active{display:flex;}
+.slide-inner{width:100%;max-width:1140px;padding:0 2.5rem;position:relative;z-index:2;}
+.hero-bg{position:absolute;inset:0;background:radial-gradient(ellipse at 80% 40%,rgba(212,96,16,0.05) 0%,transparent 60%);pointer-events:none;}
+.hero-road{position:absolute;bottom:0;left:0;right:0;height:3px;background:repeating-linear-gradient(90deg,var(--orange) 0px,var(--orange) 20px,transparent 20px,transparent 40px);opacity:0.15;pointer-events:none;}
+.hero-badge{display:inline-flex;align-items:center;gap:0.5rem;background:var(--cream);border:1px solid rgba(212,96,16,0.22);color:var(--orange2);font-size:0.67rem;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;padding:0.28rem 0.9rem;border-radius:4px;margin-bottom:1.5rem;font-family:'Space Mono',monospace;}
+.hero-badge::before{content:'🚚';font-size:0.75rem;}
+h1.hero-title{font-family:'Barlow Condensed',sans-serif;font-size:clamp(3rem,6vw,5.2rem);font-weight:700;line-height:0.98;letter-spacing:-0.01em;color:var(--ink);margin-bottom:1.5rem;text-transform:uppercase;}
+h1.hero-title span{color:var(--orange);}
+.hero-desc{font-size:0.97rem;color:var(--muted);max-width:510px;line-height:1.78;margin-bottom:2.5rem;font-weight:400;}
+.kpi-strip{display:flex;gap:1px;background:var(--border);border-radius:6px;overflow:hidden;max-width:640px;box-shadow:0 2px 10px rgba(212,96,16,0.08);}
+.kpi{background:white;padding:1.1rem 1.4rem;flex:1;}
+.kpi-val{font-family:'Barlow Condensed',sans-serif;font-size:2rem;font-weight:700;color:var(--orange);line-height:1;}
+.kpi-lbl{font-size:0.59rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);margin-top:0.2rem;font-family:'Space Mono',monospace;}
+.sec-tag{font-size:0.61rem;letter-spacing:0.22em;text-transform:uppercase;color:var(--orange);margin-bottom:0.4rem;font-weight:600;font-family:'Space Mono',monospace;display:flex;align-items:center;gap:0.4rem;}
+.sec-tag::before{content:'▶';font-size:0.55rem;}
+.sec-title{font-family:'Barlow Condensed',sans-serif;font-size:clamp(2rem,3.8vw,3.1rem);font-weight:700;line-height:1.05;margin-bottom:0.5rem;color:var(--ink);letter-spacing:-0.01em;text-transform:uppercase;}
+.sec-title span{color:var(--orange);}
+.sec-desc{font-size:0.87rem;color:var(--muted);margin-bottom:1.85rem;max-width:540px;line-height:1.78;font-weight:400;}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;}
+.three-col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;}
+.lr{display:grid;grid-template-columns:1.1fr 1fr;gap:2rem;align-items:start;}
+.lr-rev{display:grid;grid-template-columns:1fr 1.15fr;gap:2rem;align-items:start;}
+.card{background:white;border:1px solid var(--border);border-radius:8px;padding:1.25rem;transition:all 0.2s;box-shadow:0 1px 4px rgba(0,0,0,0.04);}
+.card:hover{border-color:var(--orange);transform:translateY(-2px);box-shadow:0 6px 18px rgba(212,96,16,0.1);}
+.card-icon{font-size:1.4rem;margin-bottom:0.5rem;}
+.card-title{font-family:'Barlow Condensed',sans-serif;font-size:1.05rem;font-weight:600;margin-bottom:0.3rem;color:var(--ink);letter-spacing:0.01em;}
+.card-desc{font-size:0.72rem;color:var(--muted);line-height:1.65;}
+.panel{background:white;border:1px solid var(--border);border-radius:8px;padding:1.4rem;}
+.panel h3{font-family:'Barlow Condensed',sans-serif;font-size:1rem;font-weight:600;color:var(--orange2);margin-bottom:0.9rem;display:flex;align-items:center;gap:0.5rem;letter-spacing:0.02em;}
+.panel h3::before{content:'▶';color:var(--amber);font-size:0.65rem;}
+.steps{list-style:none;}
+.steps li{display:flex;gap:0.75rem;padding:0.45rem 0;border-bottom:1px solid var(--border);font-size:0.76rem;line-height:1.6;}
+.steps li:last-child{border-bottom:none;}
+.step-n{width:22px;height:22px;border-radius:4px;background:var(--orange);color:white;font-size:0.62rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:'Space Mono',monospace;}
+/* Workflow */
+.wf-canvas{background:var(--ink);border-radius:10px;padding:2rem;position:relative;overflow:hidden;}
+.wf-road{position:absolute;bottom:0;left:0;right:0;height:6px;background:repeating-linear-gradient(90deg,var(--amber) 0px,var(--amber) 30px,transparent 30px,transparent 60px);opacity:0.12;}
+.wf-dots{position:absolute;inset:0;background-image:radial-gradient(circle,rgba(232,128,32,0.18) 1px,transparent 1px);background-size:28px 28px;opacity:0.5;}
+.wf-label{position:absolute;top:0.75rem;left:1rem;font-size:0.57rem;letter-spacing:0.18em;text-transform:uppercase;color:rgba(255,255,255,0.3);display:flex;align-items:center;gap:0.4rem;z-index:3;font-family:'Space Mono',monospace;}
+.wf-label::before{content:'';width:7px;height:7px;border-radius:2px;background:var(--amber);box-shadow:0 0 8px var(--amber);animation:apulse 2s infinite;}
+@keyframes apulse{0%,100%{opacity:1}50%{opacity:0.2}}
+.wf-nodes{display:flex;align-items:flex-start;gap:0;padding-top:1.5rem;position:relative;z-index:2;flex-wrap:wrap;}
+.wf-stage{display:flex;flex-direction:column;align-items:center;}
+.wf-slbl{font-size:0.51rem;letter-spacing:0.14em;text-transform:uppercase;color:rgba(255,255,255,0.28);margin-bottom:0.3rem;font-family:'Space Mono',monospace;}
+.wf-node{display:flex;flex-direction:column;align-items:center;gap:0.3rem;cursor:pointer;position:relative;}
+.wf-box{width:58px;height:58px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.25rem;border:2px solid transparent;transition:all 0.3s;}
+.wf-node:hover .wf-box{transform:scale(1.1);box-shadow:0 0 20px rgba(212,96,16,0.4);}
+.wf-nlbl{font-size:0.52rem;text-align:center;color:rgba(255,255,255,0.42);max-width:66px;line-height:1.3;font-family:'Space Mono',monospace;}
+.wf-arr{color:rgba(255,255,255,0.18);padding:0 0.2rem;font-size:0.85rem;align-self:flex-start;margin-top:19px;flex-shrink:0;}
+.ttw{position:relative;}
+.tti{position:absolute;bottom:calc(100%+8px);left:50%;transform:translateX(-50%);background:white;border:1px solid var(--border);border-radius:6px;padding:0.6rem 0.9rem;font-size:0.67rem;opacity:0;pointer-events:none;transition:opacity 0.2s;z-index:50;color:var(--ink);line-height:1.5;max-width:200px;white-space:normal;text-align:left;box-shadow:0 4px 12px rgba(0,0,0,0.1);}
+.ttw:hover .tti{opacity:1;}
+/* Shipment tracker */
+.shipment-row{background:white;border:1px solid var(--border);border-radius:8px;padding:0.75rem 1rem;margin-bottom:0.45rem;display:flex;gap:0.85rem;align-items:flex-start;transition:all 0.3s;font-size:0.72rem;}
+.shipment-row.in-transit{border-color:var(--orange);background:rgba(212,96,16,0.03);}
+.shipment-row.delivered{border-color:var(--green);background:rgba(26,104,48,0.03);}
+.shipment-row.delayed{border-color:var(--red);background:rgba(192,32,32,0.03);}
+.sr-id{font-family:'Space Mono',monospace;font-size:0.62rem;color:var(--muted);flex-shrink:0;min-width:80px;}
+.sr-route{font-weight:600;color:var(--ink);}
+.sr-status{font-size:0.63rem;color:var(--muted);margin-top:0.1rem;}
+.sr-badge{margin-left:auto;font-size:0.58rem;padding:0.1rem 0.42rem;border-radius:4px;font-weight:600;font-family:'Space Mono',monospace;white-space:nowrap;}
+.srb-transit{background:rgba(212,96,16,0.1);color:var(--orange);border:1px solid rgba(212,96,16,0.2);}
+.srb-delivered{background:rgba(26,104,48,0.1);color:var(--green);border:1px solid rgba(26,104,48,0.2);}
+.srb-delayed{background:rgba(192,32,32,0.1);color:var(--red);border:1px solid rgba(192,32,32,0.2);}
+.srb-new{background:rgba(138,104,56,0.1);color:var(--muted);border:1px solid rgba(138,104,56,0.18);}
+/* Timeline */
+.timeline{padding:0.5rem 0;}
+.tl-item{display:flex;gap:0.85rem;padding:0.5rem 0;position:relative;}
+.tl-item::before{content:'';position:absolute;left:11px;top:24px;bottom:-8px;width:2px;background:rgba(212,96,16,0.2);}
+.tl-item:last-child::before{display:none;}
+.tl-dot{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.75rem;flex-shrink:0;margin-top:2px;}
+.tl-dot-done{background:rgba(26,104,48,0.15);color:var(--green);}
+.tl-dot-active{background:rgba(212,96,16,0.15);color:var(--orange);animation:tpulse 2s infinite;}
+@keyframes tpulse{0%,100%{box-shadow:0 0 0 rgba(212,96,16,0.3)}50%{box-shadow:0 0 8px rgba(212,96,16,0.3)}}
+.tl-dot-pending{background:rgba(138,104,56,0.1);color:var(--muted);}
+.tl-label{font-weight:600;font-size:0.77rem;color:var(--ink);}
+.tl-time{font-size:0.63rem;color:var(--muted);font-family:'Space Mono',monospace;}
+/* PS list */
+.ps-list{list-style:none;}
+.ps-list li{display:flex;gap:0.75rem;padding:0.45rem 0;border-bottom:1px solid var(--border);font-size:0.74rem;line-height:1.5;transition:all 0.3s;}
+.ps-list li:last-child{border-bottom:none;}
+.ps-num{width:20px;height:20px;border-radius:4px;background:var(--border);color:white;font-size:0.6rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;transition:background 0.3s;font-family:'Space Mono',monospace;}
+.info-orange{padding:0.75rem 1rem;border-radius:6px;font-size:0.77rem;line-height:1.6;background:rgba(212,96,16,0.06);border:1px solid rgba(212,96,16,0.18);color:var(--orange2);}
+.info-green{padding:0.75rem 1rem;border-radius:6px;font-size:0.77rem;line-height:1.6;background:rgba(26,104,48,0.06);border:1px solid rgba(26,104,48,0.15);color:var(--green);}
+.ba-bad{padding:0.6rem 0.9rem;border-radius:6px;font-size:0.76rem;line-height:1.5;background:rgba(192,32,32,0.04);border:1px solid rgba(192,32,32,0.12);}
+.ba-good{padding:0.6rem 0.9rem;border-radius:6px;font-size:0.76rem;line-height:1.5;background:rgba(26,104,48,0.05);border:1px solid rgba(26,104,48,0.14);}
+.quote-block{background:var(--ink);border-radius:10px;padding:1.75rem 2rem;color:white;border-left:4px solid var(--orange);}
+.quote-text{font-size:1.05rem;line-height:1.78;margin-bottom:0.75rem;font-weight:300;}
+.quote-text strong{color:var(--warm);}
+.slide-counter{position:fixed;bottom:1.5rem;left:2rem;font-size:0.62rem;color:var(--muted);z-index:100;font-family:'Space Mono',monospace;}
+.slide-nav{position:fixed;bottom:1.5rem;right:2rem;display:flex;gap:0.5rem;z-index:100;}
+.nav-btn{background:white;border:1px solid var(--border);color:var(--text);padding:0.55rem 1.2rem;border-radius:6px;font-family:'Space Mono',monospace;font-size:0.7rem;cursor:pointer;transition:all 0.2s;}
+.nav-btn:hover{border-color:var(--orange);color:var(--orange);}
+.nav-btn.primary{background:var(--orange);border-color:var(--orange);color:white;}
+.nav-btn.primary:hover{background:var(--orange2);}
+.run-btn{background:var(--orange);color:white;border:none;border-radius:6px;padding:0.7rem 1.5rem;font-family:'Space Mono',monospace;font-size:0.72rem;cursor:pointer;transition:all 0.2s;width:100%;text-align:center;}
+.run-btn:hover{background:var(--orange2);}
+.animate-in{opacity:0;animation:fadeUp 0.5s ease-out forwards;}
+.slide.active .animate-in:nth-child(1){animation-delay:0.05s;}
+.slide.active .animate-in:nth-child(2){animation-delay:0.15s;}
+.slide.active .animate-in:nth-child(3){animation-delay:0.25s;}
+.slide.active .animate-in:nth-child(4){animation-delay:0.35s;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+</style>
+</head>
+<body>
+<div class="top-stripe"></div>
+<nav>
+  <div class="nav-brand">LOGISTICS · Shipment Tracking</div>
+  <div class="nav-dots" id="navDots"></div>
+  <div class="timer" id="timerBadge">⏱ 00:00</div>
+</nav>
+
+<!-- SLIDE 1: HERO -->
+<section class="slide active" id="slide-0">
+  <div class="hero-bg"></div><div class="hero-road"></div>
+  <div class="slide-inner">
+    <div class="animate-in"><div class="hero-badge">n8n AI Automation · Logistics & Supply Chain</div></div>
+    <div class="animate-in"><h1 class="hero-title">Every Shipment.<br><span>Tracked.</span><br>Every Customer Informed.</h1></div>
+    <div class="animate-in"><p class="hero-desc">Real-time shipment visibility across every leg of the journey. Customers notified automatically at every milestone. Delays detected and escalated before anyone calls to complain.</p></div>
+    <div class="animate-in">
+      <div class="kpi-strip">
+        <div class="kpi"><div class="kpi-val">100%</div><div class="kpi-lbl">Shipments Tracked</div></div>
+        <div class="kpi"><div class="kpi-val">Live</div><div class="kpi-lbl">Real-Time Updates</div></div>
+        <div class="kpi"><div class="kpi-val">Auto</div><div class="kpi-lbl">Delay Detection</div></div>
+        <div class="kpi"><div class="kpi-val">0</div><div class="kpi-lbl">Customer Chasing</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 2: PROBLEM -->
+<section class="slide" id="slide-1">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">01 — The Problem</div><div class="sec-title">Where Is My<br><span>Shipment?</span></div><p class="sec-desc">The most common customer service complaint for logistics companies is lack of visibility. Customers don't know where their goods are, when they'll arrive, or why there's a delay. This is entirely avoidable.</p></div>
+    <div class="animate-in two-col" style="margin-bottom:1.5rem">
+      <div class="card"><div class="card-icon">📞</div><div class="card-title">The "Where Is It?" Call</div><div class="card-desc">Customer service teams field hundreds of "tracking" calls daily. Each one takes 5–10 minutes and requires logging into multiple systems to give an answer that an automated WhatsApp update should have already provided.</div></div>
+      <div class="card"><div class="card-icon">🕐</div><div class="card-title">Delay Discovery Too Late</div><div class="card-desc">Truck broke down at Ore, Ondo State. Driver doesn't report immediately. Operations only finds out when the delivery window passes. Customer has been waiting all day for goods that are 200km away.</div></div>
+      <div class="card"><div class="card-icon">📋</div><div class="card-title">Manual Waybill Updates</div><div class="card-desc">Waybills updated manually at each hub. Information entered hours after the event. Tracking data always 4–6 hours behind reality. Live tracking impossible when the source data is stale.</div></div>
+      <div class="card"><div class="card-icon">📊</div><div class="card-title">No Performance Data</div><div class="card-desc">On-time delivery rate unknown. Average transit time per route unknown. Which routes are consistently delayed — unknown. Operational improvement impossible without the data to drive it.</div></div>
+    </div>
+    <div class="animate-in"><div class="info-orange">✅ n8n captures location updates from drivers' phones and hub check-ins, pushes automatic WhatsApp updates to customers, and detects delays before the delivery window is missed.</div></div>
+  </div>
+</section>
+
+<!-- SLIDE 3: WORKFLOW -->
+<section class="slide" id="slide-2">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">02 — The Blueprint</div><div class="sec-title">n8n Shipment<br><span>Tracking Pipeline</span></div><p class="sec-desc">From dispatch to doorstep — every checkpoint captured, every customer informed, every delay flagged. Full visibility for operations and customers simultaneously.</p></div>
+    <div class="animate-in wf-canvas">
+      <div class="wf-dots"></div><div class="wf-road"></div>
+      <div class="wf-label">n8n canvas — shipment tracking pipeline</div>
+      <div class="wf-nodes">
+        <div class="wf-stage"><div class="wf-slbl">Dispatch</div>
+          <div style="display:flex;flex-direction:column;gap:0.35rem">
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a1a0a,#78350f);color:#fde68a;border-color:#78350f;">📦</div><div class="wf-nlbl">Waybill<br>Created</div><div class="tti">Shipment waybill created in WMS. n8n captures: consignee details, origin, destination, contents, declared value. Tracking number generated and sent to customer via WhatsApp.</div></div>
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#0a1a2a,#1d4ed8);color:#93c5fd;border-color:#1d4ed8;">🗺️</div><div class="wf-nlbl">Route<br>Planned</div><div class="tti">Optimal route calculated based on: traffic data, fuel efficiency, delivery time windows, and driver availability. Assigned to driver with full route instructions.</div></div>
+          </div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-stage"><div class="wf-slbl">Track</div>
+          <div style="display:flex;flex-direction:column;gap:0.35rem">
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a3a1a,#166534);color:#4ade80;border-color:#166534;">📍</div><div class="wf-nlbl">GPS<br>Updates</div><div class="tti">Driver app sends GPS coordinates every 15 minutes. n8n calculates ETA based on current position vs destination. Updates customer and operations dashboard in real time.</div></div>
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a0a1a,#7c3aed);color:#d8b4fe;border-color:#7c3aed;">🏭</div><div class="wf-nlbl">Hub<br>Check-ins</div><div class="tti">Driver scans waybill QR at each hub. n8n records time, hub location, and condition check. Automatic milestone update sent to customer.</div></div>
+          </div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-stage"><div class="wf-slbl">Detect</div>
+          <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a0a0a,#7f1d1d);color:#fca5a5;border-color:#7f1d1d;">⚠️</div><div class="wf-nlbl">Delay<br>Detection</div><div class="tti">n8n compares ETA vs promised delivery window every 30 mins. If ETA will miss window: operations notified immediately. Customer gets proactive delay message before window passes.</div></div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-stage"><div class="wf-slbl">Notify</div>
+          <div style="display:flex;flex-direction:column;gap:0.35rem">
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#0a1a1a,#065f46);color:#6ee7b7;border-color:#065f46;">📱</div><div class="wf-nlbl">Customer<br>WhatsApp</div><div class="tti">Automatic milestone messages: "Dispatched from Lagos" → "Arrived Ibadan Hub" → "Out for delivery, ETA 2pm" → "Delivered". Customer tracks without calling once.</div></div>
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#0a0a1a,#1e3a5f);color:#93c5fd;border-color:#1e3a5f;">📊</div><div class="wf-nlbl">Ops<br>Dashboard</div><div class="tti">Live operations map: all active shipments, driver positions, ETAs, and delay flags. Operations manager sees everything from one screen. No phone calls to drivers to check status.</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 4: SIM 1 — TRACKING -->
+<section class="slide" id="slide-3">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">03 — Simulation 1</div><div class="sec-title">Live: Shipment<br><span>Lagos → Abuja</span></div><p class="sec-desc">SHP-2025-0482 departed Lagos this morning. Watch n8n track every checkpoint, send milestone updates to the customer, and detect the Lokoja delay before the delivery window passes.</p></div>
+    <div class="animate-in lr">
+      <div style="display:flex;flex-direction:column;gap:1rem">
+        <div class="panel">
+          <h3>Tracking Pipeline</h3>
+          <ul class="ps-list" id="trackSteps">
+            <li id="tr1" style="opacity:0.3"><div class="ps-num">1</div><div>Waybill created — tracking number sent to customer</div></li>
+            <li id="tr2" style="opacity:0.3"><div class="ps-num">2</div><div>Departed Lagos depot — WhatsApp update sent</div></li>
+            <li id="tr3" style="opacity:0.3"><div class="ps-num">3</div><div>Arrived Lokoja hub — ETA recalculated</div></li>
+            <li id="tr4" style="opacity:0.3"><div class="ps-num">4</div><div>Delay detected — customer proactively notified</div></li>
+            <li id="tr5" style="opacity:0.3"><div class="ps-num">5</div><div>Ops manager alerted via Slack — resolution tracked</div></li>
+          </ul>
+        </div>
+        <div class="panel">
+          <h3>Shipment Details</h3>
+          <div style="font-size:0.73rem;line-height:1.8">
+            <div style="display:flex;justify-content:space-between;padding:0.2rem 0;border-bottom:1px solid var(--border)"><span style="color:var(--muted);font-family:'Space Mono',monospace;font-size:0.62rem">Ref</span><span style="font-weight:600">SHP-2025-0482</span></div>
+            <div style="display:flex;justify-content:space-between;padding:0.2rem 0;border-bottom:1px solid var(--border)"><span style="color:var(--muted);font-family:'Space Mono',monospace;font-size:0.62rem">Route</span><span>Lagos → Abuja</span></div>
+            <div style="display:flex;justify-content:space-between;padding:0.2rem 0;border-bottom:1px solid var(--border)"><span style="color:var(--muted);font-family:'Space Mono',monospace;font-size:0.62rem">Contents</span><span>Electronics (20kg)</span></div>
+            <div style="display:flex;justify-content:space-between;padding:0.2rem 0"><span style="color:var(--muted);font-family:'Space Mono',monospace;font-size:0.62rem">Window</span><span>Today by 4:00pm</span></div>
+          </div>
+        </div>
+        <button class="run-btn" id="trackBtn" onclick="runTrackSim()">▶ TRACK SHIPMENT LIVE</button>
+      </div>
+      <div>
+        <div style="font-size:0.61rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);font-family:'Space Mono',monospace;margin-bottom:0.5rem">Journey Timeline — SHP-0482</div>
+        <div class="timeline" id="timeline">
+          <div class="tl-item" id="tl1"><div class="tl-dot tl-dot-pending" id="tld1">📦</div><div><div class="tl-label">Lagos Depot — Dispatched</div><div class="tl-time" id="tlt1">—</div></div></div>
+          <div class="tl-item" id="tl2"><div class="tl-dot tl-dot-pending" id="tld2">🏭</div><div><div class="tl-label">Ibadan Hub — Transited</div><div class="tl-time" id="tlt2">—</div></div></div>
+          <div class="tl-item" id="tl3"><div class="tl-dot tl-dot-pending" id="tld3">⚠️</div><div><div class="tl-label">Lokoja — Delay Detected</div><div class="tl-time" id="tlt3">—</div></div></div>
+          <div class="tl-item" id="tl4"><div class="tl-dot tl-dot-pending" id="tld4">📍</div><div><div class="tl-label">En Route Abuja — Resumed</div><div class="tl-time" id="tlt4">—</div></div></div>
+          <div class="tl-item" id="tl5"><div class="tl-dot tl-dot-pending" id="tld5">✅</div><div><div class="tl-label">Abuja — Delivered</div><div class="tl-time" id="tlt5">—</div></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 5: SIM 2 — OPERATIONS BOARD -->
+<section class="slide" id="slide-4">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">04 — Simulation 2</div><div class="sec-title">Live Operations<br><span>Shipment Board</span></div><p class="sec-desc">All active shipments across the network tracked in one view. Operations manager sees at-a-glance which are on time, which are delayed, and which need immediate intervention.</p></div>
+    <div class="animate-in" style="margin-bottom:1.25rem">
+      <div style="display:flex;flex-direction:column;gap:0.4rem">
+        <div class="shipment-row in-transit"><div class="sr-id">SHP-0480</div><div><div class="sr-route">Lagos → Port Harcourt</div><div class="sr-status">At Benin Hub · ETA: 3:30pm · On schedule</div></div><span class="sr-badge srb-transit">In Transit</span></div>
+        <div class="shipment-row in-transit"><div class="sr-id">SHP-0481</div><div><div class="sr-route">Kano → Lagos</div><div class="sr-status">Departed Kaduna · ETA: Tomorrow 9am</div></div><span class="sr-badge srb-transit">In Transit</span></div>
+        <div class="shipment-row delayed"><div class="sr-id">SHP-0482</div><div><div class="sr-route">Lagos → Abuja</div><div class="sr-status">Delay at Lokoja · New ETA: 6:30pm (window: 4pm)</div></div><span class="sr-badge srb-delayed">⚠ Delayed</span></div>
+        <div class="shipment-row delivered"><div class="sr-id">SHP-0478</div><div><div class="sr-route">Lagos → Ibadan</div><div class="sr-status">Delivered: 11:42am · POD captured · Receipt sent</div></div><span class="sr-badge srb-delivered">Delivered ✓</span></div>
+        <div class="shipment-row delivered"><div class="sr-id">SHP-0479</div><div><div class="sr-route">Abuja → Kaduna</div><div class="sr-status">Delivered: 2:15pm · On time · CSAT: 5⭐</div></div><span class="sr-badge srb-delivered">Delivered ✓</span></div>
+      </div>
+    </div>
+    <div class="animate-in three-col">
+      <div class="card" style="text-align:center"><div style="font-family:'Barlow Condensed',sans-serif;font-size:2rem;font-weight:700;color:var(--orange)">3</div><div style="font-size:0.6rem;color:var(--muted);margin-top:0.2rem;font-family:'Space Mono',monospace;text-transform:uppercase;letter-spacing:0.1em">Active Shipments</div></div>
+      <div class="card" style="text-align:center"><div style="font-family:'Barlow Condensed',sans-serif;font-size:2rem;font-weight:700;color:var(--green)">2</div><div style="font-size:0.6rem;color:var(--muted);margin-top:0.2rem;font-family:'Space Mono',monospace;text-transform:uppercase;letter-spacing:0.1em">Delivered Today</div></div>
+      <div class="card" style="text-align:center"><div style="font-family:'Barlow Condensed',sans-serif;font-size:2rem;font-weight:700;color:var(--red)">1</div><div style="font-size:0.6rem;color:var(--muted);margin-top:0.2rem;font-family:'Space Mono',monospace;text-transform:uppercase;letter-spacing:0.1em">Delay Alert</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 6: BEFORE/AFTER -->
+<section class="slide" id="slide-5">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">05 — Operational Impact</div><div class="sec-title">Logistics That<br><span>Customers Trust</span></div></div>
+    <div class="animate-in two-col" style="margin-bottom:1.5rem">
+      <div>
+        <div style="font-size:0.62rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--red);margin-bottom:0.75rem;font-weight:600;font-family:'Space Mono',monospace">❌ BEFORE</div>
+        <div style="display:flex;flex-direction:column;gap:0.5rem">
+          <div class="ba-bad">Customers call to ask "where is my shipment?" — CS overwhelmed</div>
+          <div class="ba-bad">Delays discovered when delivery window passes — too late to manage</div>
+          <div class="ba-bad">Manual waybill updates — tracking always 4–6 hours behind reality</div>
+          <div class="ba-bad">No performance data — on-time rate, transit times unknown</div>
+          <div class="ba-bad">Operations calls drivers to check status — inefficient and unreliable</div>
+        </div>
+      </div>
+      <div>
+        <div style="font-size:0.62rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--green);margin-bottom:0.75rem;font-weight:600;font-family:'Space Mono',monospace">✅ AFTER</div>
+        <div style="display:flex;flex-direction:column;gap:0.5rem">
+          <div class="ba-good">Automatic milestone WhatsApp updates — zero customer tracking calls</div>
+          <div class="ba-good">Delay detected and customer notified before delivery window passes</div>
+          <div class="ba-good">Live GPS tracking — real-time visibility for operations and customers</div>
+          <div class="ba-good">On-time rate, transit times, route performance all tracked automatically</div>
+          <div class="ba-good">Operations dashboard — all shipments, all drivers, one screen</div>
+        </div>
+      </div>
+    </div>
+    <div class="animate-in">
+      <div class="quote-block">
+        <div class="quote-text">"Customers don't mind delays nearly as much as they mind <strong>not being told about them</strong>. Proactive communication transforms a frustrated customer into an understanding one. This automation makes that possible at scale."</div>
+        <div style="font-size:0.62rem;color:rgba(255,255,255,0.35);font-family:'Space Mono',monospace">STACK: n8n · GPT-4o · WhatsApp API · Google Maps API · Termii SMS · Google Sheets · Slack</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="slide-counter" id="slideCounter">Slide 1 of 6</div>
+<div class="slide-nav">
+  <button class="nav-btn" onclick="prevSlide()">← Prev</button>
+  <button class="nav-btn primary" onclick="nextSlide()">Next →</button>
+</div>
+<script>
+const slides=document.querySelectorAll('.slide'),total=slides.length;let cur=0;
+const dots=document.getElementById('navDots');
+for(let i=0;i<total;i++){const d=document.createElement('div');d.className='nav-dot'+(i===0?' active':'');d.onclick=()=>goTo(i);dots.appendChild(d);}
+function goTo(n){slides[cur].classList.remove('active');dots.children[cur].classList.remove('active');if(cur<n)dots.children[cur].classList.add('done');cur=n;slides[cur].classList.add('active');dots.children[cur].classList.add('active');document.getElementById('slideCounter').textContent=`Slide ${cur+1} of ${total}`;}
+function nextSlide(){if(cur<total-1)goTo(cur+1);}function prevSlide(){if(cur>0)goTo(cur-1);}
+document.addEventListener('keydown',e=>{if(e.key==='ArrowRight'||e.key==='ArrowDown')nextSlide();if(e.key==='ArrowLeft'||e.key==='ArrowUp')prevSlide();});
+let secs=0;setInterval(()=>{secs++;const m=String(Math.floor(secs/60)).padStart(2,'0'),s=String(secs%60).padStart(2,'0');document.getElementById('timerBadge').textContent=`⏱ ${m}:${s}`;if(secs>=840)document.getElementById('timerBadge').style.color='#c02020';},1000);
+function delay(ms){return new Promise(r=>setTimeout(r,ms));}
+const tlData=[
+  {dot:'tld1',time:'tlt1',dotCls:'tl-dot-done',timeVal:'6:30am · Departed',emoji:'📦'},
+  {dot:'tld2',time:'tlt2',dotCls:'tl-dot-done',timeVal:'9:15am · Transited',emoji:'🏭'},
+  {dot:'tld3',time:'tlt3',dotCls:'tl-dot-active',timeVal:'12:40pm · Traffic + tyre issue — ETA revised',emoji:'⚠️'},
+  {dot:'tld4',time:'tlt4',dotCls:'tl-dot-done',timeVal:'2:10pm · Back on route',emoji:'📍'},
+  {dot:'tld5',time:'tlt5',dotCls:'tl-dot-pending',timeVal:'ETA 6:30pm',emoji:'✅'},
+];
+let trackRunning=false;
+async function runTrackSim(){
+  if(trackRunning)return;trackRunning=true;
+  const btn=document.getElementById('trackBtn');btn.textContent='Tracking...';
+  tlData.forEach(d=>{const dot=document.getElementById(d.dot);const t=document.getElementById(d.time);if(dot){dot.className='tl-dot tl-dot-pending';dot.textContent=d.emoji;}if(t)t.textContent='—';});
+  const steps=['tr1','tr2','tr3','tr4','tr5'];
+  steps.forEach(id=>{const el=document.getElementById(id);if(el){el.style.opacity='0.3';el.querySelector('.ps-num').style.background='var(--border)';}});
+  const light=(i)=>{steps.forEach(id=>{const el=document.getElementById(id);if(el){el.style.opacity='0.3';el.querySelector('.ps-num').style.background='var(--border)';}});const el=document.getElementById(steps[i]);if(el){el.style.opacity='1';el.style.color=i===3?'var(--red)':'var(--orange)';el.querySelector('.ps-num').style.background=i===3?'var(--red)':'var(--orange)';}};
+  for(let i=0;i<tlData.length;i++){
+    await delay(600);
+    light(i);
+    const d=tlData[i];
+    const dot=document.getElementById(d.dot);const t=document.getElementById(d.time);
+    if(dot)dot.className='tl-dot '+d.dotCls;
+    if(t)t.textContent=d.timeVal;
+  }
+  btn.textContent='↺ Reset & Run Again';trackRunning=false;
+}
+</script>
+</body>
+</html>
