@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>E-commerce — Returns & Refunds Automation</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f5f8fa;--surface:#fff;--surface2:#e8f0f5;--border:#ccdae5;
+  --ink:#06121e;--slate:#1a3850;--slate2:#102840;--teal:#0e6880;
+  --sky:#dbeafe;--green:#0a6a38;--red:#c02020;--amber:#b07010;
+  --text:#0a1820;--muted:#507068;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;overflow-x:hidden;}
+.left-bar{position:fixed;left:0;top:0;bottom:0;width:4px;background:linear-gradient(to bottom,var(--slate),var(--teal));z-index:200;}
+nav{position:fixed;top:0;left:4px;right:0;z-index:100;background:rgba(245,248,250,0.97);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 2.5rem;height:54px;}
+.nav-brand{font-family:'JetBrains Mono',monospace;font-size:0.7rem;color:var(--slate2);letter-spacing:0.06em;}
+.nav-dots{display:flex;gap:0.3rem;}
+.nav-dot{width:7px;height:7px;border-radius:2px;background:var(--border);cursor:pointer;transition:all 0.2s;}
+.nav-dot.active{background:var(--slate);transform:scale(1.4);}
+.nav-dot.done{background:var(--green);}
+.timer{font-size:0.67rem;color:var(--slate);background:rgba(26,56,80,0.07);border:1px solid rgba(26,56,80,0.18);padding:0.2rem 0.75rem;border-radius:4px;font-family:'JetBrains Mono',monospace;}
+.slide{min-height:100vh;padding:78px 0 50px;display:none;flex-direction:column;align-items:center;justify-content:center;position:relative;overflow:hidden;}
+.slide.active{display:flex;}
+.slide-inner{width:100%;max-width:1140px;padding:0 2.5rem;position:relative;z-index:2;}
+.hero-bg{position:absolute;inset:0;background:radial-gradient(ellipse at 80% 35%,rgba(14,104,128,0.05) 0%,transparent 55%);pointer-events:none;}
+.hero-badge{display:inline-flex;align-items:center;gap:0.5rem;background:var(--sky);border:1px solid rgba(26,56,80,0.18);color:var(--slate2);font-size:0.67rem;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;padding:0.28rem 0.9rem;border-radius:6px;margin-bottom:1.5rem;font-family:'JetBrains Mono',monospace;}
+h1.hero-title{font-family:'DM Sans',sans-serif;font-size:clamp(2.8rem,5.5vw,4.8rem);font-weight:800;line-height:1.0;letter-spacing:-0.03em;color:var(--ink);margin-bottom:1.5rem;}
+h1.hero-title span{color:var(--teal);}
+.hero-desc{font-size:0.97rem;color:var(--muted);max-width:510px;line-height:1.78;margin-bottom:2.5rem;font-weight:300;}
+.kpi-strip{display:flex;gap:1px;background:var(--border);border-radius:8px;overflow:hidden;max-width:640px;box-shadow:0 2px 10px rgba(26,56,80,0.07);}
+.kpi{background:white;padding:1.1rem 1.4rem;flex:1;}
+.kpi-val{font-family:'DM Sans',sans-serif;font-size:1.9rem;font-weight:800;color:var(--slate);line-height:1;}
+.kpi-lbl{font-size:0.59rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);margin-top:0.2rem;font-family:'JetBrains Mono',monospace;}
+.sec-tag{font-size:0.61rem;letter-spacing:0.22em;text-transform:uppercase;color:var(--teal);margin-bottom:0.4rem;font-weight:600;font-family:'JetBrains Mono',monospace;display:flex;align-items:center;gap:0.4rem;}
+.sec-tag::before{content:'';width:16px;height:2px;background:var(--slate);}
+.sec-title{font-family:'DM Sans',sans-serif;font-size:clamp(1.9rem,3.8vw,3rem);font-weight:800;line-height:1.05;margin-bottom:0.5rem;color:var(--ink);letter-spacing:-0.02em;}
+.sec-title span{color:var(--slate);}
+.sec-desc{font-size:0.87rem;color:var(--muted);margin-bottom:1.85rem;max-width:540px;line-height:1.78;font-weight:300;}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;}
+.lr{display:grid;grid-template-columns:1.1fr 1fr;gap:2rem;align-items:start;}
+.card{background:white;border:1px solid var(--border);border-radius:10px;padding:1.25rem;transition:all 0.2s;box-shadow:0 1px 4px rgba(0,0,0,0.04);}
+.card:hover{border-color:var(--slate);transform:translateY(-2px);box-shadow:0 6px 18px rgba(26,56,80,0.09);}
+.card-icon{font-size:1.4rem;margin-bottom:0.5rem;}
+.card-title{font-family:'DM Sans',sans-serif;font-size:0.95rem;font-weight:700;margin-bottom:0.3rem;color:var(--ink);}
+.card-desc{font-size:0.72rem;color:var(--muted);line-height:1.65;}
+.panel{background:white;border:1px solid var(--border);border-radius:10px;padding:1.4rem;}
+.panel h3{font-family:'DM Sans',sans-serif;font-size:0.88rem;font-weight:700;color:var(--slate2);margin-bottom:0.9rem;display:flex;align-items:center;gap:0.5rem;}
+.panel h3::before{content:'//';color:var(--border);font-size:0.8rem;font-family:'JetBrains Mono',monospace;}
+.wf-canvas{background:var(--ink);border-radius:12px;padding:2rem;position:relative;overflow:hidden;}
+.wf-grid{position:absolute;inset:0;background-image:radial-gradient(circle,rgba(14,104,128,0.18) 1px,transparent 1px);background-size:28px 28px;opacity:0.5;}
+.wf-label{position:absolute;top:0.75rem;left:1rem;font-size:0.57rem;letter-spacing:0.18em;text-transform:uppercase;color:rgba(255,255,255,0.3);display:flex;align-items:center;gap:0.4rem;z-index:3;font-family:'JetBrains Mono',monospace;}
+.wf-label::before{content:'';width:7px;height:7px;border-radius:2px;background:var(--teal);box-shadow:0 0 8px var(--teal);animation:tpulse 2s infinite;}
+@keyframes tpulse{0%,100%{opacity:1}50%{opacity:0.2}}
+.wf-nodes{display:flex;align-items:flex-start;gap:0;padding-top:1.5rem;position:relative;z-index:2;flex-wrap:wrap;}
+.wf-stage{display:flex;flex-direction:column;align-items:center;}
+.wf-slbl{font-size:0.51rem;letter-spacing:0.14em;text-transform:uppercase;color:rgba(255,255,255,0.28);margin-bottom:0.3rem;font-family:'JetBrains Mono',monospace;}
+.wf-node{display:flex;flex-direction:column;align-items:center;gap:0.3rem;cursor:pointer;position:relative;}
+.wf-box{width:58px;height:58px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.25rem;border:2px solid transparent;transition:all 0.3s;}
+.wf-node:hover .wf-box{transform:scale(1.1);box-shadow:0 0 20px rgba(14,104,128,0.4);}
+.wf-nlbl{font-size:0.52rem;text-align:center;color:rgba(255,255,255,0.42);max-width:66px;line-height:1.3;font-family:'JetBrains Mono',monospace;}
+.wf-arr{color:rgba(255,255,255,0.18);padding:0 0.2rem;font-size:0.85rem;align-self:flex-start;margin-top:19px;flex-shrink:0;}
+.ttw{position:relative;}
+.tti{position:absolute;bottom:calc(100%+8px);left:50%;transform:translateX(-50%);background:white;border:1px solid var(--border);border-radius:8px;padding:0.6rem 0.9rem;font-size:0.67rem;opacity:0;pointer-events:none;transition:opacity 0.2s;z-index:50;color:var(--ink);line-height:1.5;max-width:200px;white-space:normal;text-align:left;box-shadow:0 4px 12px rgba(0,0,0,0.1);}
+.ttw:hover .tti{opacity:1;}
+/* Return status */
+.return-row{background:white;border:1px solid var(--border);border-radius:8px;padding:0.7rem 1rem;margin-bottom:0.4rem;display:flex;gap:0.75rem;align-items:flex-start;transition:all 0.3s;font-size:0.72rem;}
+.return-row.approved{border-color:var(--green);}
+.return-row.in-review{border-color:var(--amber);}
+.return-row.declined{border-color:var(--red);}
+.return-row.processing{border-color:var(--teal);}
+.rr-icon{font-size:1rem;flex-shrink:0;}
+.rr-order{font-family:'JetBrains Mono',monospace;font-size:0.62rem;color:var(--muted);flex-shrink:0;min-width:80px;}
+.rr-item{font-weight:600;color:var(--ink);}
+.rr-reason{font-size:0.63rem;color:var(--muted);}
+.rr-badge{margin-left:auto;font-size:0.58rem;padding:0.1rem 0.42rem;border-radius:4px;font-weight:600;font-family:'JetBrains Mono',monospace;white-space:nowrap;}
+.rrb-app{background:rgba(10,106,56,0.1);color:var(--green);border:1px solid rgba(10,106,56,0.2);}
+.rrb-rev{background:rgba(176,112,16,0.1);color:var(--amber);border:1px solid rgba(176,112,16,0.2);}
+.rrb-dec{background:rgba(192,32,32,0.1);color:var(--red);border:1px solid rgba(192,32,32,0.2);}
+.rrb-proc{background:rgba(14,104,128,0.1);color:var(--teal);border:1px solid rgba(14,104,128,0.2);}
+.rrb-new{background:rgba(80,112,104,0.1);color:var(--muted);border:1px solid rgba(80,112,104,0.18);}
+.ps-list{list-style:none;}
+.ps-list li{display:flex;gap:0.75rem;padding:0.45rem 0;border-bottom:1px solid var(--border);font-size:0.74rem;line-height:1.5;transition:all 0.3s;}
+.ps-list li:last-child{border-bottom:none;}
+.ps-num{width:20px;height:20px;border-radius:4px;background:var(--border);color:white;font-size:0.6rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;transition:background 0.3s;font-family:'JetBrains Mono',monospace;}
+.info-slate{padding:0.75rem 1rem;border-radius:8px;font-size:0.77rem;line-height:1.6;background:rgba(26,56,80,0.06);border:1px solid rgba(26,56,80,0.15);color:var(--slate2);}
+.ba-bad{padding:0.6rem 0.9rem;border-radius:6px;font-size:0.76rem;line-height:1.5;background:rgba(192,32,32,0.04);border:1px solid rgba(192,32,32,0.12);}
+.ba-good{padding:0.6rem 0.9rem;border-radius:6px;font-size:0.76rem;line-height:1.5;background:rgba(10,106,56,0.05);border:1px solid rgba(10,106,56,0.14);}
+.quote-block{background:var(--ink);border-radius:12px;padding:1.75rem 2rem;color:white;border-left:4px solid var(--teal);}
+.quote-text{font-size:1.05rem;line-height:1.78;margin-bottom:0.75rem;font-weight:300;}
+.quote-text strong{color:#7dd3fc;}
+.slide-counter{position:fixed;bottom:1.5rem;left:2rem;font-size:0.62rem;color:var(--muted);z-index:100;font-family:'JetBrains Mono',monospace;}
+.slide-nav{position:fixed;bottom:1.5rem;right:2rem;display:flex;gap:0.5rem;z-index:100;}
+.nav-btn{background:white;border:1px solid var(--border);color:var(--text);padding:0.55rem 1.2rem;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:0.7rem;cursor:pointer;transition:all 0.2s;}
+.nav-btn:hover{border-color:var(--slate);color:var(--slate);}
+.nav-btn.primary{background:var(--slate);border-color:var(--slate);color:white;}
+.nav-btn.primary:hover{background:var(--slate2);}
+.run-btn{background:var(--slate);color:white;border:none;border-radius:6px;padding:0.7rem 1.5rem;font-family:'JetBrains Mono',monospace;font-size:0.72rem;cursor:pointer;transition:all 0.2s;width:100%;text-align:center;}
+.run-btn:hover{background:var(--slate2);}
+.animate-in{opacity:0;animation:fadeUp 0.5s ease-out forwards;}
+.slide.active .animate-in:nth-child(1){animation-delay:0.05s;}
+.slide.active .animate-in:nth-child(2){animation-delay:0.15s;}
+.slide.active .animate-in:nth-child(3){animation-delay:0.25s;}
+.slide.active .animate-in:nth-child(4){animation-delay:0.35s;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+</style>
+</head>
+<body>
+<div class="left-bar"></div>
+<nav>
+  <div class="nav-brand">E-COMMERCE · Returns & Refunds</div>
+  <div class="nav-dots" id="navDots"></div>
+  <div class="timer" id="timerBadge">⏱ 00:00</div>
+</nav>
+
+<section class="slide active" id="slide-0">
+  <div class="hero-bg"></div>
+  <div class="slide-inner">
+    <div class="animate-in"><div class="hero-badge">🛒 n8n AI Automation · E-commerce & Retail</div></div>
+    <div class="animate-in"><h1 class="hero-title">Returns Made<br><span>Easy.</span><br>Refunds Fast.</h1></div>
+    <div class="animate-in"><p class="hero-desc">Automated returns portal handles requests, validates eligibility, generates return labels, processes refunds, and updates inventory — turning a painful customer experience into a loyalty-building one.</p></div>
+    <div class="animate-in">
+      <div class="kpi-strip">
+        <div class="kpi"><div class="kpi-val">24hr</div><div class="kpi-lbl">Refund Processing</div></div>
+        <div class="kpi"><div class="kpi-val">Auto</div><div class="kpi-lbl">Eligibility Check</div></div>
+        <div class="kpi"><div class="kpi-val">0</div><div class="kpi-lbl">Manual Reviews</div></div>
+        <div class="kpi"><div class="kpi-val">+40%</div><div class="kpi-lbl">Repeat Purchase Rate</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="slide-1">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">01 — The Problem</div><div class="sec-title">Returns That<br><span>Destroy Loyalty</span></div><p class="sec-desc">A good returns experience turns a disappointed customer into a loyal one. A bad one costs you the customer forever. Most Nigerian e-commerce businesses have no structured returns process — just a WhatsApp argument.</p></div>
+    <div class="animate-in two-col" style="margin-bottom:1.5rem">
+      <div class="card"><div class="card-icon">😤</div><div class="card-title">WhatsApp Disputes</div><div class="card-desc">Customer wants to return wrong-size shoes. Sends WhatsApp. Business owner responds 3 days later. Customer demands refund. Business asks for photo proof. More delays. By the end, a ₦25k return has consumed 2 hours of business time.</div></div>
+      <div class="card"><div class="card-icon">🚫</div><div class="card-title">Inconsistent Policy</div><div class="card-desc">Some customers get refunds, others get told "no returns." No written policy, no consistent application. Every dispute is negotiated from scratch. Customer trust in the brand erodes with each inconsistency.</div></div>
+      <div class="card"><div class="card-icon">📦</div><div class="card-title">No Inventory Reconciliation</div><div class="card-desc">Returned item received. Nobody updates inventory. Stock count wrong. Same item sold out online despite being physically in the warehouse. Lost sales from inaccurate stock data.</div></div>
+      <div class="card"><div class="card-icon">📊</div><div class="card-title">No Returns Intelligence</div><div class="card-desc">Which products have highest return rates? Which courier damages most packages? Which size is returned most often? Without data, the same return-generating problems repeat indefinitely.</div></div>
+    </div>
+    <div class="animate-in"><div class="info-slate">✅ n8n provides a self-service returns portal, checks eligibility automatically, generates return labels, processes refunds within 24 hours, updates inventory, and tracks return patterns for product improvement.</div></div>
+  </div>
+</section>
+
+<section class="slide" id="slide-2">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">02 — The Blueprint</div><div class="sec-title">n8n Returns & Refunds<br><span>Automation</span></div><p class="sec-desc">Customer submits return → eligibility checked → label generated → item collected → condition verified → refund processed. Every step automated, every customer informed.</p></div>
+    <div class="animate-in wf-canvas">
+      <div class="wf-grid"></div>
+      <div class="wf-label">n8n canvas — returns & refunds pipeline</div>
+      <div class="wf-nodes">
+        <div class="wf-stage"><div class="wf-slbl">Request</div>
+          <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#0a1a2a,#1d4ed8);color:#93c5fd;border-color:#1d4ed8;">📱</div><div class="wf-nlbl">Self-Service<br>Portal</div><div class="tti">Customer submits return via WhatsApp bot or website form: order number, item, reason. GPT-4o interprets free-text reasons and classifies: defective / wrong item / change of mind / sizing.</div></div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-stage"><div class="wf-slbl">Validate</div>
+          <div style="display:flex;flex-direction:column;gap:0.35rem">
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a0a0a,#991b1b);color:#fca5a5;border-color:#991b1b;">✅</div><div class="wf-nlbl">Policy<br>Check</div><div class="tti">Auto-checks return policy: within 14-day window? Item in eligible category? Order confirmed delivered? Original payment method available? All checks in 2 seconds.</div></div>
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a0a0a,#7f1d1d);color:#fca5a5;border-color:#7f1d1d;">📸</div><div class="wf-nlbl">Photo<br>Evidence</div><div class="tti">For defective/damaged claims: customer prompted to upload photos. GPT-4o reviews images to verify damage claim is consistent with stated reason.</div></div>
+          </div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-stage"><div class="wf-slbl">Approve</div>
+          <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#0a1a1a,#065f46);color:#6ee7b7;border-color:#065f46;">✅</div><div class="wf-nlbl">Auto<br>Approve</div><div class="tti">Policy-compliant returns auto-approved. Customer receives approval message with collection instructions. Borderline cases routed to human review with full evidence pre-loaded.</div></div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-stage"><div class="wf-slbl">Collect</div>
+          <div style="display:flex;flex-direction:column;gap:0.35rem">
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a0a1a,#7c3aed);color:#d8b4fe;border-color:#7c3aed;">🏷️</div><div class="wf-nlbl">Return<br>Label</div><div class="tti">Return waybill generated automatically. Courier collection booked. Customer receives label via WhatsApp — prints or shows on phone for pickup.</div></div>
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a1a0a,#78350f);color:#fde68a;border-color:#78350f;">📦</div><div class="wf-nlbl">Condition<br>Check</div><div class="tti">Item received at warehouse. Staff photos uploaded. GPT-4o assesses condition vs original claim. If condition matches → full refund. If not as described → partial refund decision routed to manager.</div></div>
+          </div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-stage"><div class="wf-slbl">Refund</div>
+          <div style="display:flex;flex-direction:column;gap:0.35rem">
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a3a1a,#166534);color:#4ade80;border-color:#166534;">💰</div><div class="wf-nlbl">Auto<br>Refund</div><div class="tti">Refund processed via Paystack to original payment method within 24 hours of item verification. Customer notified with confirmation and expected clearance date.</div></div>
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#0a1a2a,#0369a1);color:#7dd3fc;border-color:#0369a1;">📊</div><div class="wf-nlbl">Inventory<br>Update</div><div class="tti">Returned item added back to inventory automatically with condition flag. Resalable items restocked. Damaged items flagged for disposal. Stock count always accurate.</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="slide-3">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">03 — Simulation</div><div class="sec-title">Returns Dashboard —<br><span>This Week</span></div><p class="sec-desc">Five return requests processed automatically this week. Four auto-approved and refunded. One routed for human review after photo evidence was inconsistent. All resolved in under 24 hours.</p></div>
+    <div class="animate-in" style="display:flex;flex-direction:column;gap:0.4rem;margin-bottom:1.25rem">
+      <div class="return-row approved"><div class="rr-icon">👟</div><div class="rr-order">ORD-4801</div><div><div class="rr-item">Nike Air Max 270</div><div class="rr-reason">Wrong size delivered — policy compliant</div></div><span class="rr-badge rrb-app">Refunded ✓</span></div>
+      <div class="return-row approved"><div class="rr-icon">👗</div><div class="rr-order">ORD-4803</div><div><div class="rr-item">Ankara Dress</div><div class="rr-reason">Defective — seam split. Photos verified ✓</div></div><span class="rr-badge rrb-app">Refunded ✓</span></div>
+      <div class="return-row in-review"><div class="rr-icon">📱</div><div class="rr-order">ORD-4806</div><div><div class="rr-item">Phone Case</div><div class="rr-reason">"Damaged in transit" — photos show pre-existing wear</div></div><span class="rr-badge rrb-rev">Human Review</span></div>
+      <div class="return-row processing"><div class="rr-icon">💼</div><div class="rr-order">ORD-4810</div><div><div class="rr-item">Leather Bag</div><div class="rr-reason">Change of mind — within 14 days</div></div><span class="rr-badge rrb-proc">Item in Transit</span></div>
+      <div class="return-row approved"><div class="rr-icon">⌚</div><div class="rr-order">ORD-4812</div><div><div class="rr-item">Watch</div><div class="rr-reason">Wrong item sent — confirmed by order photo</div></div><span class="rr-badge rrb-app">Refunded ✓</span></div>
+    </div>
+    <div class="animate-in two-col">
+      <div class="panel"><h3>Returns Stats — This Week</h3>
+        <div style="font-size:0.73rem;line-height:1.85">
+          <div style="display:flex;justify-content:space-between;border-bottom:1px solid var(--border);padding:0.2rem 0"><span style="color:var(--muted)">Total return requests</span><span style="font-weight:700">5</span></div>
+          <div style="display:flex;justify-content:space-between;border-bottom:1px solid var(--border);padding:0.2rem 0"><span style="color:var(--muted)">Auto-approved</span><span style="font-weight:700;color:var(--green)">4 (80%)</span></div>
+          <div style="display:flex;justify-content:space-between;border-bottom:1px solid var(--border);padding:0.2rem 0"><span style="color:var(--muted)">Human reviews needed</span><span style="font-weight:700;color:var(--amber)">1 (20%)</span></div>
+          <div style="display:flex;justify-content:space-between;padding:0.2rem 0"><span style="color:var(--muted)">Avg refund time</span><span style="font-weight:700;color:var(--teal)">18 hours</span></div>
+        </div>
+      </div>
+      <div class="info-slate">✅ Staff involved in 1 of 5 returns — the borderline case that genuinely needed human judgement. The other 4 were processed entirely by n8n, from request to refund, with zero manual intervention.</div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="slide-4">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">04 — Impact</div><div class="sec-title">Happy Returns.<br><span>Loyal Customers.</span></div></div>
+    <div class="animate-in two-col" style="margin-bottom:1.5rem">
+      <div>
+        <div style="font-size:0.62rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--red);margin-bottom:0.75rem;font-weight:600;font-family:'JetBrains Mono',monospace">❌ BEFORE</div>
+        <div style="display:flex;flex-direction:column;gap:0.5rem">
+          <div class="ba-bad">Returns handled via WhatsApp — 2hrs of negotiation per case</div>
+          <div class="ba-bad">Inconsistent policy — some refunded, others turned away</div>
+          <div class="ba-bad">Refunds take 5–10 days — customer frustration builds</div>
+          <div class="ba-bad">Returned items not restocked — inventory permanently wrong</div>
+          <div class="ba-bad">No return analytics — same products generating returns every month</div>
+        </div>
+      </div>
+      <div>
+        <div style="font-size:0.62rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--green);margin-bottom:0.75rem;font-weight:600;font-family:'JetBrains Mono',monospace">✅ AFTER</div>
+        <div style="display:flex;flex-direction:column;gap:0.5rem">
+          <div class="ba-good">Self-service portal — customer initiates in 2 mins, no WhatsApp debate</div>
+          <div class="ba-good">Policy applied consistently on every single return</div>
+          <div class="ba-good">Refund processed within 24 hours of item verification</div>
+          <div class="ba-good">Inventory updated automatically — stock always accurate</div>
+          <div class="ba-good">Return analytics — high-return products identified and improved</div>
+        </div>
+      </div>
+    </div>
+    <div class="animate-in">
+      <div class="quote-block">
+        <div class="quote-text">"Studies show that customers who have a <strong>smooth returns experience are 40% more likely to repurchase</strong>. Returns automation turns what feels like a loss into your strongest loyalty-building moment."</div>
+        <div style="font-size:0.62rem;color:rgba(255,255,255,0.3);font-family:'JetBrains Mono',monospace">STACK: n8n · GPT-4o · Shopify/WooCommerce · Paystack · WhatsApp API · GIG Logistics API · Google Sheets</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="slide-counter" id="slideCounter">Slide 1 of 5</div>
+<div class="slide-nav">
+  <button class="nav-btn" onclick="prevSlide()">← Prev</button>
+  <button class="nav-btn primary" onclick="nextSlide()">Next →</button>
+</div>
+<script>
+const slides=document.querySelectorAll('.slide'),total=slides.length;let cur=0;
+const dots=document.getElementById('navDots');
+for(let i=0;i<total;i++){const d=document.createElement('div');d.className='nav-dot'+(i===0?' active':'');d.onclick=()=>goTo(i);dots.appendChild(d);}
+function goTo(n){slides[cur].classList.remove('active');dots.children[cur].classList.remove('active');if(cur<n)dots.children[cur].classList.add('done');cur=n;slides[cur].classList.add('active');dots.children[cur].classList.add('active');document.getElementById('slideCounter').textContent=`Slide ${cur+1} of ${total}`;}
+function nextSlide(){if(cur<total-1)goTo(cur+1);}function prevSlide(){if(cur>0)goTo(cur-1);}
+document.addEventListener('keydown',e=>{if(e.key==='ArrowRight'||e.key==='ArrowDown')nextSlide();if(e.key==='ArrowLeft'||e.key==='ArrowUp')prevSlide();});
+let secs=0;setInterval(()=>{secs++;const m=String(Math.floor(secs/60)).padStart(2,'0'),s=String(secs%60).padStart(2,'0');document.getElementById('timerBadge').textContent=`⏱ ${m}:${s}`;if(secs>=840)document.getElementById('timerBadge').style.color='#c02020';},1000);
+</script>
+</body>
+</html>
