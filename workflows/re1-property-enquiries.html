@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Real Estate — Property Enquiries Automation</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,600&family=Barlow:wght@300;400;500;600;700&family=Barlow+Condensed:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#faf8f4;--surface:#ffffff;--surface2:#f5f0e8;--border:#e5ddd0;
+  --ink:#14100a;--char:#2a2418;--gold:#9a7c28;--gold2:#7a6018;
+  --warm:#c8a030;--cream:#fef8ec;--green:#1a6030;--red:#c02020;
+  --blue:#1a3878;--text:#201408;--muted:#7a6848;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;overflow-x:hidden;}
+.top-ornament{position:fixed;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,var(--char),var(--gold),var(--warm),var(--gold),var(--char));z-index:200;}
+nav{position:fixed;top:4px;left:0;right:0;z-index:100;background:rgba(250,248,244,0.97);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 2.5rem;height:54px;}
+.nav-brand{font-family:'Barlow Condensed',sans-serif;font-size:0.82rem;font-weight:600;color:var(--char);letter-spacing:0.14em;text-transform:uppercase;}
+.nav-dots{display:flex;gap:0.3rem;}
+.nav-dot{width:7px;height:7px;border-radius:50%;background:var(--border);cursor:pointer;transition:all 0.2s;}
+.nav-dot.active{background:var(--gold);transform:scale(1.5);}
+.nav-dot.done{background:var(--green);}
+.timer{font-size:0.67rem;color:var(--gold2);background:rgba(154,124,40,0.07);border:1px solid rgba(154,124,40,0.2);padding:0.2rem 0.75rem;border-radius:4px;font-family:'Barlow Condensed',sans-serif;letter-spacing:0.08em;}
+.slide{min-height:100vh;padding:80px 0 50px;display:none;flex-direction:column;align-items:center;justify-content:center;position:relative;overflow:hidden;}
+.slide.active{display:flex;}
+.slide-inner{width:100%;max-width:1140px;padding:0 2.5rem;position:relative;z-index:2;}
+.hero-pattern{position:absolute;inset:0;background-image:radial-gradient(circle,rgba(154,124,40,0.06) 1.5px,transparent 1.5px);background-size:36px 36px;pointer-events:none;}
+.hero-glow{position:absolute;top:-60px;right:-60px;width:600px;height:600px;border-radius:50%;background:radial-gradient(circle,rgba(42,36,24,0.04) 0%,transparent 65%);pointer-events:none;}
+.hero-tag{display:inline-flex;align-items:center;gap:0.5rem;background:var(--cream);border:1px solid rgba(154,124,40,0.25);color:var(--gold2);font-size:0.67rem;font-weight:600;letter-spacing:0.14em;text-transform:uppercase;padding:0.28rem 0.9rem;border-radius:4px;margin-bottom:1.5rem;font-family:'Barlow Condensed',sans-serif;}
+.hero-tag::before{content:'🏠';font-size:0.75rem;}
+h1.hero-title{font-family:'Cormorant Garamond',serif;font-size:clamp(3rem,6vw,5.2rem);font-weight:600;line-height:1.02;letter-spacing:-0.01em;color:var(--ink);margin-bottom:1.5rem;}
+h1.hero-title em{font-style:italic;color:var(--gold);}
+.hero-desc{font-size:0.97rem;color:var(--muted);max-width:510px;line-height:1.78;margin-bottom:2.5rem;font-weight:300;}
+.kpi-strip{display:flex;gap:1px;background:var(--border);border-radius:4px;overflow:hidden;max-width:640px;box-shadow:0 2px 10px rgba(154,124,40,0.07);}
+.kpi{background:white;padding:1.1rem 1.4rem;flex:1;}
+.kpi-val{font-family:'Cormorant Garamond',serif;font-size:2rem;font-weight:600;color:var(--gold);line-height:1;}
+.kpi-lbl{font-size:0.59rem;letter-spacing:0.14em;text-transform:uppercase;color:var(--muted);margin-top:0.2rem;font-family:'Barlow Condensed',sans-serif;}
+.sec-tag{font-size:0.61rem;letter-spacing:0.24em;text-transform:uppercase;color:var(--gold);margin-bottom:0.4rem;font-weight:600;font-family:'Barlow Condensed',sans-serif;display:flex;align-items:center;gap:0.5rem;}
+.sec-tag::before{content:'';width:16px;height:1px;background:var(--gold);}
+.sec-title{font-family:'Cormorant Garamond',serif;font-size:clamp(2rem,3.8vw,3.2rem);font-weight:600;line-height:1.06;margin-bottom:0.5rem;color:var(--ink);}
+.sec-title em{font-style:italic;color:var(--gold);}
+.sec-desc{font-size:0.87rem;color:var(--muted);margin-bottom:1.85rem;max-width:540px;line-height:1.78;font-weight:300;}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;}
+.three-col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;}
+.lr{display:grid;grid-template-columns:1.1fr 1fr;gap:2rem;align-items:start;}
+.lr-rev{display:grid;grid-template-columns:1fr 1.15fr;gap:2rem;align-items:start;}
+.card{background:white;border:1px solid var(--border);border-radius:6px;padding:1.25rem;transition:all 0.2s;box-shadow:0 1px 6px rgba(154,124,40,0.05);}
+.card:hover{border-color:var(--gold);transform:translateY(-2px);box-shadow:0 6px 20px rgba(154,124,40,0.1);}
+.card-icon{font-size:1.4rem;margin-bottom:0.5rem;}
+.card-title{font-family:'Cormorant Garamond',serif;font-size:1.05rem;font-weight:600;margin-bottom:0.3rem;color:var(--ink);}
+.card-desc{font-size:0.72rem;color:var(--muted);line-height:1.65;}
+.panel{background:white;border:1px solid var(--border);border-radius:6px;padding:1.4rem;}
+.panel h3{font-family:'Cormorant Garamond',serif;font-size:1rem;font-weight:600;color:var(--char);margin-bottom:0.9rem;font-style:italic;display:flex;align-items:center;gap:0.5rem;}
+.panel h3::before{content:'✦';color:var(--gold);font-size:0.75rem;}
+.steps{list-style:none;}
+.steps li{display:flex;gap:0.75rem;padding:0.45rem 0;border-bottom:1px solid var(--border);font-size:0.76rem;line-height:1.6;}
+.steps li:last-child{border-bottom:none;}
+.step-n{width:22px;height:22px;border-radius:50%;background:var(--char);color:white;font-size:0.62rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+/* Workflow */
+.wf-canvas{background:var(--ink);border-radius:8px;padding:2rem;position:relative;overflow:hidden;}
+.wf-pattern{position:absolute;inset:0;background-image:radial-gradient(circle,rgba(154,124,40,0.16) 1px,transparent 1px);background-size:28px 28px;opacity:0.5;}
+.wf-label{position:absolute;top:0.75rem;left:1rem;font-size:0.57rem;letter-spacing:0.18em;text-transform:uppercase;color:rgba(255,255,255,0.3);display:flex;align-items:center;gap:0.4rem;z-index:3;font-family:'Barlow Condensed',sans-serif;}
+.wf-label::before{content:'';width:7px;height:7px;border-radius:50%;background:var(--warm);box-shadow:0 0 8px var(--warm);animation:wpulse 2s infinite;}
+@keyframes wpulse{0%,100%{opacity:1}50%{opacity:0.2}}
+.wf-nodes{display:flex;align-items:flex-start;gap:0;padding-top:1.5rem;position:relative;z-index:2;flex-wrap:wrap;}
+.wf-stage{display:flex;flex-direction:column;align-items:center;}
+.wf-slbl{font-size:0.51rem;letter-spacing:0.14em;text-transform:uppercase;color:rgba(255,255,255,0.28);margin-bottom:0.3rem;font-family:'Barlow Condensed',sans-serif;}
+.wf-node{display:flex;flex-direction:column;align-items:center;gap:0.3rem;cursor:pointer;position:relative;}
+.wf-box{width:58px;height:58px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1.25rem;border:2px solid transparent;transition:all 0.3s;}
+.wf-node:hover .wf-box{transform:scale(1.1);box-shadow:0 0 20px rgba(154,124,40,0.4);}
+.wf-nlbl{font-size:0.52rem;text-align:center;color:rgba(255,255,255,0.42);max-width:66px;line-height:1.3;font-family:'Barlow Condensed',sans-serif;}
+.wf-arr{color:rgba(255,255,255,0.18);padding:0 0.2rem;font-size:0.85rem;align-self:flex-start;margin-top:19px;flex-shrink:0;}
+.ttw{position:relative;}
+.tti{position:absolute;bottom:calc(100%+8px);left:50%;transform:translateX(-50%);background:white;border:1px solid var(--border);border-radius:6px;padding:0.6rem 0.9rem;font-size:0.67rem;opacity:0;pointer-events:none;transition:opacity 0.2s;z-index:50;color:var(--ink);line-height:1.5;max-width:200px;white-space:normal;text-align:left;box-shadow:0 4px 12px rgba(0,0,0,0.1);}
+.ttw:hover .tti{opacity:1;}
+/* Enquiry form */
+.enq-form{background:white;border:1px solid var(--border);border-radius:8px;overflow:hidden;}
+.ef-header{background:linear-gradient(135deg,var(--char),#3a3020);color:white;padding:0.85rem 1.1rem;}
+.ef-title{font-family:'Cormorant Garamond',serif;font-size:0.95rem;font-weight:600;font-style:italic;}
+.ef-body{padding:1rem;}
+.ef-field label{font-size:0.6rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:0.18rem;font-family:'Barlow Condensed',sans-serif;letter-spacing:0.1em;}
+.ef-input{background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:0.4rem 0.65rem;font-size:0.72rem;color:var(--text);font-family:'Barlow',sans-serif;width:100%;min-height:26px;margin-bottom:0.5rem;transition:border-color 0.3s;}
+.ef-row{display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;}
+/* Lead card */
+.lead-card{background:white;border:1px solid var(--border);border-radius:8px;padding:0.85rem 1rem;margin-bottom:0.5rem;display:flex;gap:0.85rem;align-items:flex-start;transition:all 0.3s;font-size:0.72rem;}
+.lead-card.hot-lead{border-color:var(--gold);background:rgba(154,124,40,0.03);}
+.lead-card.warm-lead{border-color:var(--warm);background:rgba(200,160,48,0.03);}
+.lead-card.nurtured{border-color:var(--green);background:rgba(26,96,48,0.03);}
+.lc-score{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond',serif;font-size:0.95rem;font-weight:600;flex-shrink:0;}
+.lcs-hot{background:rgba(154,124,40,0.12);color:var(--gold2);}
+.lcs-warm{background:rgba(200,160,48,0.12);color:var(--warm);}
+.lcs-cold{background:rgba(122,104,72,0.1);color:var(--muted);}
+.lc-name{font-weight:600;color:var(--ink);}
+.lc-prop{font-size:0.63rem;color:var(--muted);margin-top:0.1rem;}
+.lc-badge{margin-left:auto;font-size:0.58rem;padding:0.1rem 0.42rem;border-radius:4px;font-weight:600;font-family:'Barlow Condensed',sans-serif;white-space:nowrap;letter-spacing:0.04em;}
+.lcb-hot{background:rgba(154,124,40,0.1);color:var(--gold2);border:1px solid rgba(154,124,40,0.22);}
+.lcb-warm{background:rgba(200,160,48,0.1);color:var(--warm);border:1px solid rgba(200,160,48,0.22);}
+.lcb-cold{background:rgba(122,104,72,0.1);color:var(--muted);border:1px solid rgba(122,104,72,0.18);}
+.lcb-new{background:rgba(42,36,24,0.08);color:var(--char);border:1px solid rgba(42,36,24,0.15);}
+/* PS list */
+.ps-list{list-style:none;}
+.ps-list li{display:flex;gap:0.75rem;padding:0.45rem 0;border-bottom:1px solid var(--border);font-size:0.74rem;line-height:1.5;transition:all 0.3s;}
+.ps-list li:last-child{border-bottom:none;}
+.ps-num{width:20px;height:20px;border-radius:50%;background:var(--border);color:white;font-size:0.6rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;transition:background 0.3s;}
+.info-gold{padding:0.75rem 1rem;border-radius:4px;font-size:0.77rem;line-height:1.6;background:rgba(154,124,40,0.06);border:1px solid rgba(154,124,40,0.18);color:var(--gold2);}
+.info-green{padding:0.75rem 1rem;border-radius:4px;font-size:0.77rem;line-height:1.6;background:rgba(26,96,48,0.06);border:1px solid rgba(26,96,48,0.15);color:var(--green);}
+.ba-bad{padding:0.6rem 0.9rem;border-radius:4px;font-size:0.76rem;line-height:1.5;background:rgba(192,32,32,0.04);border:1px solid rgba(192,32,32,0.12);}
+.ba-good{padding:0.6rem 0.9rem;border-radius:4px;font-size:0.76rem;line-height:1.5;background:rgba(26,96,48,0.05);border:1px solid rgba(26,96,48,0.14);}
+.quote-block{background:var(--ink);border-radius:6px;padding:1.75rem 2rem;color:white;border-top:3px solid var(--gold);}
+.quote-text{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:1.15rem;line-height:1.75;margin-bottom:0.75rem;font-weight:400;}
+.quote-text strong{color:var(--warm);font-style:normal;}
+.slide-counter{position:fixed;bottom:1.5rem;left:2rem;font-size:0.62rem;color:var(--muted);z-index:100;font-family:'Barlow Condensed',sans-serif;letter-spacing:0.08em;}
+.slide-nav{position:fixed;bottom:1.5rem;right:2rem;display:flex;gap:0.5rem;z-index:100;}
+.nav-btn{background:white;border:1px solid var(--border);color:var(--text);padding:0.55rem 1.2rem;border-radius:4px;font-family:'Barlow Condensed',sans-serif;font-size:0.72rem;letter-spacing:0.06em;cursor:pointer;transition:all 0.2s;}
+.nav-btn:hover{border-color:var(--gold);color:var(--gold2);}
+.nav-btn.primary{background:var(--char);border-color:var(--char);color:white;}
+.nav-btn.primary:hover{background:var(--ink);}
+.run-btn{background:var(--char);color:white;border:none;border-radius:4px;padding:0.7rem 1.5rem;font-family:'Barlow Condensed',sans-serif;font-size:0.76rem;font-weight:600;letter-spacing:0.08em;cursor:pointer;transition:all 0.2s;width:100%;text-align:center;text-transform:uppercase;border-left:3px solid var(--gold);}
+.run-btn:hover{background:var(--ink);}
+.animate-in{opacity:0;animation:fadeUp 0.5s ease-out forwards;}
+.slide.active .animate-in:nth-child(1){animation-delay:0.05s;}
+.slide.active .animate-in:nth-child(2){animation-delay:0.15s;}
+.slide.active .animate-in:nth-child(3){animation-delay:0.25s;}
+.slide.active .animate-in:nth-child(4){animation-delay:0.35s;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+</style>
+</head>
+<body>
+<div class="top-ornament"></div>
+<nav>
+  <div class="nav-brand">Real Estate · Property Enquiries</div>
+  <div class="nav-dots" id="navDots"></div>
+  <div class="timer" id="timerBadge">⏱ 00:00</div>
+</nav>
+
+<!-- SLIDE 1: HERO -->
+<section class="slide active" id="slide-0">
+  <div class="hero-pattern"></div><div class="hero-glow"></div>
+  <div class="slide-inner">
+    <div class="animate-in"><div class="hero-tag">n8n AI Automation · Real Estate</div></div>
+    <div class="animate-in"><h1 class="hero-title">Every Enquiry<br><em>Responded To.</em><br>Every Lead Scored.</h1></div>
+    <div class="animate-in"><p class="hero-desc">Property enquiries from your website, WhatsApp, Jiji, PropertyPro, and Instagram — all unified, AI-qualified, and responded to within 90 seconds. Your agents only engage with serious buyers.</p></div>
+    <div class="animate-in">
+      <div class="kpi-strip">
+        <div class="kpi"><div class="kpi-val">90s</div><div class="kpi-lbl">Response Time</div></div>
+        <div class="kpi"><div class="kpi-val">100%</div><div class="kpi-lbl">Leads Captured</div></div>
+        <div class="kpi"><div class="kpi-val">AI</div><div class="kpi-lbl">Lead Qualification</div></div>
+        <div class="kpi"><div class="kpi-val">0</div><div class="kpi-lbl">Enquiries Missed</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 2: PROBLEM -->
+<section class="slide" id="slide-1">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">01 — The Problem</div><div class="sec-title">The Enquiry That<br><em>Nobody Answered</em></div><p class="sec-desc">In Nigerian real estate, the buyer who doesn't hear back within 2 hours is already talking to another agent. Most enquiries come during evenings and weekends — exactly when no one is available to respond.</p></div>
+    <div class="animate-in two-col" style="margin-bottom:1.5rem">
+      <div class="card"><div class="card-icon">🌐</div><div class="card-title">Multi-Channel Chaos</div><div class="card-desc">Enquiries from website, Jiji, PropertyPro, WhatsApp, Instagram DMs, and referrals — tracked in 5 different places. Agents miss weekend WhatsApp messages. Monday morning brings a pile of cold leads.</div></div>
+      <div class="card"><div class="card-icon">⏰</div><div class="card-title">Slow Response = Lost Deal</div><div class="card-desc">Research shows 78% of buyers go with the agent who responds first. In Lagos real estate, a 3-hour response gap can mean the difference between closing and losing a ₦50M transaction.</div></div>
+      <div class="card"><div class="card-icon">🎭</div><div class="card-title">No Lead Qualification</div><div class="card-desc">Agents spend equal time on tyre-kickers asking "how much is 3 bedroom in Lekki?" as they do on serious buyers with funds ready. No qualification system means no prioritisation.</div></div>
+      <div class="card"><div class="card-icon">📊</div><div class="card-title">No Nurture Pipeline</div><div class="card-desc">Lead enquires, gets a response, goes silent. Agent never follows up. Three months later the buyer purchases with a competitor who stayed in touch. A simple automated nurture sequence would have kept the relationship warm.</div></div>
+    </div>
+    <div class="animate-in"><div class="info-gold">✅ n8n captures every enquiry from every channel, responds in 90 seconds with property details, qualifies the lead with AI questions, and routes serious buyers to agents with full context.</div></div>
+  </div>
+</section>
+
+<!-- SLIDE 3: WORKFLOW -->
+<section class="slide" id="slide-2">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">02 — The Blueprint</div><div class="sec-title">n8n Property Enquiry<br><em>Pipeline</em></div><p class="sec-desc">From first message to qualified viewing request — every step automated. Agents receive only serious, pre-qualified prospects with full context before their first conversation.</p></div>
+    <div class="animate-in wf-canvas">
+      <div class="wf-pattern"></div>
+      <div class="wf-label">n8n canvas — property enquiry pipeline</div>
+      <div class="wf-nodes">
+        <div class="wf-stage"><div class="wf-slbl">Capture</div>
+          <div style="display:flex;flex-direction:column;gap:0.35rem">
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#0a1a2a,#1d4ed8);color:#93c5fd;border-color:#1d4ed8;">🌐</div><div class="wf-nlbl">Website<br>& Portals</div><div class="tti">Webhooks from website contact form, Jiji listing, PropertyPro. All enquiries unified into one n8n pipeline regardless of source.</div></div>
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a3a1a,#166534);color:#4ade80;border-color:#166534;">📱</div><div class="wf-nlbl">WhatsApp<br>& Instagram</div><div class="tti">WhatsApp Business API and Instagram DM webhook capture every message. Auto-reply in under 90 seconds, even at 2am Sunday.</div></div>
+          </div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-stage"><div class="wf-slbl">Respond</div>
+          <div style="display:flex;flex-direction:column;gap:0.35rem">
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a0a0a,#991b1b);color:#fca5a5;border-color:#991b1b;">🧠</div><div class="wf-nlbl">GPT-4o<br>Reply</div><div class="tti">GPT-4o generates a personalised response: property details, pricing, key features. Written in professional tone matching the brand. Includes virtual tour link if available.</div></div>
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a1a0a,#78350f);color:#fde68a;border-color:#78350f;">📸</div><div class="wf-nlbl">Property<br>Pack Send</div><div class="tti">Automated property information pack sent: floor plan PDF, photo gallery link, neighbourhood guide, pricing sheet. All pulled from property database automatically.</div></div>
+          </div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-stage"><div class="wf-slbl">Qualify</div>
+          <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#0a1a1a,#065f46);color:#6ee7b7;border-color:#065f46;">❓</div><div class="wf-nlbl">AI<br>Questions</div><div class="tti">GPT-4o asks 3 qualifying questions via WhatsApp: budget range, timeline to purchase/rent, purpose (personal/investment), and financing arrangement. Responses scored.</div></div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-stage"><div class="wf-slbl">Score</div>
+          <div style="display:flex;flex-direction:column;gap:0.35rem">
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a0a2e,#6d28d9);color:#c4b5fd;border-color:#6d28d9;">📊</div><div class="wf-nlbl">Lead<br>Score</div><div class="tti">Score 0-100 based on: budget match to property, timeline urgency, financing readiness, responsiveness. HOT (≥70): agent notified immediately. WARM: nurture sequence. COLD: monthly newsletter.</div></div>
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#0a1a2a,#0369a1);color:#7dd3fc;border-color:#0369a1;">💬</div><div class="wf-nlbl">Agent<br>Brief</div><div class="tti">HOT lead: agent receives WhatsApp/Slack brief with: lead name, enquiry summary, qualification answers, budget, timeline. Agent calls prepared — not cold.</div></div>
+          </div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-stage"><div class="wf-slbl">Nurture</div>
+          <div style="display:flex;flex-direction:column;gap:0.35rem">
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a3a1a,#166534);color:#4ade80;border-color:#166534;">📧</div><div class="wf-nlbl">Nurture<br>Sequence</div><div class="tti">WARM leads enter 60-day nurture: weekly property alerts matching their criteria, market updates, new listing alerts. Re-qualification triggered if they engage heavily.</div></div>
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a0a2e,#6d28d9);color:#c4b5fd;border-color:#6d28d9;">📅</div><div class="wf-nlbl">Viewing<br>Invite</div><div class="tti">HOT leads: automated viewing scheduling offer sent. Calendly link or WhatsApp response triggers n8n viewing booking workflow.</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 4: SIM 1 — ENQUIRY FLOW -->
+<section class="slide" id="slide-3">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">03 — Simulation 1</div><div class="sec-title">Live: Enquiry Captured<br><em>& Lead Qualified</em></div><p class="sec-desc">Amaka just enquired about a 4-bedroom duplex in Lekki Phase 1 at 10:30pm on a Sunday. Watch n8n respond in 90 seconds, qualify her, and brief the agent before morning.</p></div>
+    <div class="animate-in lr">
+      <div style="display:flex;flex-direction:column;gap:1rem">
+        <div class="enq-form">
+          <div class="ef-header"><div class="ef-title">Property Enquiry Form</div></div>
+          <div class="ef-body">
+            <div class="ef-row">
+              <div class="ef-field"><label>Full Name</label><div class="ef-input" id="ef-name"></div></div>
+              <div class="ef-field"><label>Phone / WhatsApp</label><div class="ef-input" id="ef-phone"></div></div>
+            </div>
+            <div class="ef-field"><label>Property of Interest</label><div class="ef-input" id="ef-prop"></div></div>
+            <div class="ef-field"><label>Your Message</label><div class="ef-input" id="ef-msg" style="min-height:42px"></div></div>
+          </div>
+        </div>
+        <div class="panel">
+          <h3>Pipeline Steps</h3>
+          <ul class="ps-list" id="enqSteps">
+            <li id="eq1" style="opacity:0.3"><div class="ps-num">1</div><div>Enquiry received — Sunday 10:30pm</div></li>
+            <li id="eq2" style="opacity:0.3"><div class="ps-num">2</div><div>GPT-4o responds with property pack</div></li>
+            <li id="eq3" style="opacity:0.3"><div class="ps-num">3</div><div>Qualifying questions sent via WhatsApp</div></li>
+            <li id="eq4" style="opacity:0.3"><div class="ps-num">4</div><div>Amaka responds — budget ₦85M, ready Q2</div></li>
+            <li id="eq5" style="opacity:0.3"><div class="ps-num">5</div><div>Score: 82/100 HOT → Agent briefed 7am ✅</div></li>
+          </ul>
+        </div>
+        <button class="run-btn" id="enqBtn" onclick="runEnqSim()">▶ PROCESS ENQUIRY NOW</button>
+      </div>
+      <div id="leadReveal" style="display:none;display:flex;flex-direction:column;gap:0.5rem;opacity:0;transition:opacity 0.4s">
+        <div style="font-size:0.61rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);font-family:'Barlow Condensed',sans-serif;margin-bottom:0.25rem">Qualified Lead — Amaka Obi</div>
+        <div class="lead-card hot-lead"><div class="lc-score lcs-hot">82</div><div><div class="lc-name">Amaka Obi</div><div class="lc-prop">4BR Duplex · Lekki Phase 1 · ₦85M budget · Q2 timeline</div></div><span class="lc-badge lcb-hot">HOT 🏠</span></div>
+        <div style="background:var(--ink);border-radius:6px;padding:1rem;color:white;font-size:0.73rem;line-height:1.75">
+          <div style="font-family:'Barlow Condensed',sans-serif;font-size:0.62rem;color:var(--warm);margin-bottom:0.5rem;letter-spacing:0.08em">📱 Agent Brief — Kelechi Eze (7:00am)</div>
+          🏠 <strong style="color:var(--warm)">HOT LEAD — Score 82/100</strong><br>
+          👤 Amaka Obi · +234 802 XXX XXXX<br>
+          🎯 4BR Duplex, Lekki Phase 1<br>
+          💰 Budget: ₦80–90M · Cash purchase<br>
+          📅 Timeline: Q2 2025 — serious buyer<br>
+          📝 "Relocating family from Abuja — needs school proximity"<br><br>
+          <span style="color:rgba(255,255,255,0.4);font-size:0.62rem">→ Call now · Schedule viewing · Send virtual tour</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 5: SIM 2 — LEAD BOARD -->
+<section class="slide" id="slide-4">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">04 — Simulation 2</div><div class="sec-title">Live Lead Scoring<br><em>Board</em></div><p class="sec-desc">Six enquiries arrived this week from different channels. Every one qualified and scored. Agents see only the HOT leads — with everything they need to have a winning first conversation.</p></div>
+    <div class="animate-in" style="display:flex;flex-direction:column;gap:0.5rem;margin-bottom:1.25rem">
+      <div class="lead-card hot-lead"><div class="lc-score lcs-hot">82</div><div><div class="lc-name">Amaka Obi</div><div class="lc-prop">4BR Duplex · Lekki · ₦85M · Cash · Q2</div></div><span class="lc-badge lcb-hot">HOT ✓</span></div>
+      <div class="lead-card hot-lead"><div class="lc-score lcs-hot">76</div><div><div class="lc-name">Babatunde Lawal</div><div class="lc-prop">3BR Flat · Victoria Island · ₦55M · Mortgage ready · Now</div></div><span class="lc-badge lcb-hot">HOT ✓</span></div>
+      <div class="lead-card warm-lead"><div class="lc-score lcs-warm">52</div><div><div class="lc-name">Ngozi Fashola</div><div class="lc-prop">2BR · Ikeja GRA · ₦28M · Rent · 3 months</div></div><span class="lc-badge lcb-warm">Warm — Nurturing</span></div>
+      <div class="lead-card warm-lead"><div class="lc-score lcs-warm">44</div><div><div class="lc-name">Tunde Ibrahim</div><div class="lc-prop">Land · Ibeju-Lekki · ₦12M · Investment · No timeline</div></div><span class="lc-badge lcb-warm">Warm — Nurturing</span></div>
+      <div class="lead-card"><div class="lc-score lcs-cold">22</div><div><div class="lc-name">Kemi Adeyemi</div><div class="lc-prop">"Just browsing, checking prices" · No budget given</div></div><span class="lc-badge lcb-cold">Cold — Newsletter</span></div>
+      <div class="lead-card"><div class="lc-score lcs-cold">18</div><div><div class="lc-name">Seun Bello</div><div class="lc-prop">Asked about 1BR Lekki · Budget far below listing</div></div><span class="lc-badge lcb-cold">Cold — Newsletter</span></div>
+    </div>
+    <div class="animate-in"><div class="info-green">✅ Agents spend zero time on the 4 cold/warm leads this week. Their full attention goes to Amaka and Babatunde — the two buyers with money, intent, and timeline. That's where deals are closed.</div></div>
+  </div>
+</section>
+
+<!-- SLIDE 6: BEFORE/AFTER -->
+<section class="slide" id="slide-5">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">05 — Business Impact</div><div class="sec-title">Every Serious Buyer<br><em>Found & Served</em></div></div>
+    <div class="animate-in two-col" style="margin-bottom:1.5rem">
+      <div>
+        <div style="font-size:0.62rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--red);margin-bottom:0.75rem;font-weight:600;font-family:'Barlow Condensed',sans-serif">❌ BEFORE</div>
+        <div style="display:flex;flex-direction:column;gap:0.5rem">
+          <div class="ba-bad">Sunday night enquiry unanswered until Monday — lead already gone</div>
+          <div class="ba-bad">Agents spend equal time on browsers and serious buyers</div>
+          <div class="ba-bad">Enquiries from 5 platforms tracked in 5 different places</div>
+          <div class="ba-bad">No nurture — warm leads forgotten, purchased elsewhere</div>
+          <div class="ba-bad">Agent walks into first call with zero context about the buyer</div>
+        </div>
+      </div>
+      <div>
+        <div style="font-size:0.62rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--green);margin-bottom:0.75rem;font-weight:600;font-family:'Barlow Condensed',sans-serif">✅ AFTER</div>
+        <div style="display:flex;flex-direction:column;gap:0.5rem">
+          <div class="ba-good">Every enquiry responded to in 90 seconds — 24/7 including weekends</div>
+          <div class="ba-good">AI scores every lead — agents focus only on HOT buyers</div>
+          <div class="ba-good">All channels unified — one dashboard, zero missed enquiries</div>
+          <div class="ba-good">60-day nurture sequence keeps warm leads engaged automatically</div>
+          <div class="ba-good">Agent briefed with full buyer profile before first call</div>
+        </div>
+      </div>
+    </div>
+    <div class="animate-in">
+      <div class="quote-block">
+        <div class="quote-text">"In real estate, <strong>speed and qualification</strong> are the two things that separate top-performing agents from average ones. This automation provides both — instantly, at scale, at any hour."</div>
+        <div style="font-size:0.62rem;color:rgba(255,255,255,0.35);font-family:'Barlow Condensed',sans-serif;letter-spacing:0.1em">STACK: n8n · GPT-4o · WhatsApp API · Instagram API · HubSpot · Jiji/PropertyPro Webhooks · Slack</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="slide-counter" id="slideCounter">Slide 1 of 6</div>
+<div class="slide-nav">
+  <button class="nav-btn" onclick="prevSlide()">← Prev</button>
+  <button class="nav-btn primary" onclick="nextSlide()">Next →</button>
+</div>
+<script>
+const slides=document.querySelectorAll('.slide'),total=slides.length;let cur=0;
+const dots=document.getElementById('navDots');
+for(let i=0;i<total;i++){const d=document.createElement('div');d.className='nav-dot'+(i===0?' active':'');d.onclick=()=>goTo(i);dots.appendChild(d);}
+function goTo(n){slides[cur].classList.remove('active');dots.children[cur].classList.remove('active');if(cur<n)dots.children[cur].classList.add('done');cur=n;slides[cur].classList.add('active');dots.children[cur].classList.add('active');document.getElementById('slideCounter').textContent=`Slide ${cur+1} of ${total}`;}
+function nextSlide(){if(cur<total-1)goTo(cur+1);}function prevSlide(){if(cur>0)goTo(cur-1);}
+document.addEventListener('keydown',e=>{if(e.key==='ArrowRight'||e.key==='ArrowDown')nextSlide();if(e.key==='ArrowLeft'||e.key==='ArrowUp')prevSlide();});
+let secs=0;setInterval(()=>{secs++;const m=String(Math.floor(secs/60)).padStart(2,'0'),s=String(secs%60).padStart(2,'0');document.getElementById('timerBadge').textContent=`⏱ ${m}:${s}`;if(secs>=840)document.getElementById('timerBadge').style.color='#c02020';},1000);
+function delay(ms){return new Promise(r=>setTimeout(r,ms));}
+let enqRunning=false;
+async function runEnqSim(){
+  if(enqRunning)return;enqRunning=true;
+  const btn=document.getElementById('enqBtn');btn.textContent='Processing...';
+  const reveal=document.getElementById('leadReveal');reveal.style.display='flex';reveal.style.opacity='0';
+  const fields=[['ef-name','Amaka Obi'],['ef-phone','+234 802 456 7890'],['ef-prop','4-Bedroom Duplex · Lekki Phase 1'],['ef-msg','Good evening, I saw your listing for the 4BR duplex in Lekki. We are relocating from Abuja. Please send more details. Budget around ₦80–90M.']];
+  for(const[id,val]of fields){const el=document.getElementById(id);if(!el)continue;let i=0;await new Promise(r=>{const iv=setInterval(()=>{el.textContent=val.slice(0,++i);if(i>=val.length){clearInterval(iv);r();}},18);});await delay(80);}
+  const steps=['eq1','eq2','eq3','eq4','eq5'];
+  steps.forEach(id=>{const el=document.getElementById(id);if(el){el.style.opacity='0.3';el.querySelector('.ps-num').style.background='var(--border)';}});
+  for(let i=0;i<steps.length;i++){
+    await delay(500);
+    steps.forEach(id=>{const el=document.getElementById(id);if(el){el.style.opacity='0.3';el.querySelector('.ps-num').style.background='var(--border)';}});
+    const el=document.getElementById(steps[i]);
+    if(el){el.style.opacity='1';el.style.color='var(--gold)';el.querySelector('.ps-num').style.background='var(--char)';}
+    if(i===2)reveal.style.opacity='1';
+  }
+  btn.textContent='↺ Reset & Run Again';enqRunning=false;
+}
+</script>
+</body>
+</html>
