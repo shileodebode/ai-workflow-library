@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Marketing — Social Media Scheduling Automation</title>
+<link href="https://fonts.googleapis.com/css2?family=Cabinet+Grotesk:wght@300;400;500;700;800;900&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f5fbfe;--surface:#ffffff;--surface2:#e8f7fd;--border:#c8e8f5;
+  --ink:#051420;--teal:#0891b2;--teal2:#0670a0;--cyan:#06b6d4;--sky:#e0f7ff;
+  --coral:#e85d3a;--yellow:#f0b429;--green:#16a34a;--purple:#7c3aed;
+  --red:#dc2626;--text:#0a2030;--muted:#5a8090;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'Cabinet Grotesk',sans-serif;overflow-x:hidden;}
+.top-bar{position:fixed;top:0;left:0;right:0;height:4px;z-index:200;background:linear-gradient(90deg,var(--teal),var(--cyan),var(--coral),var(--yellow));}
+nav{position:fixed;top:4px;left:0;right:0;z-index:100;background:rgba(245,251,254,0.97);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 2.5rem;height:54px;}
+.nav-brand{font-family:'Fira Code',monospace;font-size:0.7rem;color:var(--teal2);letter-spacing:0.05em;}
+.nav-dots{display:flex;gap:0.3rem;}
+.nav-dot{width:7px;height:7px;border-radius:50%;background:var(--border);cursor:pointer;transition:all 0.2s;}
+.nav-dot.active{background:var(--teal);transform:scale(1.5);}
+.nav-dot.done{background:var(--green);}
+.timer{font-size:0.67rem;color:var(--teal);background:rgba(8,145,178,0.08);border:1px solid rgba(8,145,178,0.2);padding:0.2rem 0.75rem;border-radius:20px;font-family:'Fira Code',monospace;}
+.slide{min-height:100vh;padding:78px 0 50px;display:none;flex-direction:column;align-items:center;justify-content:center;position:relative;overflow:hidden;}
+.slide.active{display:flex;}
+.slide-inner{width:100%;max-width:1140px;padding:0 2.5rem;position:relative;z-index:2;}
+.hero-geo{position:absolute;top:0;right:0;bottom:0;width:40%;background:linear-gradient(135deg,var(--sky) 0%,rgba(224,247,255,0.2) 100%);clip-path:polygon(20% 0%,100% 0%,100% 100%,0% 100%);pointer-events:none;}
+.hero-badge{display:inline-flex;align-items:center;gap:0.5rem;background:var(--sky);border:1px solid rgba(8,145,178,0.2);color:var(--teal2);font-size:0.67rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;padding:0.28rem 0.9rem;border-radius:8px;margin-bottom:1.5rem;font-family:'Fira Code',monospace;}
+h1.hero-title{font-family:'Cabinet Grotesk',sans-serif;font-size:clamp(2.8rem,5.5vw,4.8rem);font-weight:900;line-height:1.0;letter-spacing:-0.03em;color:var(--ink);margin-bottom:1.5rem;}
+h1.hero-title span{color:var(--teal);}
+.hero-desc{font-size:0.97rem;color:var(--muted);max-width:510px;line-height:1.78;margin-bottom:2.5rem;font-weight:400;}
+.kpi-strip{display:flex;gap:1px;background:var(--border);border-radius:12px;overflow:hidden;max-width:620px;box-shadow:0 2px 12px rgba(8,145,178,0.07);}
+.kpi{background:white;padding:1.1rem 1.4rem;flex:1;}
+.kpi-val{font-family:'Cabinet Grotesk',sans-serif;font-size:1.9rem;font-weight:900;color:var(--teal);line-height:1;}
+.kpi-lbl{font-size:0.59rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);margin-top:0.2rem;font-family:'Fira Code',monospace;}
+.sec-tag{font-size:0.61rem;letter-spacing:0.22em;text-transform:uppercase;color:var(--teal);margin-bottom:0.4rem;font-weight:700;font-family:'Fira Code',monospace;}
+.sec-title{font-family:'Cabinet Grotesk',sans-serif;font-size:clamp(1.9rem,3.8vw,3rem);font-weight:900;line-height:1.05;margin-bottom:0.5rem;color:var(--ink);letter-spacing:-0.02em;}
+.sec-title span{color:var(--teal);}
+.sec-desc{font-size:0.87rem;color:var(--muted);margin-bottom:1.85rem;max-width:540px;line-height:1.78;}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;}
+.three-col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;}
+.lr{display:grid;grid-template-columns:1.1fr 1fr;gap:2rem;align-items:start;}
+.lr-rev{display:grid;grid-template-columns:1fr 1.15fr;gap:2rem;align-items:start;}
+.card{background:white;border:1px solid var(--border);border-radius:12px;padding:1.25rem;transition:all 0.2s;box-shadow:0 1px 4px rgba(0,0,0,0.04);}
+.card:hover{border-color:var(--teal);transform:translateY(-2px);box-shadow:0 6px 20px rgba(8,145,178,0.1);}
+.card-icon{font-size:1.4rem;margin-bottom:0.5rem;}
+.card-title{font-family:'Cabinet Grotesk',sans-serif;font-size:1rem;font-weight:800;margin-bottom:0.3rem;color:var(--ink);}
+.card-desc{font-size:0.72rem;color:var(--muted);line-height:1.65;}
+.panel{background:white;border:1px solid var(--border);border-radius:12px;padding:1.4rem;}
+.panel h3{font-family:'Cabinet Grotesk',sans-serif;font-size:0.9rem;font-weight:800;color:var(--teal2);margin-bottom:0.9rem;display:flex;align-items:center;gap:0.5rem;}
+.panel h3::before{content:'→';color:var(--cyan);}
+.steps{list-style:none;}
+.steps li{display:flex;gap:0.75rem;padding:0.45rem 0;border-bottom:1px solid var(--border);font-size:0.76rem;line-height:1.6;}
+.steps li:last-child{border-bottom:none;}
+.step-n{width:22px;height:22px;border-radius:8px;background:var(--teal);color:white;font-size:0.62rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:'Fira Code',monospace;}
+/* Workflow */
+.wf-canvas{background:var(--ink);border-radius:16px;padding:2rem;position:relative;overflow:hidden;}
+.wf-dots{position:absolute;inset:0;background-image:radial-gradient(circle,rgba(6,182,212,0.18) 1px,transparent 1px);background-size:28px 28px;opacity:0.5;}
+.wf-glow{position:absolute;top:-40px;right:-40px;width:300px;height:300px;background:radial-gradient(circle,rgba(8,145,178,0.1) 0%,transparent 65%);}
+.wf-label{position:absolute;top:0.75rem;left:1rem;font-size:0.57rem;letter-spacing:0.18em;text-transform:uppercase;color:rgba(255,255,255,0.3);display:flex;align-items:center;gap:0.4rem;z-index:3;font-family:'Fira Code',monospace;}
+.wf-label::before{content:'';width:7px;height:7px;border-radius:50%;background:var(--cyan);box-shadow:0 0 8px var(--cyan);animation:cpulse 2s infinite;}
+@keyframes cpulse{0%,100%{opacity:1}50%{opacity:0.2}}
+.wf-nodes{display:flex;align-items:flex-start;gap:0;padding-top:1.5rem;position:relative;z-index:2;flex-wrap:wrap;}
+.wf-stage{display:flex;flex-direction:column;align-items:center;}
+.wf-slbl{font-size:0.51rem;letter-spacing:0.14em;text-transform:uppercase;color:rgba(255,255,255,0.28);margin-bottom:0.3rem;font-family:'Fira Code',monospace;}
+.wf-node{display:flex;flex-direction:column;align-items:center;gap:0.3rem;cursor:pointer;position:relative;}
+.wf-box{width:58px;height:58px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.25rem;border:2px solid transparent;transition:all 0.3s;}
+.wf-node:hover .wf-box{transform:scale(1.1);box-shadow:0 0 20px rgba(6,182,212,0.4);}
+.wf-nlbl{font-size:0.52rem;text-align:center;color:rgba(255,255,255,0.42);max-width:66px;line-height:1.3;font-family:'Fira Code',monospace;}
+.wf-arr{color:rgba(255,255,255,0.18);padding:0 0.2rem;font-size:0.85rem;align-self:flex-start;margin-top:19px;flex-shrink:0;}
+.ttw{position:relative;}
+.tti{position:absolute;bottom:calc(100%+8px);left:50%;transform:translateX(-50%);background:white;border:1px solid var(--border);border-radius:8px;padding:0.6rem 0.9rem;font-size:0.67rem;opacity:0;pointer-events:none;transition:opacity 0.2s;z-index:50;color:var(--ink);line-height:1.5;max-width:200px;white-space:normal;text-align:left;box-shadow:0 4px 16px rgba(0,0,0,0.08);}
+.ttw:hover .tti{opacity:1;}
+/* Post card */
+.post-card{background:white;border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:0.5rem;transition:all 0.3s;box-shadow:0 1px 4px rgba(0,0,0,0.04);}
+.post-card.scheduled{border-color:var(--teal);}
+.post-card.published{border-color:var(--green);opacity:0.85;}
+.pc-header{padding:0.6rem 0.85rem;display:flex;align-items:center;gap:0.65rem;border-bottom:1px solid var(--border);}
+.pc-platform{width:22px;height:22px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:0.85rem;}
+.pc-time{font-family:'Fira Code',monospace;font-size:0.63rem;color:var(--muted);}
+.pc-badge{margin-left:auto;font-size:0.58rem;padding:0.1rem 0.42rem;border-radius:20px;font-weight:700;font-family:'Fira Code',monospace;}
+.pcb-draft{background:rgba(90,128,144,0.1);color:var(--muted);border:1px solid rgba(90,128,144,0.2);}
+.pcb-sched{background:rgba(8,145,178,0.1);color:var(--teal);border:1px solid rgba(8,145,178,0.2);}
+.pcb-live{background:rgba(22,163,74,0.1);color:var(--green);border:1px solid rgba(22,163,74,0.2);}
+.pc-body{padding:0.65rem 0.85rem;font-size:0.71rem;line-height:1.55;color:var(--text);}
+/* Content input */
+.content-input{background:white;border:1px solid var(--border);border-radius:12px;overflow:hidden;}
+.ci-header{background:var(--sky);border-bottom:1px solid var(--border);padding:0.65rem 0.9rem;font-family:'Fira Code',monospace;font-size:0.67rem;color:var(--teal2);font-weight:500;}
+.ci-body{padding:0.85rem;}
+.ci-field label{font-size:0.6rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:0.2rem;font-family:'Fira Code',monospace;}
+.ci-input{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:0.4rem 0.65rem;font-size:0.72rem;color:var(--text);font-family:'Cabinet Grotesk',sans-serif;width:100%;min-height:26px;margin-bottom:0.5rem;transition:border-color 0.3s;}
+.ci-platforms{display:flex;gap:0.5rem;margin-bottom:0.65rem;flex-wrap:wrap;}
+.ci-plat{padding:0.28rem 0.65rem;border-radius:20px;font-size:0.65rem;font-weight:700;cursor:pointer;transition:all 0.2s;}
+.plat-li{background:rgba(8,145,178,0.1);color:var(--teal2);border:1px solid rgba(8,145,178,0.2);}
+.plat-ig{background:rgba(232,93,58,0.1);color:var(--coral);border:1px solid rgba(232,93,58,0.2);}
+.plat-tw{background:rgba(5,20,32,0.1);color:var(--ink);border:1px solid rgba(5,20,32,0.2);}
+.plat-fb{background:rgba(26,82,168,0.1);color:#1a52a8;border:1px solid rgba(26,82,168,0.2);}
+/* Calendar */
+.cal-grid{background:white;border:1px solid var(--border);border-radius:12px;overflow:hidden;}
+.cal-header{background:var(--sky);padding:0.65rem 0.85rem;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);}
+.cal-title{font-family:'Fira Code',monospace;font-size:0.72rem;color:var(--teal2);font-weight:500;}
+.cal-days{display:grid;grid-template-columns:repeat(7,1fr);font-size:0.58rem;text-align:center;letter-spacing:0.06em;color:var(--muted);padding:0.45rem 0.5rem;border-bottom:1px solid var(--border);font-family:'Fira Code',monospace;}
+.cal-cells{display:grid;grid-template-columns:repeat(7,1fr);padding:0.5rem;}
+.cal-cell{aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:0.2rem;border-radius:6px;font-size:0.65rem;position:relative;}
+.cal-cell.today{background:var(--sky);font-weight:700;}
+.cal-num{font-family:'Fira Code',monospace;font-size:0.6rem;color:var(--muted);margin-bottom:0.1rem;}
+.cal-dot{width:5px;height:5px;border-radius:50%;margin:1px;}
+/* Analytics */
+.analytics-row{display:flex;align-items:center;gap:0.85rem;padding:0.6rem 0.85rem;background:white;border:1px solid var(--border);border-radius:8px;margin-bottom:0.4rem;font-size:0.73rem;transition:all 0.3s;}
+.ar-platform{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;}
+.ar-metric{margin-left:auto;font-family:'Fira Code',monospace;font-size:0.68rem;font-weight:700;}
+/* PS list */
+.ps-list{list-style:none;}
+.ps-list li{display:flex;gap:0.75rem;padding:0.45rem 0;border-bottom:1px solid var(--border);font-size:0.74rem;line-height:1.5;transition:all 0.3s;}
+.ps-list li:last-child{border-bottom:none;}
+.ps-num{width:20px;height:20px;border-radius:8px;background:var(--border);color:white;font-size:0.6rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;transition:background 0.3s;font-family:'Fira Code',monospace;}
+/* Info */
+.info-teal{padding:0.75rem 1rem;border-radius:8px;font-size:0.77rem;line-height:1.6;background:rgba(8,145,178,0.06);border:1px solid rgba(8,145,178,0.15);color:var(--teal2);}
+.ba-bad{padding:0.6rem 0.9rem;border-radius:8px;font-size:0.76rem;line-height:1.5;background:rgba(220,38,38,0.04);border:1px solid rgba(220,38,38,0.12);}
+.ba-good{padding:0.6rem 0.9rem;border-radius:8px;font-size:0.76rem;line-height:1.5;background:rgba(22,163,74,0.05);border:1px solid rgba(22,163,74,0.14);}
+.quote-block{background:var(--ink);border-radius:14px;padding:1.75rem 2rem;color:white;}
+.quote-text{font-size:1.05rem;line-height:1.78;margin-bottom:0.75rem;font-weight:300;}
+.quote-text strong{color:var(--cyan);}
+.slide-counter{position:fixed;bottom:1.5rem;left:2rem;font-size:0.62rem;color:var(--muted);z-index:100;font-family:'Fira Code',monospace;}
+.slide-nav{position:fixed;bottom:1.5rem;right:2rem;display:flex;gap:0.5rem;z-index:100;}
+.nav-btn{background:white;border:1px solid var(--border);color:var(--text);padding:0.55rem 1.2rem;border-radius:8px;font-family:'Fira Code',monospace;font-size:0.7rem;cursor:pointer;transition:all 0.2s;}
+.nav-btn:hover{border-color:var(--teal);color:var(--teal);}
+.nav-btn.primary{background:var(--teal);border-color:var(--teal);color:white;}
+.nav-btn.primary:hover{background:var(--teal2);}
+.run-btn{background:var(--teal);color:white;border:none;border-radius:8px;padding:0.7rem 1.5rem;font-family:'Fira Code',monospace;font-size:0.72rem;cursor:pointer;transition:all 0.2s;width:100%;text-align:center;}
+.run-btn:hover{background:var(--teal2);}
+.animate-in{opacity:0;animation:fadeUp 0.5s ease-out forwards;}
+.slide.active .animate-in:nth-child(1){animation-delay:0.05s;}
+.slide.active .animate-in:nth-child(2){animation-delay:0.15s;}
+.slide.active .animate-in:nth-child(3){animation-delay:0.25s;}
+.slide.active .animate-in:nth-child(4){animation-delay:0.35s;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+</style>
+</head>
+<body>
+<div class="top-bar"></div>
+<nav>
+  <div class="nav-brand">MKT · Social Media Scheduling</div>
+  <div class="nav-dots" id="navDots"></div>
+  <div class="timer" id="timerBadge">⏱ 00:00</div>
+</nav>
+
+<!-- SLIDE 1: HERO -->
+<section class="slide active" id="slide-0">
+  <div class="hero-geo"></div>
+  <div class="slide-inner">
+    <div class="animate-in"><div class="hero-badge">n8n AI Automation · Marketing</div></div>
+    <div class="animate-in"><h1 class="hero-title">One Brief.<br><span>Every Platform.</span><br>Auto-Posted.</h1></div>
+    <div class="animate-in"><p class="hero-desc">Write one content brief. AI adapts it for LinkedIn, Instagram, Twitter/X, and Facebook — optimised for each platform's tone, format, and best posting time. Then posts automatically.</p></div>
+    <div class="animate-in">
+      <div class="kpi-strip">
+        <div class="kpi"><div class="kpi-val">4×</div><div class="kpi-lbl">Platform Coverage</div></div>
+        <div class="kpi"><div class="kpi-val">100%</div><div class="kpi-lbl">Consistent Posting</div></div>
+        <div class="kpi"><div class="kpi-val">AI</div><div class="kpi-lbl">Platform Adaption</div></div>
+        <div class="kpi"><div class="kpi-val">0</div><div class="kpi-lbl">Hours Spent</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 2: PROBLEM -->
+<section class="slide" id="slide-1">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">01 — The Problem</div><div class="sec-title">Social Media Eats<br><span>Time It Shouldn't</span></div><p class="sec-desc">A consistent, multi-platform social presence is essential for brand awareness and inbound leads. But maintaining it manually is a full-time job your marketing team doesn't have time for.</p></div>
+    <div class="animate-in two-col" style="margin-bottom:1.5rem">
+      <div class="card"><div class="card-icon">⏰</div><div class="card-title">Manual Adaptation</div><div class="card-desc">The same message needs to sound completely different on LinkedIn vs Instagram vs Twitter. Writing four versions of every post manually takes 2–3 hours per piece of content.</div></div>
+      <div class="card"><div class="card-icon">📉</div><div class="card-title">Inconsistent Posting</div><div class="card-desc">Busy weeks mean social goes silent. Algorithm punishes inconsistency. Reach drops. Follower growth stalls. A posting gap of 2 weeks can take months of recovery to fix.</div></div>
+      <div class="card"><div class="card-icon">📊</div><div class="card-title">No Optimal Timing</div><div class="card-desc">Posting when it's convenient, not when your audience is active. LinkedIn posts at 5pm Friday. Instagram stories at 11am Monday. Sub-optimal timing kills engagement rates.</div></div>
+      <div class="card"><div class="card-icon">📁</div><div class="card-title">No Content Calendar</div><div class="card-desc">No visibility of what's planned, what's been posted, or what's performing. Campaign consistency breaks down. Brand voice inconsistent across platforms and team members.</div></div>
+    </div>
+    <div class="animate-in"><div class="info-teal">✅ n8n + GPT-4o turns one content brief into four platform-native posts, schedules them at optimal times, and publishes automatically — without a single manual step.</div></div>
+  </div>
+</section>
+
+<!-- SLIDE 3: WORKFLOW -->
+<section class="slide" id="slide-2">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">02 — The Blueprint</div><div class="sec-title">n8n Social Scheduling<br><span>Architecture</span></div><p class="sec-desc">Brief in, posts out — across all platforms, at the right times, in the right voices. Human approval optional, fully configurable.</p></div>
+    <div class="animate-in wf-canvas">
+      <div class="wf-dots"></div><div class="wf-glow"></div>
+      <div class="wf-label">n8n canvas — social media scheduling pipeline</div>
+      <div class="wf-nodes">
+        <div class="wf-stage"><div class="wf-slbl">Input</div>
+          <div style="display:flex;flex-direction:column;gap:0.35rem">
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#0a1a2a,#1d4ed8);color:#93c5fd;border-color:#1d4ed8;">📝</div><div class="wf-nlbl">Content<br>Brief</div><div class="tti">Team submits a content brief via Notion, Airtable, or a simple form: topic, key message, target audience, tone, any links/assets to include.</div></div>
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a1a0a,#78350f);color:#fde68a;border-color:#78350f;">📅</div><div class="wf-nlbl">Calendar<br>Trigger</div><div class="tti">n8n cron checks content calendar daily. If posts due in next 3 days and not yet drafted, automatically prompts content team or generates drafts.</div></div>
+          </div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-stage"><div class="wf-slbl">Generate</div>
+          <div style="display:flex;flex-direction:column;gap:0.35rem">
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a0a0a,#991b1b);color:#fca5a5;border-color:#991b1b;">🧠</div><div class="wf-nlbl">GPT-4o<br>Adapt</div><div class="tti">GPT-4o generates 4 platform-native versions: LinkedIn (professional, long-form), Instagram (visual-first, hashtags), Twitter/X (punchy, max 280 chars), Facebook (conversational).</div></div>
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#0a1a1a,#065f46);color:#6ee7b7;border-color:#065f46;">🖼️</div><div class="wf-nlbl">Image<br>Select</div><div class="tti">Auto-selects relevant image from your Canva/Notion asset library. Or prompts DALL-E to generate a custom image from the post's key message.</div></div>
+          </div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-stage"><div class="wf-slbl">Review</div>
+          <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a0a1a,#7c3aed);color:#d8b4fe;border-color:#7c3aed;">✅</div><div class="wf-nlbl">Approve<br>or Auto</div><div class="tti">Optional Slack approval step: all 4 posts shown to marketing manager with one-click approve or edit. If no response in 2hrs, auto-approved and scheduled.</div></div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-stage"><div class="wf-slbl">Schedule</div>
+          <div style="display:flex;flex-direction:column;gap:0.35rem">
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#2a0a1a,#9d174d);color:#fbcfe8;border-color:#9d174d;">⏰</div><div class="wf-nlbl">Optimal<br>Time</div><div class="tti">Best time calculated per platform per audience timezone: LinkedIn (Tue-Thu 8-10am), Instagram (Mon/Wed/Fri 11am-1pm), Twitter (Mon-Fri 12-3pm).</div></div>
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#0a1a2a,#0369a1);color:#7dd3fc;border-color:#0369a1;">📊</div><div class="wf-nlbl">Content<br>Calendar</div><div class="tti">Post added to Google Sheets/Notion content calendar. Full team visibility of what's scheduled, published, and pending. No more "what are we posting this week?" questions.</div></div>
+          </div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-stage"><div class="wf-slbl">Publish</div>
+          <div style="display:flex;flex-direction:column;gap:0.35rem">
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#0a1a1a,#065f46);color:#6ee7b7;border-color:#065f46;">📤</div><div class="wf-nlbl">Auto<br>Post</div><div class="tti">n8n posts directly to LinkedIn, Instagram, Twitter/X, and Facebook APIs at scheduled times. No manual login, no Buffer/Hootsuite needed.</div></div>
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a1a0a,#3d3200);color:#fbbf24;border-color:#78350f;">📈</div><div class="wf-nlbl">Analytics<br>Pull</div><div class="tti">24 hours after posting, n8n pulls engagement data from each platform: likes, shares, comments, reach, clicks. All aggregated in one dashboard.</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 4: SIM 1 — CONTENT GENERATOR -->
+<section class="slide" id="slide-3">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">03 — Simulation 1</div><div class="sec-title">Live: One Brief →<br><span>4 Platform Posts</span></div><p class="sec-desc">Marketing manager submits one brief about an n8n automation case study. Watch GPT-4o generate four platform-native posts — each in the right voice.</p></div>
+    <div class="animate-in lr">
+      <div style="display:flex;flex-direction:column;gap:1rem">
+        <div class="content-input">
+          <div class="ci-header">Content Brief → n8n</div>
+          <div class="ci-body">
+            <div class="ci-field"><label>Topic</label><div class="ci-input" id="ct-topic"></div></div>
+            <div class="ci-field"><label>Key Message</label><div class="ci-input" id="ct-msg"></div></div>
+            <div class="ci-field"><label>Platforms</label>
+              <div class="ci-platforms">
+                <span class="ci-plat plat-li">💼 LinkedIn</span>
+                <span class="ci-plat plat-ig">📸 Instagram</span>
+                <span class="ci-plat plat-tw">𝕏 Twitter</span>
+                <span class="ci-plat plat-fb">👥 Facebook</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="panel">
+          <h3>Pipeline Steps</h3>
+          <ul class="ps-list" id="socialSteps">
+            <li id="ss1" style="opacity:0.3"><div class="ps-num">1</div><div>Brief received → n8n workflow triggered</div></li>
+            <li id="ss2" style="opacity:0.3"><div class="ps-num">2</div><div>GPT-4o generates 4 platform-native versions</div></li>
+            <li id="ss3" style="opacity:0.3"><div class="ps-num">3</div><div>Optimal times calculated per platform</div></li>
+            <li id="ss4" style="opacity:0.3"><div class="ps-num">4</div><div>Added to content calendar + queued for posting</div></li>
+          </ul>
+        </div>
+        <button class="run-btn" id="socialBtn" onclick="runSocialSim()">▶ GENERATE ALL 4 POSTS</button>
+      </div>
+      <div id="postBoard" style="display:flex;flex-direction:column;gap:0.5rem">
+        <div class="post-card" id="pc1">
+          <div class="pc-header"><div class="pc-platform" style="background:rgba(8,145,178,0.1)">💼</div><span style="font-size:0.7rem;font-weight:700;color:var(--teal2)">LinkedIn</span><div class="pc-time">Tue 9:00am</div><span class="pc-badge pcb-draft" id="pcb1">Draft</span></div>
+          <div class="pc-body" id="pct1" style="color:var(--muted);font-style:italic">Waiting for content generation...</div>
+        </div>
+        <div class="post-card" id="pc2">
+          <div class="pc-header"><div class="pc-platform" style="background:rgba(232,93,58,0.1)">📸</div><span style="font-size:0.7rem;font-weight:700;color:var(--coral)">Instagram</span><div class="pc-time">Wed 12:00pm</div><span class="pc-badge pcb-draft" id="pcb2">Draft</span></div>
+          <div class="pc-body" id="pct2" style="color:var(--muted);font-style:italic">Waiting for content generation...</div>
+        </div>
+        <div class="post-card" id="pc3">
+          <div class="pc-header"><div class="pc-platform" style="background:rgba(5,20,32,0.08)">𝕏</div><span style="font-size:0.7rem;font-weight:700;color:var(--ink)">Twitter/X</span><div class="pc-time">Thu 1:00pm</div><span class="pc-badge pcb-draft" id="pcb3">Draft</span></div>
+          <div class="pc-body" id="pct3" style="color:var(--muted);font-style:italic">Waiting for content generation...</div>
+        </div>
+        <div class="post-card" id="pc4">
+          <div class="pc-header"><div class="pc-platform" style="background:rgba(26,82,168,0.1)">👥</div><span style="font-size:0.7rem;font-weight:700;color:#1a52a8">Facebook</span><div class="pc-time">Fri 10:00am</div><span class="pc-badge pcb-draft" id="pcb4">Draft</span></div>
+          <div class="pc-body" id="pct4" style="color:var(--muted);font-style:italic">Waiting for content generation...</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 5: SIM 2 — CALENDAR -->
+<section class="slide" id="slide-4">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">04 — Simulation 2</div><div class="sec-title">Content Calendar<br><span>Auto-Populated</span></div><p class="sec-desc">Every generated post lands in the team's content calendar automatically. Full visibility, full scheduling — no manual tracking spreadsheets.</p></div>
+    <div class="animate-in two-col" style="margin-bottom:1.25rem">
+      <div class="cal-grid">
+        <div class="cal-header"><div class="cal-title">April 2025 — Social Calendar</div><span style="font-size:0.6rem;color:var(--muted);font-family:'Fira Code',monospace">14 posts scheduled</span></div>
+        <div class="cal-days"><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span></div>
+        <div class="cal-cells">
+          <div class="cal-cell"><span class="cal-num">1</span></div>
+          <div class="cal-cell"><span class="cal-num">2</span><div class="cal-dot" style="background:var(--teal)"></div></div>
+          <div class="cal-cell"><span class="cal-num">3</span><div class="cal-dot" style="background:var(--coral)"></div></div>
+          <div class="cal-cell"><span class="cal-num">4</span><div class="cal-dot" style="background:var(--ink)"></div></div>
+          <div class="cal-cell"><span class="cal-num">5</span><div class="cal-dot" style="background:#1a52a8"></div></div>
+          <div class="cal-cell"><span class="cal-num">6</span></div>
+          <div class="cal-cell"><span class="cal-num">7</span></div>
+          <div class="cal-cell"><span class="cal-num">8</span></div>
+          <div class="cal-cell today"><span class="cal-num" style="color:var(--teal2);font-weight:800">9</span><div class="cal-dot" style="background:var(--teal)"></div><div class="cal-dot" style="background:var(--coral)"></div></div>
+          <div class="cal-cell"><span class="cal-num">10</span><div class="cal-dot" style="background:var(--ink)"></div></div>
+          <div class="cal-cell"><span class="cal-num">11</span><div class="cal-dot" style="background:#1a52a8"></div></div>
+          <div class="cal-cell"><span class="cal-num">12</span></div>
+          <div class="cal-cell"><span class="cal-num">13</span></div>
+          <div class="cal-cell"><span class="cal-num">14</span></div>
+          <div class="cal-cell"><span class="cal-num">15</span><div class="cal-dot" style="background:var(--teal)"></div></div>
+          <div class="cal-cell"><span class="cal-num">16</span><div class="cal-dot" style="background:var(--coral)"></div></div>
+          <div class="cal-cell"><span class="cal-num">17</span><div class="cal-dot" style="background:var(--ink)"></div></div>
+          <div class="cal-cell"><span class="cal-num">18</span><div class="cal-dot" style="background:#1a52a8"></div></div>
+          <div class="cal-cell"><span class="cal-num">19</span></div>
+          <div class="cal-cell"><span class="cal-num">20</span></div>
+          <div class="cal-cell"><span class="cal-num">21</span></div>
+        </div>
+        <div style="padding:0.5rem 0.75rem;border-top:1px solid var(--border);display:flex;gap:0.75rem;font-size:0.59rem;font-family:'Fira Code',monospace">
+          <span style="display:flex;align-items:center;gap:0.25rem;color:var(--teal)"><span style="width:8px;height:8px;border-radius:50%;background:var(--teal);display:inline-block"></span>LinkedIn</span>
+          <span style="display:flex;align-items:center;gap:0.25rem;color:var(--coral)"><span style="width:8px;height:8px;border-radius:50%;background:var(--coral);display:inline-block"></span>Instagram</span>
+          <span style="display:flex;align-items:center;gap:0.25rem;color:var(--ink)"><span style="width:8px;height:8px;border-radius:50%;background:var(--ink);display:inline-block"></span>Twitter</span>
+          <span style="display:flex;align-items:center;gap:0.25rem;color:#1a52a8"><span style="width:8px;height:8px;border-radius:50%;background:#1a52a8;display:inline-block"></span>Facebook</span>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:0.85rem">
+        <div style="font-size:0.61rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);font-family:'Fira Code',monospace;margin-bottom:0.1rem">Today's scheduled posts</div>
+        <div class="analytics-row"><div class="ar-platform" style="background:rgba(8,145,178,0.1)">💼</div><div><div style="font-weight:700;font-size:0.75rem">LinkedIn — 9:00am</div><div style="font-size:0.65rem;color:var(--muted)">How automation changes your marketing ops...</div></div><div class="ar-metric" style="color:var(--green)">Published ✓</div></div>
+        <div class="analytics-row"><div class="ar-platform" style="background:rgba(232,93,58,0.1)">📸</div><div><div style="font-weight:700;font-size:0.75rem">Instagram — 12:00pm</div><div style="font-size:0.65rem;color:var(--muted)">One brief → four platforms 🚀 #n8n #automation</div></div><div class="ar-metric" style="color:var(--teal)">Scheduled</div></div>
+        <div class="info-teal">📊 Last 30 days: 56 posts published across 4 platforms. <strong>Zero manual scheduling.</strong> Average engagement up 34% vs previous month (consistent timing effect).</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 6: BEFORE/AFTER -->
+<section class="slide" id="slide-5">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">05 — Business Impact</div><div class="sec-title">Always Present.<br><span>Never Overwhelmed.</span></div></div>
+    <div class="animate-in two-col" style="margin-bottom:1.5rem">
+      <div>
+        <div style="font-size:0.62rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--red);margin-bottom:0.75rem;font-weight:700;font-family:'Fira Code',monospace">❌ BEFORE</div>
+        <div style="display:flex;flex-direction:column;gap:0.5rem">
+          <div class="ba-bad">2–3 hours per post to adapt content for each platform manually</div>
+          <div class="ba-bad">Busy weeks mean silence — algorithm punishes, reach drops</div>
+          <div class="ba-bad">Posting at convenient times, not optimal times — engagement suffers</div>
+          <div class="ba-bad">No calendar visibility — team doesn't know what's going out</div>
+          <div class="ba-bad">Analytics in 4 different dashboards — nobody tracks cross-platform</div>
+        </div>
+      </div>
+      <div>
+        <div style="font-size:0.62rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--green);margin-bottom:0.75rem;font-weight:700;font-family:'Fira Code',monospace">✅ AFTER</div>
+        <div style="display:flex;flex-direction:column;gap:0.5rem">
+          <div class="ba-good">One brief generates 4 platform-native posts in under 2 minutes</div>
+          <div class="ba-good">Consistent weekly posting — algorithm rewards, reach compounds</div>
+          <div class="ba-good">Optimal timing per platform, per audience timezone — auto-calculated</div>
+          <div class="ba-good">Unified content calendar — full team visibility, no surprises</div>
+          <div class="ba-good">Cross-platform analytics aggregated in one dashboard automatically</div>
+        </div>
+      </div>
+    </div>
+    <div class="animate-in">
+      <div class="quote-block">
+        <div class="quote-text">"Consistency beats brilliance on social media. <strong>Showing up every week, on every platform, in the right voice</strong> — that's what builds an audience. This automation makes consistency effortless."</div>
+        <div style="font-size:0.62rem;color:rgba(255,255,255,0.3);font-family:'Fira Code',monospace">STACK: n8n · GPT-4o · LinkedIn API · Instagram API · Twitter/X API · Facebook API · Notion · Slack</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="slide-counter" id="slideCounter">Slide 1 of 6</div>
+<div class="slide-nav">
+  <button class="nav-btn" onclick="prevSlide()">← Prev</button>
+  <button class="nav-btn primary" onclick="nextSlide()">Next →</button>
+</div>
+<script>
+const slides=document.querySelectorAll('.slide'),total=slides.length;let cur=0;
+const dots=document.getElementById('navDots');
+for(let i=0;i<total;i++){const d=document.createElement('div');d.className='nav-dot'+(i===0?' active':'');d.onclick=()=>goTo(i);dots.appendChild(d);}
+function goTo(n){slides[cur].classList.remove('active');dots.children[cur].classList.remove('active');if(cur<n)dots.children[cur].classList.add('done');cur=n;slides[cur].classList.add('active');dots.children[cur].classList.add('active');document.getElementById('slideCounter').textContent=`Slide ${cur+1} of ${total}`;}
+function nextSlide(){if(cur<total-1)goTo(cur+1);}function prevSlide(){if(cur>0)goTo(cur-1);}
+document.addEventListener('keydown',e=>{if(e.key==='ArrowRight'||e.key==='ArrowDown')nextSlide();if(e.key==='ArrowLeft'||e.key==='ArrowUp')prevSlide();});
+let secs=0;setInterval(()=>{secs++;const m=String(Math.floor(secs/60)).padStart(2,'0'),s=String(secs%60).padStart(2,'0');document.getElementById('timerBadge').textContent=`⏱ ${m}:${s}`;if(secs>=840)document.getElementById('timerBadge').style.color='#dc2626';},1000);
+function delay(ms){return new Promise(r=>setTimeout(r,ms));}
+
+const postContent=[
+  {id:'pct1',badge:'pcb1',text:'🚀 We just automated our entire marketing pipeline with n8n + GPT-4o — and the results are remarkable.\n\nWhat used to take our team 8 hours per week now runs automatically. Lead magnets, nurture sequences, social scheduling — all handled.\n\nHere\'s what we learned after 90 days...\n\n#MarketingAutomation #n8n #AIMarketing',cls:'scheduled',badgeTxt:'Scheduled ✓'},
+  {id:'pct2',badge:'pcb2',text:'One tool. Endless possibilities. 🤖✨\n\nn8n + AI = your entire marketing team, automated.\n\nSwipe to see how we went from 8 hours/week to 0 👉\n\n#automation #marketinghacks #n8n #aitools #marketingautomation #growthhacking',cls:'scheduled',badgeTxt:'Scheduled ✓'},
+  {id:'pct3',badge:'pcb3',text:'We automated 8 hours of marketing work per week with n8n + GPT-4o.\n\nLead magnets → nurture → social → analytics. All hands-free.\n\nThread 🧵👇',cls:'scheduled',badgeTxt:'Scheduled ✓'},
+  {id:'pct4',badge:'pcb4',text:'Big news from our marketing team! 🎉\n\nWe\'ve been testing n8n automation for the past 90 days and the results have blown us away. From lead generation to social media to follow-up emails — all running automatically.\n\nWant to know how? Drop a 🙋 in the comments!',cls:'scheduled',badgeTxt:'Scheduled ✓'},
+];
+let socialRunning=false;
+async function runSocialSim(){
+  if(socialRunning)return;socialRunning=true;
+  const btn=document.getElementById('socialBtn');btn.textContent='Generating...';
+  const briefFields=[['ct-topic','n8n Automation Case Study — 90-day results'],['ct-msg','We automated 8hrs/week of marketing work with n8n + GPT-4o']];
+  for(const[id,val]of briefFields){const el=document.getElementById(id);if(!el)continue;let i=0;await new Promise(r=>{const iv=setInterval(()=>{el.textContent=val.slice(0,++i);if(i>=val.length){clearInterval(iv);r();}},20);});await delay(80);}
+  const steps=['ss1','ss2','ss3','ss4'];
+  steps.forEach(id=>{const el=document.getElementById(id);if(el){el.style.opacity='0.3';el.querySelector('.ps-num').style.background='var(--border)';}});
+  const light=(i)=>{steps.forEach(id=>{const el=document.getElementById(id);if(el){el.style.opacity='0.3';el.querySelector('.ps-num').style.background='var(--border)';}});const el=document.getElementById(steps[i]);if(el){el.style.opacity='1';el.style.color='var(--teal)';el.querySelector('.ps-num').style.background='var(--teal)';}};
+  light(0);await delay(500);light(1);
+  for(const p of postContent){
+    await delay(600);
+    const txt=document.getElementById(p.id);const badge=document.getElementById(p.badge);
+    if(txt){txt.style.cssText='';let i=0;await new Promise(r=>{const iv=setInterval(()=>{txt.textContent=p.text.slice(0,i+=3);if(i>=p.text.length){clearInterval(iv);r();}},18);});}
+    if(badge){badge.className='pc-badge pcb-sched';badge.textContent=p.badgeTxt;}
+  }
+  light(2);await delay(400);light(3);
+  btn.textContent='↺ Reset & Run Again';socialRunning=false;
+}
+</script>
+</body>
+</html>
