@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Finance & Operations — Vendor Onboarding Automation</title>
+<link href="https://fonts.googleapis.com/css2?family=Raleway:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,300&family=Source+Code+Pro:wght@400;500&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#faf8f4;--surface:#ffffff;--surface2:#f5f0e8;--border:#e5ddd0;
+  --ink:#1a1008;--charcoal:#2a2018;--warm:#4a3820;--amber:#b87c20;
+  --amber2:#9a6410;--gold:#d4aa40;--cream:#fef8ec;--green:#1a6838;
+  --red:#c82020;--blue:#1a3a6a;--text:#281808;--muted:#8a7060;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'Lato',sans-serif;overflow-x:hidden;}
+.corner-accent{position:fixed;top:0;left:0;width:0;height:0;border-right:60px solid transparent;border-top:60px solid var(--charcoal);z-index:200;}
+nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(250,248,244,0.97);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 2.5rem;height:56px;}
+.nav-brand{font-family:'Source Code Pro',monospace;font-size:0.7rem;color:var(--warm);letter-spacing:0.06em;margin-left:1rem;}
+.nav-dots{display:flex;gap:0.3rem;}
+.nav-dot{width:7px;height:7px;border-radius:50%;background:var(--border);cursor:pointer;transition:all 0.2s;}
+.nav-dot.active{background:var(--amber);transform:scale(1.5);}
+.nav-dot.done{background:var(--green);}
+.timer{font-size:0.67rem;color:var(--amber);background:rgba(184,124,32,0.07);border:1px solid rgba(184,124,32,0.2);padding:0.2rem 0.75rem;border-radius:4px;font-family:'Source Code Pro',monospace;}
+.slide{min-height:100vh;padding:80px 0 50px;display:none;flex-direction:column;align-items:center;justify-content:center;position:relative;overflow:hidden;}
+.slide.active{display:flex;}
+.slide-inner{width:100%;max-width:1140px;padding:0 2.5rem;position:relative;z-index:2;}
+.hero-bg{position:absolute;inset:0;background:radial-gradient(ellipse at 80% 50%,rgba(184,124,32,0.05) 0%,transparent 60%);pointer-events:none;}
+.hero-badge{display:inline-flex;align-items:center;gap:0.5rem;background:var(--cream);border:1px solid rgba(184,124,32,0.25);color:var(--amber2);font-size:0.67rem;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;padding:0.28rem 0.9rem;border-radius:6px;margin-bottom:1.5rem;font-family:'Source Code Pro',monospace;}
+h1.hero-title{font-family:'Raleway',sans-serif;font-size:clamp(2.8rem,5.2vw,4.6rem);font-weight:800;line-height:1.0;letter-spacing:-0.03em;color:var(--ink);margin-bottom:1.5rem;}
+h1.hero-title span{color:var(--amber);}
+.hero-desc{font-size:0.97rem;color:var(--muted);max-width:510px;line-height:1.78;margin-bottom:2.5rem;font-weight:300;}
+.kpi-strip{display:flex;gap:1px;background:var(--border);border-radius:8px;overflow:hidden;max-width:640px;box-shadow:0 2px 10px rgba(184,124,32,0.07);}
+.kpi{background:white;padding:1.1rem 1.4rem;flex:1;}
+.kpi-val{font-family:'Raleway',sans-serif;font-size:1.85rem;font-weight:800;color:var(--amber);line-height:1;}
+.kpi-lbl{font-size:0.59rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);margin-top:0.2rem;font-family:'Source Code Pro',monospace;}
+.sec-tag{font-size:0.61rem;letter-spacing:0.22em;text-transform:uppercase;color:var(--amber);margin-bottom:0.4rem;font-weight:600;font-family:'Source Code Pro',monospace;}
+.sec-title{font-family:'Raleway',sans-serif;font-size:clamp(1.9rem,3.6vw,2.9rem);font-weight:800;line-height:1.05;margin-bottom:0.5rem;color:var(--ink);letter-spacing:-0.02em;}
+.sec-title span{color:var(--amber);}
+.sec-desc{font-size:0.87rem;color:var(--muted);margin-bottom:1.85rem;max-width:540px;line-height:1.78;font-weight:300;}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;}
+.three-col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;}
+.lr{display:grid;grid-template-columns:1.1fr 1fr;gap:2rem;align-items:start;}
+.lr-rev{display:grid;grid-template-columns:1fr 1.15fr;gap:2rem;align-items:start;}
+.card{background:white;border:1px solid var(--border);border-radius:8px;padding:1.25rem;transition:all 0.2s;box-shadow:0 1px 4px rgba(0,0,0,0.04);}
+.card:hover{border-color:var(--amber);transform:translateY(-2px);box-shadow:0 6px 18px rgba(184,124,32,0.09);}
+.card-icon{font-size:1.4rem;margin-bottom:0.5rem;}
+.card-title{font-family:'Raleway',sans-serif;font-size:0.95rem;font-weight:700;margin-bottom:0.3rem;color:var(--ink);}
+.card-desc{font-size:0.72rem;color:var(--muted);line-height:1.65;}
+.panel{background:white;border:1px solid var(--border);border-radius:8px;padding:1.4rem;}
+.panel h3{font-family:'Raleway',sans-serif;font-size:0.9rem;font-weight:700;color:var(--warm);margin-bottom:0.9rem;display:flex;align-items:center;gap:0.5rem;}
+.panel h3::before{content:'▸';color:var(--amber);}
+.steps{list-style:none;}
+.steps li{display:flex;gap:0.75rem;padding:0.45rem 0;border-bottom:1px solid var(--border);font-size:0.76rem;line-height:1.6;}
+.steps li:last-child{border-bottom:none;}
+.step-n{width:22px;height:22px;border-radius:6px;background:var(--amber);color:white;font-size:0.62rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:'Source Code Pro',monospace;}
+/* Workflow */
+.wf-canvas{background:var(--charcoal);border-radius:10px;padding:2rem;position:relative;overflow:hidden;}
+.wf-dots{position:absolute;inset:0;background-image:radial-gradient(circle,rgba(212,170,64,0.18) 1px,transparent 1px);background-size:28px 28px;opacity:0.5;}
+.wf-label{position:fixed;top:0.75rem;left:1rem;font-size:0.57rem;letter-spacing:0.18em;text-transform:uppercase;color:rgba(255,255,255,0.3);display:flex;align-items:center;gap:0.4rem;z-index:3;font-family:'Source Code Pro',monospace;position:absolute;}
+.wf-label::before{content:'';width:7px;height:7px;border-radius:50%;background:var(--gold);box-shadow:0 0 8px var(--gold);animation:gpulse 2s infinite;}
+@keyframes gpulse{0%,100%{opacity:1}50%{opacity:0.2}}
+.wf-nodes{display:flex;align-items:flex-start;gap:0;padding-top:1.5rem;position:relative;z-index:2;flex-wrap:wrap;}
+.wf-stage{display:flex;flex-direction:column;align-items:center;}
+.wf-slbl{font-size:0.51rem;letter-spacing:0.14em;text-transform:uppercase;color:rgba(255,255,255,0.28);margin-bottom:0.3rem;font-family:'Source Code Pro',monospace;}
+.wf-node{display:flex;flex-direction:column;align-items:center;gap:0.3rem;cursor:pointer;position:relative;}
+.wf-box{width:58px;height:58px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.25rem;border:2px solid transparent;transition:all 0.3s;}
+.wf-node:hover .wf-box{transform:scale(1.1);box-shadow:0 0 20px rgba(212,170,64,0.4);}
+.wf-nlbl{font-size:0.52rem;text-align:center;color:rgba(255,255,255,0.42);max-width:66px;line-height:1.3;font-family:'Source Code Pro',monospace;}
+.wf-arr{color:rgba(255,255,255,0.18);padding:0 0.2rem;font-size:0.85rem;align-self:flex-start;margin-top:19px;flex-shrink:0;}
+.ttw{position:relative;}
+.tti{position:absolute;bottom:calc(100%+8px);left:50%;transform:translateX(-50%);background:white;border:1px solid var(--border);border-radius:6px;padding:0.6rem 0.9rem;font-size:0.67rem;opacity:0;pointer-events:none;transition:opacity 0.2s;z-index:50;color:var(--ink);line-height:1.5;max-width:200px;white-space:normal;text-align:left;box-shadow:0 4px 12px rgba(0,0,0,0.1);}
+.ttw:hover .tti{opacity:1;}
+/* Vendor checklist */
+.vendor-checklist{background:white;border:1px solid var(--border);border-radius:8px;overflow:hidden;}
+.vc-header{background:var(--charcoal);color:white;padding:0.85rem 1.1rem;display:flex;align-items:center;justify-content:space-between;}
+.vc-title{font-family:'Raleway',sans-serif;font-size:0.88rem;font-weight:700;}
+.vc-body{padding:1rem;}
+.vc-item{display:flex;gap:0.75rem;align-items:flex-start;padding:0.5rem 0;border-bottom:1px solid var(--border);font-size:0.74rem;line-height:1.5;transition:all 0.3s;}
+.vc-item:last-child{border-bottom:none;}
+.vc-check{width:20px;height:20px;border-radius:4px;border:2px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:0.7rem;transition:all 0.3s;margin-top:1px;}
+.vc-check.done-check{border-color:var(--green);background:rgba(26,104,56,0.1);color:var(--green);}
+.vc-check.pending-check{border-color:var(--amber);background:rgba(184,124,32,0.08);}
+/* Vendor tracker */
+.vendor-row{background:white;border:1px solid var(--border);border-radius:8px;padding:0.75rem 1rem;margin-bottom:0.45rem;display:flex;gap:0.75rem;align-items:center;transition:all 0.3s;font-size:0.73rem;}
+.vendor-row.active-v{border-color:var(--amber);}
+.vendor-row.complete-v{border-color:var(--green);background:rgba(26,104,56,0.02);}
+.vr-name{font-weight:600;color:var(--ink);}
+.vr-type{font-size:0.63rem;color:var(--muted);}
+.vr-progress{margin-left:auto;display:flex;gap:0.2rem;}
+.vr-step{width:8px;height:8px;border-radius:2px;background:var(--border);}
+.vr-step.step-done{background:var(--green);}
+.vr-step.step-active{background:var(--amber);}
+.vr-badge{font-size:0.58px;padding:0.1rem 0.42rem;border-radius:4px;font-weight:600;font-family:'Source Code Pro',monospace;font-size:0.58rem;margin-left:0.5rem;}
+.vb-pending{background:rgba(184,124,32,0.1);color:var(--amber);border:1px solid rgba(184,124,32,0.2);}
+.vb-complete{background:rgba(26,104,56,0.1);color:var(--green);border:1px solid rgba(26,104,56,0.2);}
+.vb-review{background:rgba(26,58,106,0.1);color:var(--blue);border:1px solid rgba(26,58,106,0.2);}
+/* PS list */
+.ps-list{list-style:none;}
+.ps-list li{display:flex;gap:0.75rem;padding:0.45rem 0;border-bottom:1px solid var(--border);font-size:0.74rem;line-height:1.5;transition:all 0.3s;}
+.ps-list li:last-child{border-bottom:none;}
+.ps-num{width:20px;height:20px;border-radius:6px;background:var(--border);color:white;font-size:0.6rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;transition:background 0.3s;font-family:'Source Code Pro',monospace;}
+/* Info */
+.info-amber{padding:0.75rem 1rem;border-radius:6px;font-size:0.77rem;line-height:1.6;background:rgba(184,124,32,0.06);border:1px solid rgba(184,124,32,0.18);color:var(--amber2);}
+.info-green{padding:0.75rem 1rem;border-radius:6px;font-size:0.77rem;line-height:1.6;background:rgba(26,104,56,0.06);border:1px solid rgba(26,104,56,0.15);color:var(--green);}
+.ba-bad{padding:0.6rem 0.9rem;border-radius:6px;font-size:0.76rem;line-height:1.5;background:rgba(200,32,32,0.04);border:1px solid rgba(200,32,32,0.12);}
+.ba-good{padding:0.6rem 0.9rem;border-radius:6px;font-size:0.76rem;line-height:1.5;background:rgba(26,104,56,0.05);border:1px solid rgba(26,104,56,0.14);}
+.quote-block{background:var(--charcoal);border-radius:10px;padding:1.75rem 2rem;color:white;border-left:4px solid var(--gold);}
+.quote-text{font-size:1.05rem;line-height:1.78;margin-bottom:0.75rem;font-weight:300;}
+.quote-text strong{color:var(--gold);}
+.slide-counter{position:fixed;bottom:1.5rem;left:2rem;font-size:0.62rem;color:var(--muted);z-index:100;font-family:'Source Code Pro',monospace;}
+.slide-nav{position:fixed;bottom:1.5rem;right:2rem;display:flex;gap:0.5rem;z-index:100;}
+.nav-btn{background:white;border:1px solid var(--border);color:var(--text);padding:0.55rem 1.2rem;border-radius:6px;font-family:'Source Code Pro',monospace;font-size:0.7rem;cursor:pointer;transition:all 0.2s;}
+.nav-btn:hover{border-color:var(--amber);color:var(--amber);}
+.nav-btn.primary{background:var(--charcoal);border-color:var(--charcoal);color:white;}
+.nav-btn.primary:hover{background:var(--ink);}
+.run-btn{background:var(--charcoal);color:white;border:none;border-radius:6px;padding:0.7rem 1.5rem;font-family:'Source Code Pro',monospace;font-size:0.72rem;cursor:pointer;transition:all 0.2s;width:100%;text-align:center;border-left:3px solid var(--gold);}
+.run-btn:hover{background:var(--ink);}
+.animate-in{opacity:0;animation:fadeUp 0.5s ease-out forwards;}
+.slide.active .animate-in:nth-child(1){animation-delay:0.05s;}
+.slide.active .animate-in:nth-child(2){animation-delay:0.15s;}
+.slide.active .animate-in:nth-child(3){animation-delay:0.25s;}
+.slide.active .animate-in:nth-child(4){animation-delay:0.35s;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+</style>
+</head>
+<body>
+<div class="corner-accent"></div>
+<nav>
+  <div class="nav-brand">FIN · Vendor Onboarding</div>
+  <div class="nav-dots" id="navDots"></div>
+  <div class="timer" id="timerBadge">⏱ 00:00</div>
+</nav>
+
+<!-- SLIDE 1: HERO -->
+<section class="slide active" id="slide-0">
+  <div class="hero-bg"></div>
+  <div class="slide-inner">
+    <div class="animate-in"><div class="hero-badge">n8n AI Automation · Finance & Operations</div></div>
+    <div class="animate-in"><h1 class="hero-title">New Vendor.<br><span>Approved.</span><br>In 48 Hours.</h1></div>
+    <div class="animate-in"><p class="hero-desc">Document collection, compliance checks, CAC verification, bank validation, and procurement approval — all automated. New vendors onboarded in days, not weeks. Zero paperwork chasing.</p></div>
+    <div class="animate-in">
+      <div class="kpi-strip">
+        <div class="kpi"><div class="kpi-val">48hr</div><div class="kpi-lbl">Onboarding Time</div></div>
+        <div class="kpi"><div class="kpi-val">100%</div><div class="kpi-lbl">Compliance Checked</div></div>
+        <div class="kpi"><div class="kpi-val">AI</div><div class="kpi-lbl">Document Validation</div></div>
+        <div class="kpi"><div class="kpi-val">0</div><div class="kpi-lbl">Chasing Docs</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 2: PROBLEM -->
+<section class="slide" id="slide-1">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">01 — The Problem</div><div class="sec-title">Vendor Onboarding<br><span>Takes Forever</span></div><p class="sec-desc">Every new vendor is a potential compliance risk. But the manual process of collecting documents, verifying registrations, and getting approvals is so slow that operations are delayed waiting for vendors to be cleared.</p></div>
+    <div class="animate-in two-col" style="margin-bottom:1.5rem">
+      <div class="card"><div class="card-icon">📦</div><div class="card-title">Document Black Hole</div><div class="card-desc">Procurement emails vendors requesting: CAC certificate, TIN, bank details, insurance certificate, and director IDs. Vendors respond partially. Procurement chases the rest. Average time to full pack: 3 weeks.</div></div>
+      <div class="card"><div class="card-icon">🔍</div><div class="card-title">No Compliance Verification</div><div class="card-desc">CAC registration number typed by vendor — nobody verifies it with the registry. Bank account details accepted on trust. TIN numbers never checked against FIRS database. Significant fraud and error risk.</div></div>
+      <div class="card"><div class="card-icon">🔄</div><div class="card-title">Manual Approval Chain</div><div class="card-desc">Completed vendor pack sent to Finance for review, then Legal, then Procurement Director. Each sits in inboxes. Multi-week approval chain before first purchase order can be raised.</div></div>
+      <div class="card"><div class="card-icon">📊</div><div class="card-title">No Vendor Master</div><div class="card-desc">Vendor details scattered across emails, Dropbox folders, and one person's inbox. Finance can't find payment details. Procurement re-onboards the same vendor twice. No single source of truth.</div></div>
+    </div>
+    <div class="animate-in"><div class="info-amber">✅ n8n automates document collection, CAC verification, bank validation, compliance checks, and approval routing — vendor onboarded in 48 hours with a complete digital record.</div></div>
+  </div>
+</section>
+
+<!-- SLIDE 3: WORKFLOW -->
+<section class="slide" id="slide-2">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">02 — The Blueprint</div><div class="sec-title">n8n Vendor Onboarding<br><span>Pipeline</span></div><p class="sec-desc">Vendor submits once — n8n collects everything, verifies everything, routes approvals, and creates the vendor record. All in 48 hours or less.</p></div>
+    <div class="animate-in wf-canvas">
+      <div class="wf-dots"></div>
+      <div class="wf-label">n8n canvas — vendor onboarding pipeline</div>
+      <div class="wf-nodes">
+        <div class="wf-stage"><div class="wf-slbl">Invite</div>
+          <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#0a1a2a,#1d4ed8);color:#93c5fd;border-color:#1d4ed8;">📧</div><div class="wf-nlbl">Onboarding<br>Invite</div><div class="tti">Procurement raises vendor request in n8n. Vendor receives branded email with secure onboarding portal link. All instructions clear — no email attachments needed.</div></div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-stage"><div class="wf-slbl">Collect</div>
+          <div style="display:flex;flex-direction:column;gap:0.35rem">
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a1a0a,#78350f);color:#fde68a;border-color:#78350f;">📋</div><div class="wf-nlbl">Document<br>Portal</div><div class="tti">Vendor submits via secure portal: CAC certificate, TIN, bank letter, insurance certificate, director IDs. Automated reminders if any doc missing after 24 hours.</div></div>
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a0a0a,#991b1b);color:#fca5a5;border-color:#991b1b;">🧠</div><div class="wf-nlbl">GPT-4o<br>Extract</div><div class="tti">GPT-4o reads each uploaded document: extracts CAC number, TIN, company name, directors, bank details, expiry dates. Cross-checks for consistency.</div></div>
+          </div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-stage"><div class="wf-slbl">Verify</div>
+          <div style="display:flex;flex-direction:column;gap:0.35rem">
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#0a1a1a,#065f46);color:#6ee7b7;border-color:#065f46;">🏛️</div><div class="wf-nlbl">CAC<br>Verify</div><div class="tti">CAC number verified against Corporate Affairs Commission API. Company name, registration status, and director list confirmed. Fake registrations flagged immediately.</div></div>
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#0a1a2a,#0369a1);color:#7dd3fc;border-color:#0369a1;">🏦</div><div class="wf-nlbl">Bank<br>Validate</div><div class="tti">Account number verified via Paystack/Flutterwave bank validation API. Account name returned and compared against company name. Mismatches flagged for review.</div></div>
+          </div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-stage"><div class="wf-slbl">Approve</div>
+          <div style="display:flex;flex-direction:column;gap:0.35rem">
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a0a1a,#7c3aed);color:#d8b4fe;border-color:#7c3aed;">✅</div><div class="wf-nlbl">Compliance<br>Score</div><div class="tti">All checks compiled into a compliance score. Auto-approved if all green. Flagged items sent to Legal/Finance for human review with specific concerns highlighted.</div></div>
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#0a0a1a,#1e3a5f);color:#93c5fd;border-color:#1e3a5f;">💬</div><div class="wf-nlbl">Slack<br>Approval</div><div class="tti">Procurement Director gets Slack approval request with full vendor dossier: compliance score, verified details, any flags. One-click approve or send back.</div></div>
+          </div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-stage"><div class="wf-slbl">Create</div>
+          <div style="display:flex;flex-direction:column;gap:0.35rem">
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a3a1a,#166534);color:#4ade80;border-color:#166534;">📁</div><div class="wf-nlbl">Vendor<br>Master</div><div class="tti">Approved vendor added to vendor master database: all verified details, documents stored in Drive, payment details in accounting system. Ready for first PO in 48 hours.</div></div>
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a1a0a,#3d3200);color:#fbbf24;border-color:#78350f;">📧</div><div class="wf-nlbl">Welcome<br>Email</div><div class="tti">Vendor notified of approval with: vendor code, payment terms, procurement contact, and first PO if already raised. Professional and immediate.</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 4: SIM 1 — ONBOARDING CHECKLIST -->
+<section class="slide" id="slide-3">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">03 — Simulation 1</div><div class="sec-title">Live: Vendor Onboarded<br><span>in 48 Hours</span></div><p class="sec-desc">BuildTech Supplies submitted their documents yesterday. Watch n8n complete verification, compliance checks, and approval routing — ready for first PO by tomorrow morning.</p></div>
+    <div class="animate-in lr">
+      <div style="display:flex;flex-direction:column;gap:1rem">
+        <div class="panel">
+          <h3>Onboarding Pipeline</h3>
+          <ul class="ps-list" id="venSteps">
+            <li id="vn1" style="opacity:0.3"><div class="ps-num">1</div><div>Documents submitted — portal webhook fires</div></li>
+            <li id="vn2" style="opacity:0.3"><div class="ps-num">2</div><div>GPT-4o extracts details from all 5 documents</div></li>
+            <li id="vn3" style="opacity:0.3"><div class="ps-num">3</div><div>CAC verification — BuildTech confirmed active</div></li>
+            <li id="vn4" style="opacity:0.3"><div class="ps-num">4</div><div>Bank validation — account matches company name ✓</div></li>
+            <li id="vn5" style="opacity:0.3"><div class="ps-num">5</div><div>Compliance score: 94/100 — auto-approved</div></li>
+            <li id="vn6" style="opacity:0.3"><div class="ps-num">6</div><div>Vendor master created + welcome email sent ✅</div></li>
+          </ul>
+        </div>
+        <button class="run-btn" id="venBtn" onclick="runVenSim()">▶ COMPLETE ONBOARDING</button>
+      </div>
+      <div>
+        <div class="vendor-checklist" id="vendorChecklist">
+          <div class="vc-header"><div class="vc-title">🏢 BuildTech Supplies Ltd — Onboarding</div><span style="font-family:'Source Code Pro',monospace;font-size:0.6rem;opacity:0.7">VND-2025-0041</span></div>
+          <div class="vc-body">
+            <div class="vc-item" id="vc1"><div class="vc-check" id="vcc1"></div><div><strong>CAC Certificate</strong><br><span style="color:var(--muted);font-size:0.65rem">RC Number: 1284752 · Status: Pending verification</span></div></div>
+            <div class="vc-item" id="vc2"><div class="vc-check" id="vcc2"></div><div><strong>Tax Identification Number</strong><br><span style="color:var(--muted);font-size:0.65rem">TIN: 04-1234567 · FIRS check pending</span></div></div>
+            <div class="vc-item" id="vc3"><div class="vc-check" id="vcc3"></div><div><strong>Bank Account Validation</strong><br><span style="color:var(--muted);font-size:0.65rem">GTBank · 0123456789 · Name match pending</span></div></div>
+            <div class="vc-item" id="vc4"><div class="vc-check" id="vcc4"></div><div><strong>Insurance Certificate</strong><br><span style="color:var(--muted);font-size:0.65rem">Expires Dec 2025 · Coverage verified</span></div></div>
+            <div class="vc-item" id="vc5"><div class="vc-check" id="vcc5"></div><div><strong>Director ID (MD)</strong><br><span style="color:var(--muted);font-size:0.65rem">Babatunde Lawal · NIN verified</span></div></div>
+          </div>
+        </div>
+        <div id="venApproved" style="display:none;margin-top:0.85rem;background:rgba(26,104,56,0.06);border:1px solid rgba(26,104,56,0.2);border-radius:8px;padding:0.85rem 1rem;font-size:0.73rem;line-height:1.75">
+          ✅ <strong style="color:var(--green)">Vendor Approved — VND-2025-0041</strong><br>
+          BuildTech Supplies Ltd · RC: 1284752 · GTBank ✓<br>
+          Compliance Score: 94/100 · Auto-approved<br>
+          Vendor code assigned: BTECH-041<br>
+          Payment terms: Net 30 · First PO can be raised now
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 5: BEFORE/AFTER -->
+<section class="slide" id="slide-4">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">04 — Business Impact</div><div class="sec-title">Procurement That<br><span>Moves at Speed</span></div></div>
+    <div class="animate-in two-col" style="margin-bottom:1.5rem">
+      <div>
+        <div style="font-size:0.62rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--red);margin-bottom:0.75rem;font-weight:600;font-family:'Source Code Pro',monospace">❌ BEFORE</div>
+        <div style="display:flex;flex-direction:column;gap:0.5rem">
+          <div class="ba-bad">3–4 weeks to onboard a vendor — operations delayed waiting</div>
+          <div class="ba-bad">CAC and bank details accepted on trust — fraud risk</div>
+          <div class="ba-bad">Documents scattered in emails and Dropbox folders</div>
+          <div class="ba-bad">Same vendor onboarded twice — no central vendor database</div>
+          <div class="ba-bad">Compliance inconsistent — some vendors never fully checked</div>
+        </div>
+      </div>
+      <div>
+        <div style="font-size:0.62rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--green);margin-bottom:0.75rem;font-weight:600;font-family:'Source Code Pro',monospace">✅ AFTER</div>
+        <div style="display:flex;flex-direction:column;gap:0.5rem">
+          <div class="ba-good">48-hour end-to-end onboarding — first PO raised same week</div>
+          <div class="ba-good">CAC and bank auto-verified via official APIs — fraud eliminated</div>
+          <div class="ba-good">All documents stored centrally — Finance & Legal always find them</div>
+          <div class="ba-good">Vendor master database — no duplicates, no lost payment details</div>
+          <div class="ba-good">100% compliance — every vendor checked against same standard</div>
+        </div>
+      </div>
+    </div>
+    <div class="animate-in">
+      <div class="quote-block">
+        <div class="quote-text">"Slow vendor onboarding creates a hidden tax on every procurement decision. <strong>When you can onboard a supplier in 48 hours instead of 4 weeks</strong>, you negotiate better, move faster, and carry less supply chain risk."</div>
+        <div style="font-size:0.62rem;color:rgba(255,255,255,0.35);font-family:'Source Code Pro',monospace">STACK: n8n · GPT-4o · CAC API · Paystack/Flutterwave · Google Drive · DocuSign · Slack · Xero</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="slide-counter" id="slideCounter">Slide 1 of 5</div>
+<div class="slide-nav">
+  <button class="nav-btn" onclick="prevSlide()">← Prev</button>
+  <button class="nav-btn primary" onclick="nextSlide()">Next →</button>
+</div>
+<script>
+const slides=document.querySelectorAll('.slide'),total=slides.length;let cur=0;
+const dots=document.getElementById('navDots');
+for(let i=0;i<total;i++){const d=document.createElement('div');d.className='nav-dot'+(i===0?' active':'');d.onclick=()=>goTo(i);dots.appendChild(d);}
+function goTo(n){slides[cur].classList.remove('active');dots.children[cur].classList.remove('active');if(cur<n)dots.children[cur].classList.add('done');cur=n;slides[cur].classList.add('active');dots.children[cur].classList.add('active');document.getElementById('slideCounter').textContent=`Slide ${cur+1} of ${total}`;}
+function nextSlide(){if(cur<total-1)goTo(cur+1);}function prevSlide(){if(cur>0)goTo(cur-1);}
+document.addEventListener('keydown',e=>{if(e.key==='ArrowRight'||e.key==='ArrowDown')nextSlide();if(e.key==='ArrowLeft'||e.key==='ArrowUp')prevSlide();});
+let secs=0;setInterval(()=>{secs++;const m=String(Math.floor(secs/60)).padStart(2,'0'),s=String(secs%60).padStart(2,'0');document.getElementById('timerBadge').textContent=`⏱ ${m}:${s}`;if(secs>=840)document.getElementById('timerBadge').style.color='#c82020';},1000);
+function delay(ms){return new Promise(r=>setTimeout(r,ms));}
+let venRunning=false;
+async function runVenSim(){
+  if(venRunning)return;venRunning=true;
+  const btn=document.getElementById('venBtn');btn.textContent='Processing...';
+  document.getElementById('venApproved').style.display='none';
+  for(let i=1;i<=5;i++){const ch=document.getElementById('vcc'+i);if(ch){ch.className='vc-check';ch.textContent='';}}
+  const steps=['vn1','vn2','vn3','vn4','vn5','vn6'];
+  steps.forEach(id=>{const el=document.getElementById(id);if(el){el.style.opacity='0.3';el.querySelector('.ps-num').style.background='var(--border)';}});
+  const light=(i)=>{steps.forEach(id=>{const el=document.getElementById(id);if(el){el.style.opacity='0.3';el.querySelector('.ps-num').style.background='var(--border)';}});const el=document.getElementById(steps[i]);if(el){el.style.opacity='1';el.style.color='var(--amber)';el.querySelector('.ps-num').style.background='var(--amber)';}};
+  light(0);await delay(500);light(1);
+  for(let i=1;i<=5;i++){
+    await delay(420);
+    light(i+1<=4?i+1:4);
+    const ch=document.getElementById('vcc'+i);
+    if(ch){ch.className='vc-check done-check';ch.textContent='✓';}
+  }
+  light(4);await delay(500);light(5);
+  document.getElementById('venApproved').style.display='block';
+  btn.textContent='↺ Reset & Run Again';venRunning=false;
+}
+</script>
+</body>
+</html>
