@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Operations — Compliance & Audits Automation</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400&family=Barlow:wght@300;400;500;600;700&family=Barlow+Condensed:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f8f7f2;--surface:#ffffff;--surface2:#f2f0e8;--border:#e0ddd0;
+  --ink:#141008;--olive:#4a5020;--olive2:#383c18;--gold:#8a7c28;
+  --warm:#c8a828;--cream:#fefbe8;--green:#1a5c30;--red:#8c1c1c;
+  --amber:#8c5a10;--slate:#485060;--text:#201808;--muted:#7a7258;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;overflow-x:hidden;}
+.top-ornament{position:fixed;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,var(--olive2),var(--gold),var(--warm),var(--gold),var(--olive2));z-index:200;}
+.right-rule{position:fixed;right:0;top:0;bottom:0;width:3px;background:linear-gradient(to bottom,var(--olive2),var(--gold),transparent);z-index:200;}
+nav{position:fixed;top:4px;left:0;right:3px;z-index:100;background:rgba(248,247,242,0.97);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 2.5rem;height:54px;}
+.nav-brand{font-family:'Barlow Condensed',sans-serif;font-size:0.78rem;font-weight:600;color:var(--olive2);letter-spacing:0.14em;text-transform:uppercase;}
+.nav-dots{display:flex;gap:0.3rem;}
+.nav-dot{width:7px;height:7px;border-radius:50%;background:var(--border);cursor:pointer;transition:all 0.2s;}
+.nav-dot.active{background:var(--olive);transform:scale(1.5);}
+.nav-dot.done{background:var(--green);}
+.timer{font-size:0.67rem;color:var(--gold);background:rgba(138,124,40,0.07);border:1px solid rgba(138,124,40,0.2);padding:0.2rem 0.75rem;border-radius:4px;font-family:'Barlow Condensed',sans-serif;letter-spacing:0.06em;}
+.slide{min-height:100vh;padding:78px 0 50px;display:none;flex-direction:column;align-items:center;justify-content:center;position:relative;overflow:hidden;}
+.slide.active{display:flex;}
+.slide-inner{width:100%;max-width:1140px;padding:0 2.5rem;position:relative;z-index:2;}
+.hero-pattern{position:absolute;inset:0;background-image:repeating-linear-gradient(90deg,transparent,transparent 80px,rgba(74,80,32,0.025) 80px,rgba(74,80,32,0.025) 81px),repeating-linear-gradient(0deg,transparent,transparent 80px,rgba(74,80,32,0.025) 80px,rgba(74,80,32,0.025) 81px);pointer-events:none;}
+.hero-badge{display:inline-flex;align-items:center;gap:0.5rem;background:var(--cream);border:1px solid rgba(138,124,40,0.25);color:var(--olive2);font-size:0.67rem;font-weight:600;letter-spacing:0.14em;text-transform:uppercase;padding:0.28rem 0.9rem;border-radius:4px;margin-bottom:1.5rem;font-family:'Barlow Condensed',sans-serif;}
+h1.hero-title{font-family:'Cormorant Garamond',serif;font-size:clamp(2.9rem,5.5vw,4.9rem);font-weight:600;line-height:1.04;letter-spacing:-0.01em;color:var(--ink);margin-bottom:1.5rem;}
+h1.hero-title em{font-style:italic;color:var(--olive);}
+h1.hero-title span{color:var(--gold);}
+.hero-desc{font-size:0.97rem;color:var(--muted);max-width:510px;line-height:1.78;margin-bottom:2.5rem;font-weight:300;}
+.kpi-strip{display:flex;gap:1px;background:var(--border);border-radius:4px;overflow:hidden;max-width:640px;box-shadow:0 2px 10px rgba(74,80,32,0.07);}
+.kpi{background:white;padding:1.1rem 1.4rem;flex:1;}
+.kpi-val{font-family:'Cormorant Garamond',serif;font-size:2rem;font-weight:600;color:var(--olive);line-height:1;}
+.kpi-lbl{font-size:0.59rem;letter-spacing:0.14em;text-transform:uppercase;color:var(--muted);margin-top:0.2rem;font-family:'Barlow Condensed',sans-serif;}
+.sec-tag{font-size:0.61rem;letter-spacing:0.24em;text-transform:uppercase;color:var(--gold);margin-bottom:0.4rem;font-weight:600;font-family:'Barlow Condensed',sans-serif;display:flex;align-items:center;gap:0.5rem;}
+.sec-tag::before{content:'';width:16px;height:1px;background:var(--gold);}
+.sec-title{font-family:'Cormorant Garamond',serif;font-size:clamp(2rem,3.8vw,3.1rem);font-weight:600;line-height:1.08;margin-bottom:0.5rem;color:var(--ink);}
+.sec-title em{font-style:italic;color:var(--olive);}
+.sec-title span{color:var(--gold);}
+.sec-desc{font-size:0.87rem;color:var(--muted);margin-bottom:1.85rem;max-width:540px;line-height:1.78;font-weight:300;}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;}
+.three-col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;}
+.lr{display:grid;grid-template-columns:1.1fr 1fr;gap:2rem;align-items:start;}
+.lr-rev{display:grid;grid-template-columns:1fr 1.15fr;gap:2rem;align-items:start;}
+.card{background:white;border:1px solid var(--border);border-radius:6px;padding:1.25rem;transition:all 0.2s;box-shadow:0 1px 4px rgba(0,0,0,0.04);}
+.card:hover{border-color:var(--gold);transform:translateY(-2px);box-shadow:0 6px 18px rgba(138,124,40,0.08);}
+.card-icon{font-size:1.4rem;margin-bottom:0.5rem;}
+.card-title{font-family:'Cormorant Garamond',serif;font-size:1.05rem;font-weight:600;margin-bottom:0.3rem;color:var(--ink);}
+.card-desc{font-size:0.72rem;color:var(--muted);line-height:1.65;}
+.panel{background:white;border:1px solid var(--border);border-radius:6px;padding:1.4rem;}
+.panel h3{font-family:'Cormorant Garamond',serif;font-size:1rem;font-weight:600;color:var(--olive2);margin-bottom:0.9rem;font-style:italic;display:flex;align-items:center;gap:0.5rem;}
+.steps{list-style:none;}
+.steps li{display:flex;gap:0.75rem;padding:0.45rem 0;border-bottom:1px solid var(--border);font-size:0.76rem;line-height:1.6;}
+.steps li:last-child{border-bottom:none;}
+.step-n{width:22px;height:22px;border-radius:4px;background:var(--olive);color:white;font-size:0.62rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:'Barlow Condensed',sans-serif;}
+/* Workflow */
+.wf-canvas{background:var(--ink);border-radius:8px;padding:2rem;position:relative;overflow:hidden;}
+.wf-lines{position:absolute;inset:0;background-image:repeating-linear-gradient(90deg,transparent,transparent 40px,rgba(138,124,40,0.06) 40px,rgba(138,124,40,0.06) 41px);}
+.wf-label{position:absolute;top:0.75rem;left:1rem;font-size:0.57rem;letter-spacing:0.18em;text-transform:uppercase;color:rgba(255,255,255,0.3);display:flex;align-items:center;gap:0.4rem;z-index:3;font-family:'Barlow Condensed',sans-serif;}
+.wf-label::before{content:'';width:7px;height:7px;border-radius:50%;background:var(--warm);box-shadow:0 0 8px var(--warm);animation:wpulse 2s infinite;}
+@keyframes wpulse{0%,100%{opacity:1}50%{opacity:0.2}}
+.wf-nodes{display:flex;align-items:flex-start;gap:0;padding-top:1.5rem;position:relative;z-index:2;flex-wrap:wrap;}
+.wf-stage{display:flex;flex-direction:column;align-items:center;}
+.wf-slbl{font-size:0.51rem;letter-spacing:0.14em;text-transform:uppercase;color:rgba(255,255,255,0.28);margin-bottom:0.3rem;font-family:'Barlow Condensed',sans-serif;}
+.wf-node{display:flex;flex-direction:column;align-items:center;gap:0.3rem;cursor:pointer;position:relative;}
+.wf-box{width:58px;height:58px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1.25rem;border:2px solid transparent;transition:all 0.3s;}
+.wf-node:hover .wf-box{transform:scale(1.1);box-shadow:0 0 20px rgba(138,124,40,0.4);}
+.wf-nlbl{font-size:0.52rem;text-align:center;color:rgba(255,255,255,0.42);max-width:66px;line-height:1.3;font-family:'Barlow Condensed',sans-serif;}
+.wf-arr{color:rgba(255,255,255,0.18);padding:0 0.2rem;font-size:0.85rem;align-self:flex-start;margin-top:19px;flex-shrink:0;}
+.ttw{position:relative;}
+.tti{position:absolute;bottom:calc(100%+8px);left:50%;transform:translateX(-50%);background:white;border:1px solid var(--border);border-radius:6px;padding:0.6rem 0.9rem;font-size:0.67rem;opacity:0;pointer-events:none;transition:opacity 0.2s;z-index:50;color:var(--ink);line-height:1.5;max-width:200px;white-space:normal;text-align:left;box-shadow:0 4px 12px rgba(0,0,0,0.1);}
+.ttw:hover .tti{opacity:1;}
+/* Compliance checklist */
+.comp-item{background:white;border:1px solid var(--border);border-radius:6px;padding:0.75rem 1rem;margin-bottom:0.45rem;display:flex;gap:0.85rem;align-items:flex-start;transition:all 0.3s;}
+.comp-item.compliant{border-color:var(--green);background:rgba(26,92,48,0.03);}
+.comp-item.at-risk{border-color:var(--amber);background:rgba(140,90,16,0.03);}
+.comp-item.breach{border-color:var(--red);background:rgba(140,28,28,0.03);}
+.ci-icon{width:24px;height:24px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:0.85rem;flex-shrink:0;}
+.ci-compliant{background:rgba(26,92,48,0.1);}
+.ci-risk{background:rgba(140,90,16,0.1);}
+.ci-breach{background:rgba(140,28,28,0.1);}
+.ci-title{font-weight:600;font-size:0.77rem;color:var(--ink);}
+.ci-desc{font-size:0.63rem;color:var(--muted);margin-top:0.1rem;}
+.ci-badge{margin-left:auto;font-size:0.58rem;padding:0.1rem 0.42rem;border-radius:4px;font-weight:600;font-family:'Barlow Condensed',sans-serif;letter-spacing:0.05em;white-space:nowrap;}
+.cib-ok{background:rgba(26,92,48,0.1);color:var(--green);border:1px solid rgba(26,92,48,0.2);}
+.cib-risk{background:rgba(140,90,16,0.1);color:var(--amber);border:1px solid rgba(140,90,16,0.2);}
+.cib-breach{background:rgba(140,28,28,0.1);color:var(--red);border:1px solid rgba(140,28,28,0.18);}
+.cib-pend{background:rgba(122,114,88,0.1);color:var(--muted);border:1px solid rgba(122,114,88,0.18);}
+/* Audit log */
+.audit-row{display:flex;gap:0.85rem;padding:0.55rem 0.85rem;border-bottom:1px solid rgba(224,221,208,0.5);font-size:0.72rem;align-items:flex-start;transition:background 0.15s;}
+.audit-row:last-child{border-bottom:none;}
+.audit-row:hover{background:var(--surface2);}
+.ar-time{font-family:'Barlow Condensed',sans-serif;font-size:0.62rem;color:var(--muted);flex-shrink:0;min-width:72px;letter-spacing:0.04em;}
+.ar-event{color:var(--ink);flex:1;}
+.ar-badge{font-size:0.57rem;padding:0.08rem 0.38rem;border-radius:4px;font-weight:600;font-family:'Barlow Condensed',sans-serif;flex-shrink:0;}
+.arb-auto{background:rgba(26,92,48,0.1);color:var(--green);}
+.arb-alert{background:rgba(140,28,28,0.1);color:var(--red);}
+.arb-flag{background:rgba(140,90,16,0.1);color:var(--amber);}
+/* PS list */
+.ps-list{list-style:none;}
+.ps-list li{display:flex;gap:0.75rem;padding:0.45rem 0;border-bottom:1px solid var(--border);font-size:0.74rem;line-height:1.5;transition:all 0.3s;}
+.ps-list li:last-child{border-bottom:none;}
+.ps-num{width:20px;height:20px;border-radius:4px;background:var(--border);color:white;font-size:0.6rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;transition:background 0.3s;font-family:'Barlow Condensed',sans-serif;}
+/* Info */
+.info-olive{padding:0.75rem 1rem;border-radius:4px;font-size:0.77rem;line-height:1.6;background:rgba(74,80,32,0.06);border:1px solid rgba(74,80,32,0.15);color:var(--olive2);}
+.info-green{padding:0.75rem 1rem;border-radius:4px;font-size:0.77rem;line-height:1.6;background:rgba(26,92,48,0.06);border:1px solid rgba(26,92,48,0.15);color:var(--green);}
+.ba-bad{padding:0.6rem 0.9rem;border-radius:4px;font-size:0.76rem;line-height:1.5;background:rgba(140,28,28,0.04);border:1px solid rgba(140,28,28,0.12);}
+.ba-good{padding:0.6rem 0.9rem;border-radius:4px;font-size:0.76rem;line-height:1.5;background:rgba(26,92,48,0.05);border:1px solid rgba(26,92,48,0.14);}
+.quote-block{background:var(--ink);border-radius:6px;padding:1.75rem 2rem;color:white;border-top:3px solid var(--gold);}
+.quote-text{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:1.15rem;line-height:1.75;margin-bottom:0.75rem;font-weight:400;}
+.quote-text strong{color:var(--warm);font-style:normal;}
+.slide-counter{position:fixed;bottom:1.5rem;left:2rem;font-size:0.62rem;color:var(--muted);z-index:100;font-family:'Barlow Condensed',sans-serif;letter-spacing:0.08em;}
+.slide-nav{position:fixed;bottom:1.5rem;right:2rem;display:flex;gap:0.5rem;z-index:100;}
+.nav-btn{background:white;border:1px solid var(--border);color:var(--text);padding:0.55rem 1.2rem;border-radius:4px;font-family:'Barlow Condensed',sans-serif;font-size:0.72rem;letter-spacing:0.06em;cursor:pointer;transition:all 0.2s;}
+.nav-btn:hover{border-color:var(--gold);color:var(--gold);}
+.nav-btn.primary{background:var(--olive);border-color:var(--olive);color:white;}
+.nav-btn.primary:hover{background:var(--olive2);}
+.run-btn{background:var(--olive);color:white;border:none;border-radius:4px;padding:0.7rem 1.5rem;font-family:'Barlow Condensed',sans-serif;font-size:0.76rem;font-weight:600;letter-spacing:0.08em;cursor:pointer;transition:all 0.2s;width:100%;text-align:center;text-transform:uppercase;}
+.run-btn:hover{background:var(--olive2);}
+.animate-in{opacity:0;animation:fadeUp 0.5s ease-out forwards;}
+.slide.active .animate-in:nth-child(1){animation-delay:0.05s;}
+.slide.active .animate-in:nth-child(2){animation-delay:0.15s;}
+.slide.active .animate-in:nth-child(3){animation-delay:0.25s;}
+.slide.active .animate-in:nth-child(4){animation-delay:0.35s;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+</style>
+</head>
+<body>
+<div class="top-ornament"></div>
+<div class="right-rule"></div>
+<nav>
+  <div class="nav-brand">Operations · Compliance & Audits</div>
+  <div class="nav-dots" id="navDots"></div>
+  <div class="timer" id="timerBadge">⏱ 00:00</div>
+</nav>
+
+<!-- SLIDE 1: HERO -->
+<section class="slide active" id="slide-0">
+  <div class="hero-pattern"></div>
+  <div class="slide-inner">
+    <div class="animate-in"><div class="hero-badge">n8n AI Automation · Operations</div></div>
+    <div class="animate-in"><h1 class="hero-title">Always <em>Compliant.</em><br><span>Always</span> Audit-Ready.<br>Automatically.</h1></div>
+    <div class="animate-in"><p class="hero-desc">Compliance deadlines tracked, policy acknowledgements collected, regulatory certificates monitored, and audit trails maintained — all automated. Never discover a compliance gap during an audit.</p></div>
+    <div class="animate-in">
+      <div class="kpi-strip">
+        <div class="kpi"><div class="kpi-val">100%</div><div class="kpi-lbl">Deadlines Tracked</div></div>
+        <div class="kpi"><div class="kpi-val">Auto</div><div class="kpi-lbl">Audit Trail</div></div>
+        <div class="kpi"><div class="kpi-val">30d</div><div class="kpi-lbl">Expiry Warning</div></div>
+        <div class="kpi"><div class="kpi-val">0</div><div class="kpi-lbl">Surprise Gaps</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 2: PROBLEM -->
+<section class="slide" id="slide-1">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">01 — The Problem</div><div class="sec-title">Compliance Managed<br><em>in Spreadsheets</em></div><p class="sec-desc">Most organisations manage compliance reactively — chasing signatures before audits, discovering expired certificates during due diligence, and scrambling to reconstruct audit trails from email chains.</p></div>
+    <div class="animate-in two-col" style="margin-bottom:1.5rem">
+      <div class="card"><div class="card-icon">📅</div><div class="card-title">Expired Certificates</div><div class="card-desc">NAFDAC licence, PENCOM registration, ISO certificate, fire safety certificate — all with different expiry dates. Manually tracked in a spreadsheet someone last updated 8 months ago. One expired = audit failure.</div></div>
+      <div class="card"><div class="card-icon">📝</div><div class="card-title">Policy Acknowledgements</div><div class="card-desc">AML policy updated. All 120 staff need to read and sign. Compliance manager emails everyone individually, tracks responses in an Excel sheet, and chases non-responders manually. Takes weeks.</div></div>
+      <div class="card"><div class="card-icon">🔍</div><div class="card-title">No Audit Trail</div><div class="card-desc">Auditor asks: "Who approved this transaction on March 8th?" Finance searches emails for 3 hours. Without automated audit logging, every compliance question requires an investigation.</div></div>
+      <div class="card"><div class="card-icon">🚨</div><div class="card-title">Reactive Discovery</div><div class="card-desc">Compliance gaps discovered during external audits — not by your own monitoring. By then, the cost is fines, remediation plans, and reputational damage. Prevention is always cheaper than cure.</div></div>
+    </div>
+    <div class="animate-in"><div class="info-olive">✅ n8n monitors every compliance deadline, auto-collects policy signatures, maintains a complete audit log, and alerts management 30 days before any item expires or lapses.</div></div>
+  </div>
+</section>
+
+<!-- SLIDE 3: WORKFLOW -->
+<section class="slide" id="slide-2">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">02 — The Blueprint</div><div class="sec-title">n8n Compliance<br><em>Monitoring Workflow</em></div><p class="sec-desc">Proactive compliance monitoring running 24/7. Every deadline tracked, every signature collected, every action logged — with escalation before any gap becomes a problem.</p></div>
+    <div class="animate-in wf-canvas">
+      <div class="wf-lines"></div>
+      <div class="wf-label">n8n canvas — compliance monitoring pipeline</div>
+      <div class="wf-nodes">
+        <div class="wf-stage"><div class="wf-slbl">Monitor</div>
+          <div style="display:flex;flex-direction:column;gap:0.35rem">
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a1a0a,#78350f);color:#fde68a;border-color:#78350f;">📅</div><div class="wf-nlbl">Deadline<br>Tracker</div><div class="tti">n8n cron scans compliance register daily. Flags items expiring in 30, 14, and 7 days. Escalates to management if not renewed within window.</div></div>
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#0a1a1a,#065f46);color:#6ee7b7;border-color:#065f46;">📋</div><div class="wf-nlbl">Policy<br>Register</div><div class="tti">All policies tracked with: version, effective date, last review date, next review date, and acknowledgement status per employee.</div></div>
+          </div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-stage"><div class="wf-slbl">Alert</div>
+          <div style="display:flex;flex-direction:column;gap:0.35rem">
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a0a0a,#991b1b);color:#fca5a5;border-color:#991b1b;">🔔</div><div class="wf-nlbl">Expiry<br>Alert</div><div class="tti">30 days: email to compliance manager + process initiation. 14 days: director escalation. 7 days: urgent flag + daily reminders. Certificate expired: immediate CEO alert.</div></div>
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a0a1a,#7c3aed);color:#d8b4fe;border-color:#7c3aed;">📧</div><div class="wf-nlbl">Policy<br>Distribute</div><div class="tti">Policy update triggers automatic distribution: personalised email to all staff, Slack notification, and acknowledgement form. GPT-4o writes the policy summary in plain language.</div></div>
+          </div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-stage"><div class="wf-slbl">Collect</div>
+          <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#0a1a2a,#1d4ed8);color:#93c5fd;border-color:#1d4ed8;">✍️</div><div class="wf-nlbl">e-Sign<br>Collect</div><div class="tti">DocuSign/simple form collects digital acknowledgements. Status tracked per employee. Non-responders automatically reminded after 3 and 7 days. Manager sees real-time completion rate.</div></div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-stage"><div class="wf-slbl">Log</div>
+          <div style="display:flex;flex-direction:column;gap:0.35rem">
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a0a0a,#7f1d1d);color:#fca5a5;border-color:#7f1d1d;">🧠</div><div class="wf-nlbl">GPT-4o<br>Anomaly</div><div class="tti">GPT-4o reviews transaction logs, access logs, and approval patterns. Flags anomalies: unusual access times, approvals outside delegation, duplicate submissions.</div></div>
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#0a1a1a,#065f46);color:#6ee7b7;border-color:#065f46;">📊</div><div class="wf-nlbl">Audit<br>Log</div><div class="tti">Every compliance event automatically logged: who, what, when, what system, outcome. Stored in tamper-evident Google Sheets. Ready for auditor download in one click.</div></div>
+          </div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-stage"><div class="wf-slbl">Report</div>
+          <div style="display:flex;flex-direction:column;gap:0.35rem">
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a1a0a,#3d3200);color:#fbbf24;border-color:#78350f;">📄</div><div class="wf-nlbl">Monthly<br>Report</div><div class="tti">Auto-generated compliance health report: items expiring, policy sign-off rates, anomalies flagged, remediation status. Board-ready PDF by the 5th.</div></div>
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a0a2e,#6d28d9);color:#c4b5fd;border-color:#6d28d9;">🎯</div><div class="wf-nlbl">Audit<br>Package</div><div class="tti">Audit request received → n8n auto-assembles evidence package: all logs, certificates, policy acknowledgements, and approvals for the requested period. Delivered in hours not days.</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 4: SIM 1 — COMPLIANCE DASHBOARD -->
+<section class="slide" id="slide-3">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">03 — Simulation 1</div><div class="sec-title">Live: Compliance<br><em>Health Dashboard</em></div><p class="sec-desc">Watch n8n scan the compliance register and classify every item — flagging at-risk certificates and triggering renewal workflows before they expire.</p></div>
+    <div class="animate-in lr">
+      <div style="display:flex;flex-direction:column;gap:1rem">
+        <div class="panel">
+          <h3>Monitoring Pipeline</h3>
+          <ul class="ps-list" id="compSteps">
+            <li id="cs1" style="opacity:0.3"><div class="ps-num">1</div><div>Daily compliance scan — n8n cron 07:00</div></li>
+            <li id="cs2" style="opacity:0.3"><div class="ps-num">2</div><div>8 items checked against expiry register</div></li>
+            <li id="cs3" style="opacity:0.3"><div class="ps-num">3</div><div>2 items flagged — renewal workflows triggered</div></li>
+            <li id="cs4" style="opacity:0.3"><div class="ps-num">4</div><div>Compliance Manager + Director notified via Slack</div></li>
+            <li id="cs5" style="opacity:0.3"><div class="ps-num">5</div><div>Audit log updated — all checks timestamped ✅</div></li>
+          </ul>
+        </div>
+        <button class="run-btn" id="compBtn" onclick="runCompSim()">▶ RUN COMPLIANCE SCAN</button>
+      </div>
+      <div id="compBoard" style="display:flex;flex-direction:column;gap:0">
+        <div class="comp-item" id="cc1"><div class="ci-icon ci-compliant">📄</div><div><div class="ci-title">CAC Annual Return</div><div class="ci-desc">Filed · Valid until Dec 2025</div></div><span class="ci-badge cib-pend" id="ccb1">Scanning...</span></div>
+        <div class="comp-item" id="cc2"><div class="ci-icon ci-compliant">🏛️</div><div><div class="ci-title">NAFDAC Registration</div><div class="ci-desc">Expires: June 15, 2025 — 67 days</div></div><span class="ci-badge cib-pend" id="ccb2">Scanning...</span></div>
+        <div class="comp-item" id="cc3"><div class="ci-icon ci-risk">🔒</div><div><div class="ci-title">ISO 27001 Certificate</div><div class="ci-desc">Expires: Apr 28, 2025 — 19 days</div></div><span class="ci-badge cib-pend" id="ccb3">Scanning...</span></div>
+        <div class="comp-item" id="cc4"><div class="ci-icon ci-compliant">🏦</div><div><div class="ci-title">PENCOM Compliance</div><div class="ci-desc">Current · Q1 filed Mar 31</div></div><span class="ci-badge cib-pend" id="ccb4">Scanning...</span></div>
+        <div class="comp-item" id="cc5"><div class="ci-icon ci-breach">🔥</div><div><div class="ci-title">Fire Safety Certificate</div><div class="ci-desc">Expired: Apr 1, 2025 — 8 days ago</div></div><span class="ci-badge cib-pend" id="ccb5">Scanning...</span></div>
+        <div class="comp-item" id="cc6"><div class="ci-icon ci-compliant">💊</div><div><div class="ci-title">AML Policy — Staff Sign-off</div><div class="ci-desc">87/120 signed (73%) — 33 outstanding</div></div><span class="ci-badge cib-pend" id="ccb6">Scanning...</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 5: SIM 2 — AUDIT LOG -->
+<section class="slide" id="slide-4">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">04 — Simulation 2</div><div class="sec-title">Live Audit Log —<br><em>Always Ready</em></div><p class="sec-desc">Every compliance event automatically timestamped and logged. When an auditor arrives, this entire log is downloadable in one click — no reconstruction from email chains needed.</p></div>
+    <div class="animate-in two-col" style="margin-bottom:1.25rem">
+      <div>
+        <div style="background:white;border:1px solid var(--border);border-radius:6px;overflow:hidden;">
+          <div style="background:var(--surface2);border-bottom:1px solid var(--border);padding:0.55rem 0.85rem;font-size:0.61rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--olive2);font-family:'Barlow Condensed',sans-serif;font-weight:600">Audit Log — April 2025</div>
+          <div class="audit-row"><div class="ar-time">09 Apr 07:01</div><div class="ar-event">Compliance scan — 6 items checked · 2 flags raised</div><span class="ar-badge arb-auto">Auto</span></div>
+          <div class="audit-row"><div class="ar-time">09 Apr 07:02</div><div class="ar-event">Fire Safety Certificate — EXPIRED alert sent to Director + CEO</div><span class="ar-badge arb-alert">Alert</span></div>
+          <div class="audit-row"><div class="ar-time">09 Apr 07:03</div><div class="ar-event">ISO 27001 — 19-day renewal workflow triggered · Assigned: Compliance Mgr</div><span class="ar-badge arb-flag">Flag</span></div>
+          <div class="audit-row"><div class="ar-time">08 Apr 14:22</div><div class="ar-event">AML Policy reminder sent to 33 outstanding staff</div><span class="ar-badge arb-auto">Auto</span></div>
+          <div class="audit-row"><div class="ar-time">08 Apr 09:15</div><div class="ar-event">Expense approval — ₦180k · Tunde Fashola · Ngozi Eze approved</div><span class="ar-badge arb-auto">Auto</span></div>
+          <div class="audit-row"><div class="ar-time">07 Apr 11:40</div><div class="ar-event">Vendor onboarding — BuildTech Ltd · CAC verified · Approved</div><span class="ar-badge arb-auto">Auto</span></div>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:0.85rem">
+        <div class="panel">
+          <h3>What Auditors Ask For</h3>
+          <ul class="steps">
+            <li><div class="step-n">1</div><div><strong>Transaction approvals:</strong> Who approved what, when, under what authority</div></li>
+            <li><div class="step-n">2</div><div><strong>Policy acknowledgements:</strong> Proof all staff received and signed policies</div></li>
+            <li><div class="step-n">3</div><div><strong>Certificate validity:</strong> Proof of compliance at a specific date</div></li>
+            <li><div class="step-n">4</div><div><strong>Incident log:</strong> What was flagged, who was notified, what action taken</div></li>
+          </ul>
+        </div>
+        <div class="info-green">✅ n8n generates all of this automatically. Every approval, every policy sign-off, every certificate check — timestamped, stored, and searchable. Audit preparation goes from 3 weeks to 3 hours.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 6: BEFORE/AFTER -->
+<section class="slide" id="slide-5">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">05 — Business Impact</div><div class="sec-title">Compliance as a<br><em>Competitive Advantage</em></div></div>
+    <div class="animate-in two-col" style="margin-bottom:1.5rem">
+      <div>
+        <div style="font-size:0.62rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--red);margin-bottom:0.75rem;font-weight:600;font-family:'Barlow Condensed',sans-serif">❌ BEFORE</div>
+        <div style="display:flex;flex-direction:column;gap:0.5rem">
+          <div class="ba-bad">Compliance tracked in a spreadsheet nobody maintains</div>
+          <div class="ba-bad">Expired certificate discovered during client due diligence</div>
+          <div class="ba-bad">Policy sign-off: 3 weeks of email chasing per policy update</div>
+          <div class="ba-bad">Auditor requests evidence — 3-week reconstruction from emails</div>
+          <div class="ba-bad">Compliance gaps found during audits — fines and remediation plans</div>
+        </div>
+      </div>
+      <div>
+        <div style="font-size:0.62rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--green);margin-bottom:0.75rem;font-weight:600;font-family:'Barlow Condensed',sans-serif">✅ AFTER</div>
+        <div style="display:flex;flex-direction:column;gap:0.5rem">
+          <div class="ba-good">Live compliance register — every expiry tracked and alerted 30 days early</div>
+          <div class="ba-good">Certificates renewed automatically before they expire</div>
+          <div class="ba-good">Policy distributed and 100% signed off within 14 days — automated chasing</div>
+          <div class="ba-good">Audit package assembled in hours — all evidence pre-logged and searchable</div>
+          <div class="ba-good">Proactive monitoring — compliance gaps caught internally, not by auditors</div>
+        </div>
+      </div>
+    </div>
+    <div class="animate-in">
+      <div class="quote-block">
+        <div class="quote-text">"Compliance isn't a checkbox — it's a <strong>foundation of trust</strong> with clients, regulators, and investors. This automation makes that foundation solid without adding overhead to your team."</div>
+        <div style="font-size:0.62rem;color:rgba(255,255,255,0.35);font-family:'Barlow Condensed',sans-serif;letter-spacing:0.1em">STACK: n8n · GPT-4o · DocuSign · Google Sheets · Slack · Gmail · Google Drive · Notion</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="slide-counter" id="slideCounter">Slide 1 of 6</div>
+<div class="slide-nav">
+  <button class="nav-btn" onclick="prevSlide()">← Prev</button>
+  <button class="nav-btn primary" onclick="nextSlide()">Next →</button>
+</div>
+<script>
+const slides=document.querySelectorAll('.slide'),total=slides.length;let cur=0;
+const dots=document.getElementById('navDots');
+for(let i=0;i<total;i++){const d=document.createElement('div');d.className='nav-dot'+(i===0?' active':'');d.onclick=()=>goTo(i);dots.appendChild(d);}
+function goTo(n){slides[cur].classList.remove('active');dots.children[cur].classList.remove('active');if(cur<n)dots.children[cur].classList.add('done');cur=n;slides[cur].classList.add('active');dots.children[cur].classList.add('active');document.getElementById('slideCounter').textContent=`Slide ${cur+1} of ${total}`;}
+function nextSlide(){if(cur<total-1)goTo(cur+1);}function prevSlide(){if(cur>0)goTo(cur-1);}
+document.addEventListener('keydown',e=>{if(e.key==='ArrowRight'||e.key==='ArrowDown')nextSlide();if(e.key==='ArrowLeft'||e.key==='ArrowUp')prevSlide();});
+let secs=0;setInterval(()=>{secs++;const m=String(Math.floor(secs/60)).padStart(2,'0'),s=String(secs%60).padStart(2,'0');document.getElementById('timerBadge').textContent=`⏱ ${m}:${s}`;if(secs>=840)document.getElementById('timerBadge').style.color='#8c1c1c';},1000);
+function delay(ms){return new Promise(r=>setTimeout(r,ms));}
+const compData=[
+  {id:'cc1',b:'ccb1',cls:'compliant',txt:'✓ Compliant',bCls:'cib-ok'},
+  {id:'cc2',b:'ccb2',cls:'compliant',txt:'✓ Valid (67d)',bCls:'cib-ok'},
+  {id:'cc3',b:'ccb3',cls:'at-risk',txt:'⚠ 19 days — Alert sent',bCls:'cib-risk'},
+  {id:'cc4',b:'ccb4',cls:'compliant',txt:'✓ Compliant',bCls:'cib-ok'},
+  {id:'cc5',b:'ccb5',cls:'breach',txt:'🚨 EXPIRED — CEO alerted',bCls:'cib-breach'},
+  {id:'cc6',b:'ccb6',cls:'at-risk',txt:'⚠ 73% signed — Chasing',bCls:'cib-risk'},
+];
+let compRunning=false;
+async function runCompSim(){
+  if(compRunning)return;compRunning=true;
+  const btn=document.getElementById('compBtn');btn.textContent='Scanning...';
+  compData.forEach(d=>{const el=document.getElementById(d.id);const b=document.getElementById(d.b);if(el)el.className='comp-item';if(b){b.className='ci-badge cib-pend';b.textContent='Scanning...';}});
+  const steps=['cs1','cs2','cs3','cs4','cs5'];
+  steps.forEach(id=>{const el=document.getElementById(id);if(el){el.style.opacity='0.3';el.querySelector('.ps-num').style.background='var(--border)';}});
+  const light=(i)=>{steps.forEach(id=>{const el=document.getElementById(id);if(el){el.style.opacity='0.3';el.querySelector('.ps-num').style.background='var(--border)';}});const el=document.getElementById(steps[i]);if(el){el.style.opacity='1';el.style.color='var(--gold)';el.querySelector('.ps-num').style.background='var(--olive)';}};
+  light(0);await delay(500);light(1);
+  for(const d of compData){
+    await delay(450);
+    const el=document.getElementById(d.id);const b=document.getElementById(d.b);
+    if(el)el.classList.add(d.cls);
+    if(b){b.className='ci-badge '+d.bCls;b.textContent=d.txt;}
+  }
+  light(2);await delay(400);light(3);await delay(400);light(4);
+  btn.textContent='↺ Reset & Run Again';compRunning=false;
+}
+</script>
+</body>
+</html>
