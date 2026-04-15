@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Education — Result Notifications Automation</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f8f4ff;--surface:#fff;--surface2:#f0e8ff;--border:#ddd0f8;
+  --ink:#100820;--purple:#6020c0;--purple2:#4810a0;--violet:#8040e0;
+  --lavender:#f5eeff;--green:#0a6a38;--red:#c02020;--amber:#b07010;
+  --text:#180c28;--muted:#6848a8;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'Plus Jakarta Sans',sans-serif;overflow-x:hidden;}
+.top-bar{position:fixed;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,var(--purple2),var(--violet),var(--purple));z-index:200;}
+nav{position:fixed;top:4px;left:0;right:0;z-index:100;background:rgba(248,244,255,0.97);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 2.5rem;height:54px;}
+.nav-brand{font-family:'JetBrains Mono',monospace;font-size:0.7rem;color:var(--purple2);letter-spacing:0.06em;}
+.nav-dots{display:flex;gap:0.3rem;}
+.nav-dot{width:7px;height:7px;border-radius:50%;background:var(--border);cursor:pointer;transition:all 0.2s;}
+.nav-dot.active{background:var(--purple);transform:scale(1.5);}
+.nav-dot.done{background:var(--green);}
+.timer{font-size:0.67rem;color:var(--purple);background:rgba(96,32,192,0.08);border:1px solid rgba(96,32,192,0.2);padding:0.2rem 0.75rem;border-radius:20px;font-family:'JetBrains Mono',monospace;}
+.slide{min-height:100vh;padding:78px 0 50px;display:none;flex-direction:column;align-items:center;justify-content:center;position:relative;overflow:hidden;}
+.slide.active{display:flex;}
+.slide-inner{width:100%;max-width:1140px;padding:0 2.5rem;position:relative;z-index:2;}
+.hero-bg{position:absolute;inset:0;background:radial-gradient(ellipse at 78% 35%,rgba(96,32,192,0.05) 0%,transparent 55%);pointer-events:none;}
+.hero-badge{display:inline-flex;align-items:center;gap:0.5rem;background:var(--lavender);border:1px solid rgba(96,32,192,0.2);color:var(--purple2);font-size:0.67rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;padding:0.28rem 0.9rem;border-radius:20px;margin-bottom:1.5rem;font-family:'JetBrains Mono',monospace;}
+h1.hero-title{font-family:'Plus Jakarta Sans',sans-serif;font-size:clamp(2.8rem,5.5vw,4.8rem);font-weight:800;line-height:1.0;letter-spacing:-0.03em;color:var(--ink);margin-bottom:1.5rem;}
+h1.hero-title span{color:var(--purple);}
+.hero-desc{font-size:0.97rem;color:var(--muted);max-width:510px;line-height:1.78;margin-bottom:2.5rem;font-weight:300;}
+.kpi-strip{display:flex;gap:1px;background:var(--border);border-radius:12px;overflow:hidden;max-width:640px;box-shadow:0 2px 10px rgba(96,32,192,0.07);}
+.kpi{background:white;padding:1.1rem 1.4rem;flex:1;}
+.kpi-val{font-family:'Plus Jakarta Sans',sans-serif;font-size:1.9rem;font-weight:800;color:var(--purple);line-height:1;}
+.kpi-lbl{font-size:0.59rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);margin-top:0.2rem;font-family:'JetBrains Mono',monospace;}
+.sec-tag{font-size:0.61rem;letter-spacing:0.22em;text-transform:uppercase;color:var(--purple);margin-bottom:0.4rem;font-weight:700;font-family:'JetBrains Mono',monospace;}
+.sec-title{font-family:'Plus Jakarta Sans',sans-serif;font-size:clamp(1.9rem,3.8vw,3rem);font-weight:800;line-height:1.05;margin-bottom:0.5rem;color:var(--ink);letter-spacing:-0.02em;}
+.sec-title span{color:var(--purple);}
+.sec-desc{font-size:0.87rem;color:var(--muted);margin-bottom:1.85rem;max-width:540px;line-height:1.78;font-weight:300;}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;}
+.lr{display:grid;grid-template-columns:1.1fr 1fr;gap:2rem;align-items:start;}
+.card{background:white;border:1px solid var(--border);border-radius:14px;padding:1.25rem;transition:all 0.2s;box-shadow:0 1px 6px rgba(96,32,192,0.05);}
+.card:hover{border-color:var(--purple);transform:translateY(-2px);box-shadow:0 6px 20px rgba(96,32,192,0.1);}
+.card-icon{font-size:1.4rem;margin-bottom:0.5rem;}
+.card-title{font-family:'Plus Jakarta Sans',sans-serif;font-size:0.95rem;font-weight:700;margin-bottom:0.3rem;color:var(--ink);}
+.card-desc{font-size:0.72rem;color:var(--muted);line-height:1.65;}
+.panel{background:white;border:1px solid var(--border);border-radius:14px;padding:1.4rem;}
+.panel h3{font-family:'Plus Jakarta Sans',sans-serif;font-size:0.88rem;font-weight:700;color:var(--purple2);margin-bottom:0.9rem;display:flex;align-items:center;gap:0.5rem;}
+.panel h3::before{content:'▸';color:var(--violet);}
+.wf-canvas{background:var(--ink);border-radius:16px;padding:2rem;position:relative;overflow:hidden;}
+.wf-dots{position:absolute;inset:0;background-image:radial-gradient(circle,rgba(128,64,224,0.18) 1px,transparent 1px);background-size:28px 28px;opacity:0.5;}
+.wf-label{position:absolute;top:0.75rem;left:1rem;font-size:0.57rem;letter-spacing:0.18em;text-transform:uppercase;color:rgba(255,255,255,0.3);display:flex;align-items:center;gap:0.4rem;z-index:3;font-family:'JetBrains Mono',monospace;}
+.wf-label::before{content:'';width:7px;height:7px;border-radius:50%;background:var(--violet);box-shadow:0 0 8px var(--violet);animation:vpulse 2s infinite;}
+@keyframes vpulse{0%,100%{opacity:1}50%{opacity:0.2}}
+.wf-nodes{display:flex;align-items:flex-start;gap:0;padding-top:1.5rem;position:relative;z-index:2;flex-wrap:wrap;}
+.wf-stage{display:flex;flex-direction:column;align-items:center;}
+.wf-slbl{font-size:0.51rem;letter-spacing:0.14em;text-transform:uppercase;color:rgba(255,255,255,0.28);margin-bottom:0.3rem;font-family:'JetBrains Mono',monospace;}
+.wf-node{display:flex;flex-direction:column;align-items:center;gap:0.3rem;cursor:pointer;position:relative;}
+.wf-box{width:58px;height:58px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:1.25rem;border:2px solid transparent;transition:all 0.3s;}
+.wf-node:hover .wf-box{transform:scale(1.1);box-shadow:0 0 20px rgba(96,32,192,0.4);}
+.wf-nlbl{font-size:0.52rem;text-align:center;color:rgba(255,255,255,0.42);max-width:66px;line-height:1.3;font-family:'JetBrains Mono',monospace;}
+.wf-arr{color:rgba(255,255,255,0.18);padding:0 0.2rem;font-size:0.85rem;align-self:flex-start;margin-top:19px;flex-shrink:0;}
+.ttw{position:relative;}
+.tti{position:absolute;bottom:calc(100%+8px);left:50%;transform:translateX(-50%);background:white;border:1px solid var(--border);border-radius:10px;padding:0.6rem 0.9rem;font-size:0.67rem;opacity:0;pointer-events:none;transition:opacity 0.2s;z-index:50;color:var(--ink);line-height:1.5;max-width:200px;white-space:normal;text-align:left;box-shadow:0 4px 16px rgba(0,0,0,0.08);}
+.ttw:hover .tti{opacity:1;}
+/* Result card */
+.result-card{background:white;border:1px solid var(--border);border-radius:12px;overflow:hidden;}
+.rc-header{background:linear-gradient(135deg,var(--purple),var(--violet));color:white;padding:0.85rem 1.1rem;display:flex;align-items:center;justify-content:space-between;}
+.rc-title{font-family:'Plus Jakarta Sans',sans-serif;font-size:0.9rem;font-weight:700;}
+.rc-body{padding:1rem;}
+.rc-subject{display:flex;align-items:center;gap:0.75rem;padding:0.4rem 0;border-bottom:1px solid rgba(221,208,248,0.5);font-size:0.73rem;}
+.rc-subject:last-child{border-bottom:none;}
+.rc-sub-name{flex:1;font-weight:500;}
+.rc-score{font-family:'JetBrains Mono',monospace;font-size:0.7rem;font-weight:700;min-width:50px;text-align:right;}
+.rc-grade{min-width:30px;text-align:center;font-weight:700;font-size:0.68rem;}
+.grade-a{color:var(--green);}
+.grade-b{color:var(--purple);}
+.grade-c{color:var(--amber);}
+/* PS list */
+.ps-list{list-style:none;}
+.ps-list li{display:flex;gap:0.75rem;padding:0.45rem 0;border-bottom:1px solid var(--border);font-size:0.74rem;line-height:1.5;transition:all 0.3s;}
+.ps-list li:last-child{border-bottom:none;}
+.ps-num{width:20px;height:20px;border-radius:50%;background:var(--border);color:white;font-size:0.6rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;transition:background 0.3s;}
+.info-purple{padding:0.75rem 1rem;border-radius:10px;font-size:0.77rem;line-height:1.6;background:rgba(96,32,192,0.06);border:1px solid rgba(96,32,192,0.15);color:var(--purple2);}
+.ba-bad{padding:0.6rem 0.9rem;border-radius:8px;font-size:0.76rem;line-height:1.5;background:rgba(192,32,32,0.04);border:1px solid rgba(192,32,32,0.12);}
+.ba-good{padding:0.6rem 0.9rem;border-radius:8px;font-size:0.76rem;line-height:1.5;background:rgba(10,106,56,0.05);border:1px solid rgba(10,106,56,0.14);}
+.quote-block{background:var(--ink);border-radius:16px;padding:1.75rem 2rem;color:white;}
+.quote-text{font-size:1.05rem;line-height:1.78;margin-bottom:0.75rem;font-weight:300;}
+.quote-text strong{color:#d8b4fe;}
+.slide-counter{position:fixed;bottom:1.5rem;left:2rem;font-size:0.62rem;color:var(--muted);z-index:100;font-family:'JetBrains Mono',monospace;}
+.slide-nav{position:fixed;bottom:1.5rem;right:2rem;display:flex;gap:0.5rem;z-index:100;}
+.nav-btn{background:white;border:1px solid var(--border);color:var(--text);padding:0.55rem 1.2rem;border-radius:10px;font-family:'JetBrains Mono',monospace;font-size:0.7rem;cursor:pointer;transition:all 0.2s;}
+.nav-btn:hover{border-color:var(--purple);color:var(--purple);}
+.nav-btn.primary{background:var(--purple);border-color:var(--purple);color:white;}
+.nav-btn.primary:hover{background:var(--purple2);}
+.run-btn{background:var(--purple);color:white;border:none;border-radius:10px;padding:0.7rem 1.5rem;font-family:'JetBrains Mono',monospace;font-size:0.72rem;cursor:pointer;transition:all 0.2s;width:100%;text-align:center;}
+.run-btn:hover{background:var(--purple2);}
+.animate-in{opacity:0;animation:fadeUp 0.5s ease-out forwards;}
+.slide.active .animate-in:nth-child(1){animation-delay:0.05s;}
+.slide.active .animate-in:nth-child(2){animation-delay:0.15s;}
+.slide.active .animate-in:nth-child(3){animation-delay:0.25s;}
+.slide.active .animate-in:nth-child(4){animation-delay:0.35s;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+</style>
+</head>
+<body>
+<div class="top-bar"></div>
+<nav>
+  <div class="nav-brand">EDUCATION · Result Notifications</div>
+  <div class="nav-dots" id="navDots"></div>
+  <div class="timer" id="timerBadge">⏱ 00:00</div>
+</nav>
+
+<section class="slide active" id="slide-0">
+  <div class="hero-bg"></div>
+  <div class="slide-inner">
+    <div class="animate-in"><div class="hero-badge">🎓 n8n AI Automation · Education & EdTech</div></div>
+    <div class="animate-in"><h1 class="hero-title">Results Ready.<br><span>Students Notified.</span><br>Parents Informed.</h1></div>
+    <div class="animate-in"><p class="hero-desc">Exam results published to every student and parent simultaneously — personalised PDF reports, plain-language performance summaries, teacher comments, and next-step recommendations delivered automatically.</p></div>
+    <div class="animate-in">
+      <div class="kpi-strip">
+        <div class="kpi"><div class="kpi-val">Instant</div><div class="kpi-lbl">Result Delivery</div></div>
+        <div class="kpi"><div class="kpi-val">100%</div><div class="kpi-lbl">Students Notified</div></div>
+        <div class="kpi"><div class="kpi-val">AI</div><div class="kpi-lbl">Performance Insights</div></div>
+        <div class="kpi"><div class="kpi-val">0</div><div class="kpi-lbl">Paper Reports</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="slide-1">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">01 — The Problem</div><div class="sec-title">Results That Take<br><span>Weeks to Arrive</span></div><p class="sec-desc">Students wait weeks for results. Parents follow up by phone. Reports are paper printouts given to children who lose them. Teachers write the same generic comments for every student. All of this is automatable.</p></div>
+    <div class="animate-in two-col" style="margin-bottom:1.5rem">
+      <div class="card"><div class="card-icon">⏰</div><div class="card-title">2-Week Delay</div><div class="card-desc">Exams end. Results compiled in Excel by class teacher. Printed on report cards. Stamped and signed by principal. Distributed to students. 2 weeks minimum. Parents calling daily asking for results.</div></div>
+      <div class="card"><div class="card-icon">📝</div><div class="card-title">Generic Comments</div><div class="card-desc">"Keep up the good work." "Needs to try harder." Every student gets the same 5 comments chosen from a shortlist. Parents don't feel seen. Students don't get actionable feedback. Opportunity missed.</div></div>
+      <div class="card"><div class="card-icon">📄</div><div class="card-title">Lost Paper Reports</div><div class="card-desc">Report given to 12-year-old on Friday afternoon. It never makes it home. Parents never see it. School has no record of delivery. The most important communication of the term lost between school gate and front door.</div></div>
+      <div class="card"><div class="card-icon">🔍</div><div class="card-title">No Performance Analytics</div><div class="card-desc">Which subjects are consistently low across a class? Which students show declining performance? Without analytics across the student body, academic intervention decisions are reactive and subjective.</div></div>
+    </div>
+    <div class="animate-in"><div class="info-purple">✅ n8n publishes results to every student and parent's WhatsApp the moment they're approved — with a personalised PDF report, AI-written comments, performance trends, and next-step recommendations.</div></div>
+  </div>
+</section>
+
+<section class="slide" id="slide-2">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">02 — The Blueprint</div><div class="sec-title">n8n Result Notification<br><span>Pipeline</span></div><p class="sec-desc">Results approved → personalised reports generated → delivered to parents and students simultaneously → at-risk students flagged → teachers briefed for next term.</p></div>
+    <div class="animate-in wf-canvas">
+      <div class="wf-dots"></div>
+      <div class="wf-label">n8n canvas — result notification pipeline</div>
+      <div class="wf-nodes">
+        <div class="wf-stage"><div class="wf-slbl">Publish</div>
+          <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#0a1a2a,#1d4ed8);color:#93c5fd;border-color:#1d4ed8;">📊</div><div class="wf-nlbl">Results<br>Approved</div><div class="tti">Principal approves results in school management system. n8n webhook fires. All student results extracted, validated for completeness, and processing pipeline begins.</div></div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-stage"><div class="wf-slbl">Generate</div>
+          <div style="display:flex;flex-direction:column;gap:0.35rem">
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a0a0a,#991b1b);color:#fca5a5;border-color:#991b1b;">🧠</div><div class="wf-nlbl">GPT-4o<br>Comments</div><div class="tti">GPT-4o writes personalised comments for each student based on their actual performance: strongest subjects, areas for improvement, specific recommendations. Every comment unique and actionable.</div></div>
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a0a1a,#7c3aed);color:#d8b4fe;border-color:#7c3aed;">📄</div><div class="wf-nlbl">PDF<br>Report</div><div class="tti">Branded PDF report generated per student: all subject scores, grades, class position, attendance record, teacher comments, and performance chart. School logo, principal signature (digital) included.</div></div>
+          </div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-stage"><div class="wf-slbl">Deliver</div>
+          <div style="display:flex;flex-direction:column;gap:0.35rem">
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a3a1a,#166534);color:#4ade80;border-color:#166534;">📱</div><div class="wf-nlbl">WhatsApp<br>to Parent</div><div class="tti">PDF report sent to parent's WhatsApp with personalised message: "[Child's name]'s Term 2 results are ready! Here's their report..." Read receipt tracked.</div></div>
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#0a1a2a,#0369a1);color:#7dd3fc;border-color:#0369a1;">📧</div><div class="wf-nlbl">Email<br>Backup</div><div class="tti">Email sent simultaneously to parent's registered email. Secure link to view report online. Download available for 90 days. WhatsApp undeliverable → email is fallback.</div></div>
+          </div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-stage"><div class="wf-slbl">Flag</div>
+          <div style="display:flex;flex-direction:column;gap:0.35rem">
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-connect,135deg,#1a0a0a,#7f1d1d;color:#fca5a5;border-color:#7f1d1d;background:linear-gradient(135deg,#1a0a0a,#7f1d1d)">⚠️</div><div class="wf-nlbl">At-Risk<br>Flag</div><div class="tti">Students with declining performance, below-average results, or multiple failed subjects flagged automatically. Pastoral care team notified. Parents receive follow-up call request from class teacher.</div></div>
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a3a1a,#166534);color:#4ade80;border-color:#166534;">🏆</div><div class="wf-nlbl">Top<br>Performers</div><div class="tti">Top 10% of students receive special congratulatory message from principal. Their names prepared for honours board. Parents notified of achievement for scholarship consideration.</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="slide-3">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">03 — Simulation</div><div class="sec-title">Live: Amaka's Report<br><span>Generated & Delivered</span></div><p class="sec-desc">Term 2 results just approved. Watch n8n generate Amaka's personalised report, write her AI comments, and deliver to her parent in under 2 minutes.</p></div>
+    <div class="animate-in lr">
+      <div style="display:flex;flex-direction:column;gap:1rem">
+        <div class="panel">
+          <h3>Report Pipeline</h3>
+          <ul class="ps-list" id="resSteps">
+            <li id="rs1" style="opacity:0.3"><div class="ps-num">1</div><div>Principal approves — results pipeline fires</div></li>
+            <li id="rs2" style="opacity:0.3"><div class="ps-num">2</div><div>GPT-4o writes personalised comments for Amaka</div></li>
+            <li id="rs3" style="opacity:0.3"><div class="ps-num">3</div><div>Branded PDF report generated</div></li>
+            <li id="rs4" style="opacity:0.3"><div class="ps-num">4</div><div>Sent to mum's WhatsApp + email</div></li>
+            <li id="rs5" style="opacity:0.3"><div class="ps-num">5</div><div>Amaka in top 10% — congratulations sent ✅</div></li>
+          </ul>
+        </div>
+        <div class="info-purple">📊 180 personalised reports generated and delivered in under 8 minutes. All 180 parents received their child's results before they could even call the school to ask.</div>
+        <button class="run-btn" id="resBtn" onclick="runResSim()">▶ GENERATE & DELIVER REPORT</button>
+      </div>
+      <div id="resReveal" style="display:none">
+        <div class="result-card">
+          <div class="rc-header"><div class="rc-title">📋 Term 2 Report — Amaka Obi (SS2A)</div><span style="font-size:0.6rem;opacity:0.75;font-family:'JetBrains Mono',monospace">Position: 3rd of 42</span></div>
+          <div class="rc-body">
+            <div class="rc-subject"><span class="rc-sub-name">Mathematics</span><span class="rc-score" style="color:var(--green)">88/100</span><span class="rc-grade grade-a">A</span></div>
+            <div class="rc-subject"><span class="rc-sub-name">English Language</span><span class="rc-score" style="color:var(--green)">82/100</span><span class="rc-grade grade-a">A</span></div>
+            <div class="rc-subject"><span class="rc-sub-name">Physics</span><span class="rc-score" style="color:var(--purple)">75/100</span><span class="rc-grade grade-b">B</span></div>
+            <div class="rc-subject"><span class="rc-sub-name">Chemistry</span><span class="rc-score" style="color:var(--purple)">71/100</span><span class="rc-grade grade-b">B</span></div>
+            <div class="rc-subject"><span class="rc-sub-name">Biology</span><span class="rc-score" style="color:var(--green)">85/100</span><span class="rc-grade grade-a">A</span></div>
+            <div style="background:rgba(96,32,192,0.05);border-radius:8px;padding:0.6rem 0.75rem;margin-top:0.6rem;font-size:0.7rem;line-height:1.65;color:var(--purple2)">
+              <strong>AI Comment:</strong> "Amaka demonstrates exceptional ability in Mathematics and Biology. Her analytical thinking is a clear strength. To improve further, focus on Chemistry reaction mechanisms — this will boost her overall score and WAEC readiness significantly."
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="slide-4">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">04 — Impact</div><div class="sec-title">Results That<br><span>Drive Improvement</span></div></div>
+    <div class="animate-in two-col" style="margin-bottom:1.5rem">
+      <div>
+        <div style="font-size:0.62rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--red);margin-bottom:0.75rem;font-weight:700;font-family:'JetBrains Mono',monospace">❌ BEFORE</div>
+        <div style="display:flex;flex-direction:column;gap:0.5rem">
+          <div class="ba-bad">2-week delay — parents calling, students anxious</div>
+          <div class="ba-bad">Paper reports given to children — never reach parents</div>
+          <div class="ba-bad">Generic comments — "Keep up the good work" for everyone</div>
+          <div class="ba-bad">At-risk students identified too late to intervene</div>
+          <div class="ba-bad">No analytics — subject performance trends invisible</div>
+        </div>
+      </div>
+      <div>
+        <div style="font-size:0.62rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--green);margin-bottom:0.75rem;font-weight:700;font-family:'JetBrains Mono',monospace">✅ AFTER</div>
+        <div style="display:flex;flex-direction:column;gap:0.5rem">
+          <div class="ba-good">Instant delivery — 180 reports delivered in under 8 minutes</div>
+          <div class="ba-good">PDF to parent WhatsApp — guaranteed delivery, no paper lost</div>
+          <div class="ba-good">AI personalised comments — actionable and specific for every student</div>
+          <div class="ba-good">At-risk students flagged immediately — pastoral care triggered</div>
+          <div class="ba-good">Performance analytics — class trends visible to teachers</div>
+        </div>
+      </div>
+    </div>
+    <div class="animate-in">
+      <div class="quote-block">
+        <div class="quote-text">"Results day should be exciting, not a 2-week wait. <strong>Instant, personalised delivery</strong> shows parents and students that the school takes their progress seriously — and backs it up with actionable feedback."</div>
+        <div style="font-size:0.62rem;color:rgba(255,255,255,0.3);font-family:'JetBrains Mono',monospace">STACK: n8n · GPT-4o · WhatsApp API · Gmail · School Management System · Google Sheets · PDFKit</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="slide-counter" id="slideCounter">Slide 1 of 5</div>
+<div class="slide-nav">
+  <button class="nav-btn" onclick="prevSlide()">← Prev</button>
+  <button class="nav-btn primary" onclick="nextSlide()">Next →</button>
+</div>
+<script>
+const slides=document.querySelectorAll('.slide'),total=slides.length;let cur=0;
+const dots=document.getElementById('navDots');
+for(let i=0;i<total;i++){const d=document.createElement('div');d.className='nav-dot'+(i===0?' active':'');d.onclick=()=>goTo(i);dots.appendChild(d);}
+function goTo(n){slides[cur].classList.remove('active');dots.children[cur].classList.remove('active');if(cur<n)dots.children[cur].classList.add('done');cur=n;slides[cur].classList.add('active');dots.children[cur].classList.add('active');document.getElementById('slideCounter').textContent=`Slide ${cur+1} of ${total}`;}
+function nextSlide(){if(cur<total-1)goTo(cur+1);}function prevSlide(){if(cur>0)goTo(cur-1);}
+document.addEventListener('keydown',e=>{if(e.key==='ArrowRight'||e.key==='ArrowDown')nextSlide();if(e.key==='ArrowLeft'||e.key==='ArrowUp')prevSlide();});
+let secs=0;setInterval(()=>{secs++;const m=String(Math.floor(secs/60)).padStart(2,'0'),s=String(secs%60).padStart(2,'0');document.getElementById('timerBadge').textContent=`⏱ ${m}:${s}`;if(secs>=840)document.getElementById('timerBadge').style.color='#c02020';},1000);
+function delay(ms){return new Promise(r=>setTimeout(r,ms));}
+let resRunning=false;
+async function runResSim(){
+  if(resRunning)return;resRunning=true;
+  const btn=document.getElementById('resBtn');btn.textContent='Generating...';
+  document.getElementById('resReveal').style.display='none';
+  const steps=['rs1','rs2','rs3','rs4','rs5'];
+  steps.forEach(id=>{const el=document.getElementById(id);if(el){el.style.opacity='0.3';el.querySelector('.ps-num').style.background='var(--border)';}});
+  for(let i=0;i<steps.length;i++){
+    await delay(500);
+    steps.forEach(id=>{const el=document.getElementById(id);if(el){el.style.opacity='0.3';el.querySelector('.ps-num').style.background='var(--border)';}});
+    const el=document.getElementById(steps[i]);
+    if(el){el.style.opacity='1';el.style.color='var(--purple)';el.querySelector('.ps-num').style.background='var(--purple)';}
+    if(i===2)document.getElementById('resReveal').style.display='block';
+  }
+  btn.textContent='↺ Reset & Run Again';resRunning=false;
+}
+</script>
+</body>
+</html>
