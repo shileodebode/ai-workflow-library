@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sales Invoicing & Quotes Automation</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;0,9..144,700;1,9..144,300;1,9..144,500&family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#faf8f5;--surface:#ffffff;--surface2:#f3f0eb;--border:#e0dbd2;
+  --ink:#16122a;--indigo:#3730a3;--indigo2:#4f46e5;--violet:#7c3aed;
+  --lavender:#ede9fe;--purple2:#6d28d9;--green:#16a34a;--red:#dc2626;
+  --amber:#d97706;--blue:#1d4ed8;--text:#1e1a2e;--muted:#6b6880;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-serif;overflow-x:hidden;}
+.corner-mark{position:fixed;top:0;right:0;width:0;height:0;border-left:60px solid transparent;border-top:60px solid var(--indigo);z-index:200;pointer-events:none;}
+.corner-mark-text{position:fixed;top:6px;right:4px;font-family:'IBM Plex Mono',monospace;font-size:0.48rem;color:white;z-index:201;transform:rotate(45deg);letter-spacing:0.05em;pointer-events:none;}
+nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(250,248,245,0.97);backdrop-filter:blur(10px);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 2.5rem;height:56px;}
+.nav-brand{font-family:'Fraunces',serif;font-size:0.95rem;font-weight:500;color:var(--indigo);letter-spacing:0.02em;}
+.nav-dots{display:flex;gap:0.3rem;}
+.nav-dot{width:7px;height:7px;border-radius:50%;background:var(--border);cursor:pointer;transition:all 0.2s;}
+.nav-dot.active{background:var(--indigo2);transform:scale(1.5);}
+.nav-dot.done{background:var(--green);}
+.timer{font-size:0.67rem;color:var(--indigo);background:rgba(55,48,163,0.07);border:1px solid rgba(55,48,163,0.18);padding:0.2rem 0.75rem;border-radius:20px;font-family:'IBM Plex Mono',monospace;}
+.slide{min-height:100vh;padding:78px 0 50px;display:none;flex-direction:column;align-items:center;justify-content:center;position:relative;overflow:hidden;}
+.slide.active{display:flex;}
+.slide-inner{width:100%;max-width:1140px;padding:0 2.5rem;position:relative;z-index:2;}
+.hero-bg-geo{position:absolute;top:0;right:0;bottom:0;width:45%;background:linear-gradient(135deg,var(--lavender) 0%,rgba(237,233,254,0.3) 100%);clip-path:polygon(15% 0%,100% 0%,100% 100%,0% 100%);pointer-events:none;}
+.hero-bg-dots{position:absolute;inset:0;background-image:radial-gradient(circle,rgba(55,48,163,0.07) 1px,transparent 1px);background-size:32px 32px;pointer-events:none;}
+.hero-label{display:inline-flex;align-items:center;gap:0.5rem;background:var(--lavender);border:1px solid rgba(79,70,229,0.2);color:var(--indigo2);font-size:0.68rem;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;padding:0.3rem 0.9rem;border-radius:6px;margin-bottom:1.5rem;font-family:'IBM Plex Mono',monospace;}
+h1.hero-title{font-family:'Fraunces',serif;font-size:clamp(2.8rem,5.5vw,4.6rem);font-weight:700;line-height:1.05;letter-spacing:-0.02em;color:var(--ink);margin-bottom:1.5rem;}
+h1.hero-title em{font-style:italic;color:var(--indigo2);}
+.hero-desc{font-size:0.96rem;color:var(--muted);max-width:500px;line-height:1.8;margin-bottom:2.5rem;font-weight:300;}
+.kpi-strip{display:flex;gap:1px;border:1px solid var(--border);border-radius:10px;overflow:hidden;max-width:600px;background:var(--border);box-shadow:0 2px 12px rgba(55,48,163,0.06);}
+.kpi{background:white;padding:1.1rem 1.4rem;flex:1;}
+.kpi-val{font-family:'Fraunces',serif;font-size:1.9rem;font-weight:700;color:var(--indigo2);line-height:1;}
+.kpi-lbl{font-size:0.6rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin-top:0.2rem;font-family:'IBM Plex Mono',monospace;}
+.sec-tag{font-size:0.62rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--indigo2);margin-bottom:0.4rem;font-weight:500;font-family:'IBM Plex Mono',monospace;}
+.sec-title{font-family:'Fraunces',serif;font-size:clamp(1.9rem,3.8vw,3rem);font-weight:700;line-height:1.08;margin-bottom:0.5rem;color:var(--ink);}
+.sec-title em{font-style:italic;color:var(--indigo2);}
+.sec-desc{font-size:0.87rem;color:var(--muted);margin-bottom:1.85rem;max-width:540px;line-height:1.78;font-weight:300;}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;}
+.three-col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;}
+.lr{display:grid;grid-template-columns:1.1fr 1fr;gap:2rem;align-items:start;}
+.lr-rev{display:grid;grid-template-columns:1fr 1.15fr;gap:2rem;align-items:start;}
+.card{background:white;border:1px solid var(--border);border-radius:10px;padding:1.25rem;transition:all 0.2s;box-shadow:0 1px 4px rgba(0,0,0,0.04);}
+.card:hover{border-color:var(--indigo2);transform:translateY(-2px);box-shadow:0 6px 18px rgba(55,48,163,0.08);}
+.card-icon{font-size:1.4rem;margin-bottom:0.5rem;}
+.card-title{font-family:'Fraunces',serif;font-size:1rem;font-weight:500;margin-bottom:0.3rem;color:var(--ink);}
+.card-desc{font-size:0.72rem;color:var(--muted);line-height:1.65;}
+.panel{background:white;border:1px solid var(--border);border-radius:10px;padding:1.4rem;}
+.panel h3{font-family:'Fraunces',serif;font-size:0.95rem;font-weight:700;color:var(--indigo);margin-bottom:0.9rem;display:flex;align-items:center;gap:0.5rem;}
+.panel h3::before{content:'§';color:var(--border);}
+.steps{list-style:none;}
+.steps li{display:flex;gap:0.75rem;padding:0.45rem 0;border-bottom:1px solid var(--border);font-size:0.76rem;line-height:1.6;}
+.steps li:last-child{border-bottom:none;}
+.step-n{width:22px;height:22px;border-radius:6px;background:var(--indigo2);color:white;font-size:0.62rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:'IBM Plex Mono',monospace;}
+/* Workflow */
+.wf-canvas{background:var(--ink);border-radius:12px;padding:2rem;position:relative;overflow:hidden;}
+.wf-geo{position:absolute;inset:0;background:linear-gradient(135deg,rgba(55,48,163,0.12) 0%,transparent 50%),linear-gradient(315deg,rgba(109,40,217,0.08) 0%,transparent 50%);}
+.wf-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(79,70,229,0.08) 1px,transparent 1px),linear-gradient(90deg,rgba(79,70,229,0.08) 1px,transparent 1px);background-size:36px 36px;}
+.wf-label{position:absolute;top:0.75rem;left:1rem;font-size:0.57rem;letter-spacing:0.18em;text-transform:uppercase;color:rgba(255,255,255,0.35);display:flex;align-items:center;gap:0.4rem;z-index:3;font-family:'IBM Plex Mono',monospace;}
+.wf-label::before{content:'';width:7px;height:7px;border-radius:50%;background:var(--indigo2);box-shadow:0 0 8px var(--indigo2);animation:ipulse 2s infinite;}
+@keyframes ipulse{0%,100%{opacity:1}50%{opacity:0.2}}
+.wf-nodes{display:flex;align-items:flex-start;gap:0;padding-top:1.5rem;position:relative;z-index:2;flex-wrap:wrap;}
+.wf-stage{display:flex;flex-direction:column;align-items:center;}
+.wf-slbl{font-size:0.52rem;letter-spacing:0.14em;text-transform:uppercase;color:rgba(255,255,255,0.28);margin-bottom:0.3rem;font-family:'IBM Plex Mono',monospace;}
+.wf-node{display:flex;flex-direction:column;align-items:center;gap:0.3rem;cursor:pointer;position:relative;}
+.wf-box{width:58px;height:58px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.25rem;border:2px solid transparent;transition:all 0.3s;}
+.wf-node:hover .wf-box{transform:scale(1.1);box-shadow:0 0 20px rgba(79,70,229,0.4);}
+.wf-nlbl{font-size:0.53rem;text-align:center;color:rgba(255,255,255,0.42);max-width:66px;line-height:1.3;font-family:'IBM Plex Mono',monospace;}
+.wf-arr{color:rgba(255,255,255,0.18);padding:0 0.2rem;font-size:0.85rem;align-self:flex-start;margin-top:19px;flex-shrink:0;}
+.ttw{position:relative;}
+.tti{position:absolute;bottom:calc(100%+8px);left:50%;transform:translateX(-50%);background:white;border:1px solid var(--border);border-radius:8px;padding:0.6rem 0.9rem;font-size:0.67rem;opacity:0;pointer-events:none;transition:opacity 0.2s;z-index:50;color:var(--ink);line-height:1.5;max-width:200px;white-space:normal;text-align:left;box-shadow:0 4px 12px rgba(0,0,0,0.1);}
+.ttw:hover .tti{opacity:1;}
+/* Quote builder */
+.quote-builder{background:white;border:1px solid var(--border);border-radius:10px;overflow:hidden;box-shadow:0 2px 12px rgba(55,48,163,0.06);}
+.qb-header{background:var(--indigo);color:white;padding:0.85rem 1.1rem;display:flex;align-items:center;justify-content:space-between;}
+.qb-title{font-family:'Fraunces',serif;font-size:0.9rem;font-weight:500;}
+.qb-body{padding:1rem;}
+.qb-field label{font-size:0.61rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:0.2rem;font-family:'IBM Plex Mono',monospace;}
+.qb-input{background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:0.4rem 0.65rem;font-size:0.72rem;color:var(--text);font-family:'IBM Plex Sans',sans-serif;width:100%;min-height:26px;margin-bottom:0.55rem;transition:border-color 0.3s;}
+/* Invoice preview */
+.invoice-preview{background:white;border:1px solid var(--border);border-radius:10px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,0.06);}
+.inv-header{background:linear-gradient(135deg,var(--indigo),var(--violet));color:white;padding:1.25rem 1.5rem;}
+.inv-title{font-family:'Fraunces',serif;font-size:1.2rem;font-weight:700;letter-spacing:-0.01em;}
+.inv-num{font-size:0.65rem;opacity:0.7;font-family:'IBM Plex Mono',monospace;margin-top:0.15rem;}
+.inv-body{padding:1.1rem 1.5rem;font-size:0.72rem;}
+.inv-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem;}
+.inv-label{font-size:0.6rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin-bottom:0.2rem;font-family:'IBM Plex Mono',monospace;}
+.inv-val{font-weight:500;color:var(--ink);}
+.inv-table{width:100%;border-collapse:collapse;font-size:0.71rem;margin-bottom:0.85rem;}
+.inv-table th{background:var(--lavender);padding:0.4rem 0.6rem;text-align:left;font-size:0.6rem;letter-spacing:0.07em;text-transform:uppercase;color:var(--indigo);font-weight:600;}
+.inv-table td{padding:0.4rem 0.6rem;border-bottom:1px solid var(--border);}
+.inv-total{background:var(--lavender);border-radius:6px;padding:0.6rem 0.85rem;display:flex;justify-content:space-between;align-items:center;}
+.inv-total-lbl{font-size:0.7rem;font-weight:600;color:var(--indigo);}
+.inv-total-val{font-family:'Fraunces',serif;font-size:1.1rem;font-weight:700;color:var(--indigo2);}
+/* PS list */
+.ps-list{list-style:none;}
+.ps-list li{display:flex;gap:0.75rem;padding:0.45rem 0;border-bottom:1px solid var(--border);font-size:0.74rem;line-height:1.5;transition:all 0.3s;}
+.ps-list li:last-child{border-bottom:none;}
+.ps-num{width:20px;height:20px;border-radius:6px;background:var(--border);color:white;font-size:0.6rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;transition:background 0.3s;font-family:'IBM Plex Mono',monospace;}
+/* Reminder timeline */
+.reminder-row{display:flex;align-items:center;gap:0.85rem;padding:0.65rem 0.85rem;background:white;border:1px solid var(--border);border-radius:8px;margin-bottom:0.4rem;font-size:0.73rem;transition:all 0.3s;}
+.reminder-row.fired{border-color:var(--indigo2);background:rgba(79,70,229,0.03);}
+.reminder-row.paid{border-color:var(--green);background:rgba(22,163,74,0.04);}
+.reminder-row.overdue{border-color:var(--red);background:rgba(220,38,38,0.04);}
+.rem-day{background:var(--indigo2);color:white;border-radius:6px;padding:0.15rem 0.4rem;font-size:0.6rem;font-weight:600;flex-shrink:0;font-family:'IBM Plex Mono',monospace;}
+.rem-day.overdue-day{background:var(--red);}
+.rem-status{margin-left:auto;font-size:0.6rem;padding:0.1rem 0.4rem;border-radius:20px;font-weight:600;}
+.rs-pending{background:rgba(55,48,163,0.08);color:var(--indigo);border:1px solid rgba(55,48,163,0.18);}
+.rs-sent{background:rgba(79,70,229,0.1);color:var(--indigo2);border:1px solid rgba(79,70,229,0.2);}
+.rs-paid{background:rgba(22,163,74,0.1);color:var(--green);border:1px solid rgba(22,163,74,0.2);}
+.rs-overdue{background:rgba(220,38,38,0.08);color:var(--red);border:1px solid rgba(220,38,38,0.18);}
+/* Info boxes */
+.info-indigo{padding:0.75rem 1rem;border-radius:8px;font-size:0.77rem;line-height:1.6;background:rgba(55,48,163,0.06);border:1px solid rgba(55,48,163,0.15);color:var(--indigo);}
+/* Ba */
+.ba-bad{padding:0.6rem 0.9rem;border-radius:8px;font-size:0.76rem;line-height:1.5;background:rgba(220,38,38,0.04);border:1px solid rgba(220,38,38,0.12);}
+.ba-good{padding:0.6rem 0.9rem;border-radius:8px;font-size:0.76rem;line-height:1.5;background:rgba(22,163,74,0.05);border:1px solid rgba(22,163,74,0.14);}
+.quote-block-inv{background:linear-gradient(135deg,var(--indigo),var(--purple2));border-radius:12px;padding:1.75rem 2rem;color:white;}
+.quote-text{font-family:'Fraunces',serif;font-style:italic;font-size:1.1rem;line-height:1.75;margin-bottom:0.75rem;font-weight:300;}
+.quote-text strong{color:#c4b5fd;font-style:normal;}
+.slide-counter{position:fixed;bottom:1.5rem;left:2rem;font-size:0.62rem;color:var(--muted);letter-spacing:0.1em;z-index:100;font-family:'IBM Plex Mono',monospace;}
+.slide-nav{position:fixed;bottom:1.5rem;right:2rem;display:flex;gap:0.5rem;z-index:100;}
+.nav-btn{background:white;border:1px solid var(--border);color:var(--text);padding:0.55rem 1.2rem;border-radius:8px;font-family:'IBM Plex Mono',monospace;font-size:0.7rem;cursor:pointer;transition:all 0.2s;}
+.nav-btn:hover{border-color:var(--indigo2);color:var(--indigo2);}
+.nav-btn.primary{background:var(--indigo2);border-color:var(--indigo2);color:white;}
+.nav-btn.primary:hover{background:var(--indigo);}
+.run-btn{background:var(--indigo2);color:white;border:none;border-radius:8px;padding:0.7rem 1.5rem;font-family:'IBM Plex Mono',monospace;font-size:0.73rem;font-weight:500;cursor:pointer;letter-spacing:0.05em;transition:all 0.2s;width:100%;text-align:center;}
+.run-btn:hover{background:var(--indigo);}
+.animate-in{opacity:0;animation:fadeUp 0.5s ease-out forwards;}
+.slide.active .animate-in:nth-child(1){animation-delay:0.05s;}
+.slide.active .animate-in:nth-child(2){animation-delay:0.15s;}
+.slide.active .animate-in:nth-child(3){animation-delay:0.25s;}
+.slide.active .animate-in:nth-child(4){animation-delay:0.35s;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+</style>
+</head>
+<body>
+<div class="corner-mark"></div>
+<div class="corner-mark-text">n8n</div>
+<nav>
+  <div class="nav-brand">Sales · Invoicing & Quotes</div>
+  <div class="nav-dots" id="navDots"></div>
+  <div class="timer" id="timerBadge">⏱ 00:00</div>
+</nav>
+
+<!-- SLIDE 1: HERO -->
+<section class="slide active" id="slide-0">
+  <div class="hero-bg-geo"></div><div class="hero-bg-dots"></div>
+  <div class="slide-inner">
+    <div class="animate-in"><div class="hero-label">n8n AI Automation · Sales Department</div></div>
+    <div class="animate-in"><h1 class="hero-title">Quotes in Minutes.<br><em>Invoices</em> on<br>Autopilot.</h1></div>
+    <div class="animate-in"><p class="hero-desc">From deal won to invoice sent — automatically. AI-generated quotes, instant approvals, automated payment reminders, and real-time revenue tracking.</p></div>
+    <div class="animate-in">
+      <div class="kpi-strip">
+        <div class="kpi"><div class="kpi-val">90s</div><div class="kpi-lbl">Quote to Send</div></div>
+        <div class="kpi"><div class="kpi-val">100%</div><div class="kpi-lbl">Invoices Chased</div></div>
+        <div class="kpi"><div class="kpi-val">0</div><div class="kpi-lbl">Manual Data Entry</div></div>
+        <div class="kpi"><div class="kpi-val">Live</div><div class="kpi-lbl">Revenue Dashboard</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 2: PROBLEM -->
+<section class="slide" id="slide-1">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">01 — The Problem</div><div class="sec-title">Slow Quotes Kill<br><em>Momentum</em></div><p class="sec-desc">You close the call. The prospect is ready to buy. Then your quote takes 3 days to arrive — and by then, they've gone cold or chosen someone else.</p></div>
+    <div class="animate-in two-col" style="margin-bottom:1.5rem">
+      <div class="card"><div class="card-icon">🐌</div><div class="card-title">Quote Delays</div><div class="card-desc">Sales reps manually build quotes in spreadsheets or Word docs. Average time: 2–4 hours. Meanwhile, the prospect is losing interest or getting a faster competitor quote.</div></div>
+      <div class="card"><div class="card-icon">💸</div><div class="card-title">Invoices Never Chased</div><div class="card-desc">Finance sends an invoice then waits. No automated reminders. 30% of invoices are paid late because nobody followed up. Cash flow suffers, awkward conversations ensue.</div></div>
+      <div class="card"><div class="card-icon">🔢</div><div class="card-title">Pricing Errors</div><div class="card-desc">Manual quotes mean manual maths. Wrong line items, outdated pricing, missing discount approvals. Every error erodes trust and delays the deal close.</div></div>
+      <div class="card"><div class="card-icon">📊</div><div class="card-title">Revenue Blindspot</div><div class="card-desc">No real-time view of outstanding quotes, sent invoices, overdue payments, or forecasted revenue. Decisions made on stale, incomplete data.</div></div>
+    </div>
+    <div class="animate-in"><div class="info-indigo">✅ n8n generates accurate quotes in 90 seconds, sends invoices automatically on deal close, and chases payment without anyone lifting a finger.</div></div>
+  </div>
+</section>
+
+<!-- SLIDE 3: WORKFLOW -->
+<section class="slide" id="slide-2">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">02 — The Blueprint</div><div class="sec-title">n8n Quote-to-Cash<br><em>Workflow</em></div><p class="sec-desc">Deal won triggers the full billing pipeline — quote generation, approval, invoice sending, and payment chase — all automated.</p></div>
+    <div class="animate-in wf-canvas">
+      <div class="wf-geo"></div><div class="wf-grid"></div><div class="wf-label">n8n canvas — quote-to-cash pipeline</div>
+      <div class="wf-nodes">
+        <div class="wf-stage"><div class="wf-slbl">Trigger</div>
+          <div style="display:flex;flex-direction:column;gap:0.35rem">
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#0a1a2a,#1d4ed8);color:#93c5fd;border-color:#1d4ed8;">🏆</div><div class="wf-nlbl">Deal Won<br>(CRM)</div><div class="tti">HubSpot/Salesforce "deal stage changed to Closed Won" webhook. Triggers immediately on rep marking deal as won.</div></div>
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a0a1a,#7c3aed);color:#d8b4fe;border-color:#7c3aed;">📋</div><div class="wf-nlbl">Quote<br>Request</div><div class="tti">Rep submits quote request form with: client name, services, quantities, discount level. n8n handles the rest.</div></div>
+          </div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-stage"><div class="wf-slbl">Generate</div>
+          <div style="display:flex;flex-direction:column;gap:0.35rem">
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a0a0a,#991b1b);color:#fca5a5;border-color:#991b1b;">🧠</div><div class="wf-nlbl">GPT-4o<br>Write</div><div class="tti">GPT-4o generates personalised quote intro, executive summary, and scope description tailored to the client's industry and stated needs.</div></div>
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#0a1a2a,#0369a1);color:#7dd3fc;border-color:#0369a1;">💰</div><div class="wf-nlbl">Pricing<br>Calculator</div><div class="tti">n8n pulls current pricing from Google Sheets pricing table, applies discount rules, calculates totals, VAT, and generates line items automatically.</div></div>
+          </div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-stage"><div class="wf-slbl">Approve</div>
+          <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a1a0a,#78350f);color:#fde68a;border-color:#78350f;">✅</div><div class="wf-nlbl">Approval<br>Gate</div><div class="tti">Discount ≤10%: auto-approved. Discount 11–20%: manager approves via Slack one-click. Discount >20%: director approval required.</div></div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-stage"><div class="wf-slbl">Deliver</div>
+          <div style="display:flex;flex-direction:column;gap:0.35rem">
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#0a1a0a,#14532d);color:#86efac;border-color:#14532d;">📄</div><div class="wf-nlbl">PDF<br>Generator</div><div class="tti">n8n creates a branded PDF quote with all line items, terms, validity period. Stored in Google Drive and attached to CRM deal record.</div></div>
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a3a1a,#166534);color:#4ade80;border-color:#166534;">📧</div><div class="wf-nlbl">Email<br>Send</div><div class="tti">Quote email sent to prospect — personalised cover note from rep's own Gmail account. Open tracking enabled. CRM activity logged.</div></div>
+          </div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-stage"><div class="wf-slbl">Invoice</div>
+          <div style="display:flex;flex-direction:column;gap:0.35rem">
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#0a0a1a,#1e3a5f);color:#93c5fd;border-color:#1e3a5f;">🧾</div><div class="wf-nlbl">Invoice<br>Create</div><div class="tti">On quote acceptance (tracked via email click or DocuSign), n8n auto-creates invoice in Xero/QuickBooks and sends to client.</div></div>
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a0a2e,#6d28d9);color:#c4b5fd;border-color:#6d28d9;">🔔</div><div class="wf-nlbl">Payment<br>Reminders</div><div class="tti">Automated reminders at: 7 days before due, due date, 3 days overdue, 7 days overdue (+ Slack to accounts). Tone escalates with each touch.</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 4: SIM 1 — QUOTE BUILDER -->
+<section class="slide" id="slide-3">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">03 — Simulation 1</div><div class="sec-title">Live: Quote Generated<br><em>in 90 Seconds</em></div><p class="sec-desc">TechVenture Ltd just won their deal. Watch n8n generate a fully branded, accurate quote with personalised copy — ready to send in 90 seconds.</p></div>
+    <div class="animate-in lr">
+      <div style="display:flex;flex-direction:column;gap:1rem">
+        <div class="panel">
+          <h3>Pipeline Steps</h3>
+          <ul class="ps-list" id="quoteSteps">
+            <li id="qs1" style="opacity:0.3"><div class="ps-num">1</div><div>Deal Won trigger fires from HubSpot</div></li>
+            <li id="qs2" style="opacity:0.3"><div class="ps-num">2</div><div>Client data + scope pulled from CRM deal record</div></li>
+            <li id="qs3" style="opacity:0.3"><div class="ps-num">3</div><div>Pricing table applied — line items calculated</div></li>
+            <li id="qs4" style="opacity:0.3"><div class="ps-num">4</div><div>GPT-4o writes personalised quote narrative</div></li>
+            <li id="qs5" style="opacity:0.3"><div class="ps-num">5</div><div>PDF generated and stored in Drive</div></li>
+            <li id="qs6" style="opacity:0.3"><div class="ps-num">6</div><div>Quote emailed to client from rep's Gmail ✅</div></li>
+          </ul>
+        </div>
+        <div class="quote-builder" id="quoteForm">
+          <div class="qb-header"><div class="qb-title">📋 Quote Request Form</div><span style="font-size:0.65rem;opacity:0.7">Rep → n8n</span></div>
+          <div class="qb-body">
+            <div class="qb-field"><label>Client</label><div class="qb-input" id="qf-client"></div></div>
+            <div class="qb-field"><label>Services</label><div class="qb-input" id="qf-services"></div></div>
+            <div class="qb-field"><label>Contract Length</label><div class="qb-input" id="qf-term"></div></div>
+            <div class="qb-field"><label>Discount</label><div class="qb-input" id="qf-disc"></div></div>
+          </div>
+        </div>
+        <button class="run-btn" id="quoteBtn" onclick="runQuoteSim()">▶ GENERATE QUOTE NOW</button>
+      </div>
+      <div id="invoiceReveal" style="display:none">
+        <div class="invoice-preview">
+          <div class="inv-header">
+            <div class="inv-title">Commercial Proposal</div>
+            <div class="inv-num">REF: QT-2025-0284 · Valid 30 days</div>
+          </div>
+          <div class="inv-body">
+            <div class="inv-grid">
+              <div><div class="inv-label">Prepared For</div><div class="inv-val">TechVenture Ltd<br><span style="color:var(--muted);font-weight:300">Oluwaseun Adeyemi, VP Ops</span></div></div>
+              <div><div class="inv-label">Prepared By</div><div class="inv-val">Tobi Adeyemi<br><span style="color:var(--muted);font-weight:300">tobi@company.com</span></div></div>
+            </div>
+            <table class="inv-table">
+              <tr><th>Service</th><th>Qty</th><th>Unit Price</th><th>Total</th></tr>
+              <tr><td>n8n Automation Setup</td><td>1</td><td>£4,500</td><td>£4,500</td></tr>
+              <tr><td>GPT-4o Integration</td><td>3</td><td>£1,200</td><td>£3,600</td></tr>
+              <tr><td>Monthly Support (12mo)</td><td>12</td><td>£850</td><td>£10,200</td></tr>
+              <tr><td style="color:var(--muted)">Discount (8%)</td><td></td><td></td><td style="color:var(--red)">-£1,464</td></tr>
+            </table>
+            <div class="inv-total">
+              <div class="inv-total-lbl">Total (excl. VAT)</div>
+              <div class="inv-total-val">£16,836</div>
+            </div>
+            <div style="margin-top:0.75rem;font-size:0.65rem;color:var(--indigo2);background:var(--lavender);padding:0.5rem 0.75rem;border-radius:6px">✅ Auto-approved (8% discount) · PDF generated · Sent to client · CRM updated</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 5: SIM 2 — PAYMENT REMINDERS -->
+<section class="slide" id="slide-4">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">04 — Simulation 2</div><div class="sec-title">Automated Payment<br><em>Reminder Sequence</em></div><p class="sec-desc">Invoice sent. n8n watches the due date and fires a calibrated reminder sequence — polite first, direct later. No awkward manual chasing.</p></div>
+    <div class="animate-in lr-rev">
+      <div style="display:flex;flex-direction:column;gap:1rem">
+        <div class="panel">
+          <h3>What Each Reminder Contains</h3>
+          <ul class="steps">
+            <li><div class="step-n">1</div><div><strong>T-7 days:</strong> "Friendly reminder — invoice due next week. Here's the link if you need to raise a PO first."</div></li>
+            <li><div class="step-n">2</div><div><strong>Due date:</strong> "Your invoice is due today. Payment details below for your convenience."</div></li>
+            <li><div class="step-n">3</div><div><strong>T+3 days:</strong> "This invoice is now 3 days overdue. Please arrange payment or let us know if there's an issue."</div></li>
+            <li><div class="step-n">4</div><div><strong>T+7 days:</strong> Escalation email from Finance Director. Slack alert to Accounts team. Late fee notice added.</div></li>
+          </ul>
+        </div>
+        <div class="info-indigo">💡 GPT-4o calibrates the tone of each reminder — warmer for long-standing clients, more direct for new accounts. Same rules, different voice.</div>
+        <button class="run-btn" id="remBtn" onclick="runReminderSim()">▶ SIMULATE PAYMENT SEQUENCE</button>
+      </div>
+      <div>
+        <div style="margin-bottom:0.5rem;font-size:0.61rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);font-family:'IBM Plex Mono',monospace">Invoice #INV-2025-0284 · TechVenture · £16,836</div>
+        <div id="reminderBoard">
+          <div class="reminder-row" id="rem1"><div class="rem-day">T-7</div><div>Friendly reminder — payment due next week</div><span class="rem-status rs-pending" id="rs1">Scheduled</span></div>
+          <div class="reminder-row" id="rem2"><div class="rem-day">Due</div><div>Invoice due today — payment details enclosed</div><span class="rem-status rs-pending" id="rs2">Scheduled</span></div>
+          <div class="reminder-row" id="rem3"><div class="rem-day overdue-day">+3d</div><div>Overdue notice — please arrange payment</div><span class="rem-status rs-pending" id="rs3">Scheduled</span></div>
+          <div class="reminder-row" id="rem4"><div class="rem-day overdue-day">+7d</div><div>Escalation — Finance Director + late fee notice</div><span class="rem-status rs-pending" id="rs4">Scheduled</span></div>
+          <div class="reminder-row" id="rem-paid" style="display:none;border-color:var(--green);background:rgba(22,163,74,0.04)">
+            <div style="font-size:0.8rem">✅</div><div><strong style="color:var(--green)">Payment Received!</strong> n8n detects payment in Xero → sequence cancelled → receipt sent → CRM updated</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 6: BEFORE/AFTER -->
+<section class="slide" id="slide-5">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">05 — Business Impact</div><div class="sec-title">Revenue Operations<br><em>Transformed</em></div></div>
+    <div class="animate-in two-col" style="margin-bottom:1.5rem">
+      <div>
+        <div style="font-size:0.62rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--red);margin-bottom:0.75rem;font-weight:500;font-family:'IBM Plex Mono',monospace">❌ BEFORE</div>
+        <div style="display:flex;flex-direction:column;gap:0.5rem">
+          <div class="ba-bad">Quotes take 2–4 hours to build manually — momentum lost</div>
+          <div class="ba-bad">Pricing errors and wrong discounts erode client trust</div>
+          <div class="ba-bad">30% of invoices paid late — nobody chased them</div>
+          <div class="ba-bad">No approval workflow — reps giving 30% discounts unsanctioned</div>
+          <div class="ba-bad">Revenue visibility: a weekly spreadsheet updated manually</div>
+        </div>
+      </div>
+      <div>
+        <div style="font-size:0.62rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--green);margin-bottom:0.75rem;font-weight:500;font-family:'IBM Plex Mono',monospace">✅ AFTER</div>
+        <div style="display:flex;flex-direction:column;gap:0.5rem">
+          <div class="ba-good">Branded quote generated and sent in 90 seconds — zero manual work</div>
+          <div class="ba-good">Live pricing table — always accurate, always current</div>
+          <div class="ba-good">100% of invoices chased automatically — cash flow improved</div>
+          <div class="ba-good">Discount approval gates enforce policy without HR confrontation</div>
+          <div class="ba-good">Live revenue dashboard — every quote, invoice, and payment visible</div>
+        </div>
+      </div>
+    </div>
+    <div class="animate-in">
+      <div class="quote-block-inv">
+        <div class="quote-text">"The quote is often the <strong>last impression before the signature</strong>. Speed and accuracy signal professionalism. This automation ensures every quote arrives fast, looks polished, and contains zero errors — every single time."</div>
+        <div style="font-size:0.62rem;color:rgba(255,255,255,0.3);letter-spacing:0.08em;font-family:'IBM Plex Mono',monospace">STACK: n8n · GPT-4o · HubSpot · Xero/QuickBooks · DocuSign · Gmail · Google Drive · Slack</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="slide-counter" id="slideCounter">Slide 1 of 6</div>
+<div class="slide-nav">
+  <button class="nav-btn" onclick="prevSlide()">← Prev</button>
+  <button class="nav-btn primary" onclick="nextSlide()">Next →</button>
+</div>
+<script>
+const slides=document.querySelectorAll('.slide'),total=slides.length;let cur=0;
+const dots=document.getElementById('navDots');
+for(let i=0;i<total;i++){const d=document.createElement('div');d.className='nav-dot'+(i===0?' active':'');d.onclick=()=>goTo(i);dots.appendChild(d);}
+function goTo(n){slides[cur].classList.remove('active');dots.children[cur].classList.remove('active');if(cur<n)dots.children[cur].classList.add('done');cur=n;slides[cur].classList.add('active');dots.children[cur].classList.add('active');document.getElementById('slideCounter').textContent=`Slide ${cur+1} of ${total}`;}
+function nextSlide(){if(cur<total-1)goTo(cur+1);}function prevSlide(){if(cur>0)goTo(cur-1);}
+document.addEventListener('keydown',e=>{if(e.key==='ArrowRight'||e.key==='ArrowDown')nextSlide();if(e.key==='ArrowLeft'||e.key==='ArrowUp')prevSlide();});
+let secs=0;setInterval(()=>{secs++;const m=String(Math.floor(secs/60)).padStart(2,'0'),s=String(secs%60).padStart(2,'0');document.getElementById('timerBadge').textContent=`⏱ ${m}:${s}`;if(secs>=840)document.getElementById('timerBadge').style.color='#dc2626';},1000);
+function delay(ms){return new Promise(r=>setTimeout(r,ms));}
+let quoteRunning=false;
+async function runQuoteSim(){
+  if(quoteRunning)return;quoteRunning=true;
+  document.getElementById('invoiceReveal').style.display='none';
+  const fields=[['qf-client','TechVenture Ltd — Oluwaseun Adeyemi'],['qf-services','Automation Setup + GPT-4o + 12mo Support'],['qf-term','12 months'],['qf-disc','8% (auto-approved)']];
+  for(const[id,val]of fields){
+    const el=document.getElementById(id);if(!el)continue;
+    el.style.borderColor='var(--indigo2)';let i=0;
+    await new Promise(r=>{const iv=setInterval(()=>{el.textContent=val.slice(0,++i);if(i>=val.length){clearInterval(iv);el.style.borderColor='var(--green)';r();}},22);});
+    await delay(120);
+  }
+  const stepIds=['qs1','qs2','qs3','qs4','qs5','qs6'];
+  for(let i=0;i<stepIds.length;i++){
+    await delay(420);
+    stepIds.forEach(id=>{const el=document.getElementById(id);if(el){el.style.opacity='0.3';el.querySelector('.ps-num').style.background='var(--border)';}});
+    const el=document.getElementById(stepIds[i]);if(el){el.style.opacity='1';el.style.color='var(--indigo2)';el.querySelector('.ps-num').style.background='var(--indigo2)';}
+  }
+  document.getElementById('invoiceReveal').style.display='block';
+  document.getElementById('quoteBtn').textContent='↺ Reset & Run Again';quoteRunning=false;
+}
+let remRunning=false;
+async function runReminderSim(){
+  if(remRunning)return;remRunning=true;
+  const btn=document.getElementById('remBtn');btn.textContent='Running...';
+  document.getElementById('rem-paid').style.display='none';
+  ['rem1','rem2','rem3','rem4'].forEach(id=>{const el=document.getElementById(id);if(el)el.className='reminder-row';});
+  ['rs1','rs2','rs3','rs4'].forEach(id=>{const el=document.getElementById(id);if(el){el.className='rem-status rs-pending';el.textContent='Scheduled';}});
+  const seq=[['rem1','rs1','fired','rs-sent','Sent ✓'],['rem2','rs2','fired','rs-sent','Sent ✓'],['rem3','rs3','overdue','rs-overdue','Overdue'],['rem4','rs4','overdue','rs-overdue','Escalated'],];
+  for(const[rid,sid,rowCls,stCls,stTxt]of seq){
+    await delay(750);
+    const row=document.getElementById(rid);const st=document.getElementById(sid);
+    if(row)row.classList.add(rowCls);if(st){st.className='rem-status '+stCls;st.textContent=stTxt;}
+  }
+  await delay(900);
+  ['rem1','rem2','rem3','rem4'].forEach(id=>{const el=document.getElementById(id);if(el)el.className='reminder-row paid';});
+  ['rs1','rs2','rs3','rs4'].forEach(id=>{const el=document.getElementById(id);if(el){el.className='rem-status rs-paid';el.textContent='Paid ✓';}});
+  document.getElementById('rem-paid').style.display='flex';
+  btn.textContent='↺ Reset & Run Again';remRunning=false;
+}
+</script>
+</body>
+</html>
