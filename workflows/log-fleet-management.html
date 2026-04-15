@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Logistics — Fleet Management Automation</title>
+<link href="https://fonts.googleapis.com/css2?family=Epilogue:wght@300;400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f4f6f8;--surface:#ffffff;--surface2:#eaecf0;--border:#d0d8e8;
+  --ink:#080e18;--navy:#1a2a4a;--navy2:#101e38;--blue:#2050b8;
+  --red:#c02020;--red2:#981818;--green:#0a6a38;--amber:#b07010;
+  --sky:#dbeafe;--text:#0a1428;--muted:#506078;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'Epilogue',sans-serif;overflow-x:hidden;}
+.left-accent{position:fixed;left:0;top:0;bottom:0;width:4px;background:linear-gradient(to bottom,var(--navy),var(--blue),var(--red));z-index:200;}
+nav{position:fixed;top:0;left:4px;right:0;z-index:100;background:rgba(244,246,248,0.97);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 2.5rem;height:54px;}
+.nav-brand{font-family:'IBM Plex Mono',monospace;font-size:0.7rem;color:var(--navy2);letter-spacing:0.06em;}
+.nav-dots{display:flex;gap:0.3rem;}
+.nav-dot{width:7px;height:7px;border-radius:2px;background:var(--border);cursor:pointer;transition:all 0.2s;}
+.nav-dot.active{background:var(--navy);transform:scale(1.4);}
+.nav-dot.done{background:var(--green);}
+.timer{font-size:0.67rem;color:var(--navy);background:rgba(26,42,74,0.07);border:1px solid rgba(26,42,74,0.18);padding:0.2rem 0.75rem;border-radius:4px;font-family:'IBM Plex Mono',monospace;}
+.slide{min-height:100vh;padding:78px 0 50px;display:none;flex-direction:column;align-items:center;justify-content:center;position:relative;overflow:hidden;}
+.slide.active{display:flex;}
+.slide-inner{width:100%;max-width:1140px;padding:0 2.5rem;position:relative;z-index:2;}
+.hero-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(26,42,74,0.04) 1px,transparent 1px),linear-gradient(90deg,rgba(26,42,74,0.04) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;}
+.hero-badge{display:inline-flex;align-items:center;gap:0.5rem;background:var(--sky);border:1px solid rgba(26,42,74,0.18);color:var(--navy2);font-size:0.67rem;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;padding:0.28rem 0.9rem;border-radius:4px;margin-bottom:1.5rem;font-family:'IBM Plex Mono',monospace;}
+.hero-badge::before{content:'🚛';font-size:0.75rem;}
+h1.hero-title{font-family:'Epilogue',sans-serif;font-size:clamp(2.8rem,5.5vw,4.8rem);font-weight:800;line-height:1.0;letter-spacing:-0.03em;color:var(--ink);margin-bottom:1.5rem;}
+h1.hero-title span{color:var(--navy);}
+.hero-desc{font-size:0.97rem;color:var(--muted);max-width:510px;line-height:1.78;margin-bottom:2.5rem;font-weight:300;}
+.kpi-strip{display:flex;gap:1px;background:var(--border);border-radius:8px;overflow:hidden;max-width:640px;box-shadow:0 2px 10px rgba(26,42,74,0.08);}
+.kpi{background:white;padding:1.1rem 1.4rem;flex:1;}
+.kpi-val{font-family:'Epilogue',sans-serif;font-size:1.85rem;font-weight:800;color:var(--navy);line-height:1;}
+.kpi-lbl{font-size:0.59rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);margin-top:0.2rem;font-family:'IBM Plex Mono',monospace;}
+.sec-tag{font-size:0.61rem;letter-spacing:0.22em;text-transform:uppercase;color:var(--blue);margin-bottom:0.4rem;font-weight:600;font-family:'IBM Plex Mono',monospace;display:flex;align-items:center;gap:0.4rem;}
+.sec-tag::before{content:'';width:16px;height:2px;background:var(--navy);}
+.sec-title{font-family:'Epilogue',sans-serif;font-size:clamp(1.9rem,3.8vw,3rem);font-weight:800;line-height:1.05;margin-bottom:0.5rem;color:var(--ink);letter-spacing:-0.02em;}
+.sec-title span{color:var(--navy);}
+.sec-desc{font-size:0.87rem;color:var(--muted);margin-bottom:1.85rem;max-width:540px;line-height:1.78;font-weight:300;}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;}
+.three-col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;}
+.lr{display:grid;grid-template-columns:1.1fr 1fr;gap:2rem;align-items:start;}
+.lr-rev{display:grid;grid-template-columns:1fr 1.15fr;gap:2rem;align-items:start;}
+.card{background:white;border:1px solid var(--border);border-radius:8px;padding:1.25rem;transition:all 0.2s;box-shadow:0 1px 4px rgba(0,0,0,0.04);}
+.card:hover{border-color:var(--navy);transform:translateY(-2px);box-shadow:0 6px 18px rgba(26,42,74,0.09);}
+.card-icon{font-size:1.4rem;margin-bottom:0.5rem;}
+.card-title{font-family:'Epilogue',sans-serif;font-size:0.95rem;font-weight:700;margin-bottom:0.3rem;color:var(--ink);}
+.card-desc{font-size:0.72rem;color:var(--muted);line-height:1.65;}
+.panel{background:white;border:1px solid var(--border);border-radius:8px;padding:1.4rem;}
+.panel h3{font-family:'Epilogue',sans-serif;font-size:0.88rem;font-weight:700;color:var(--navy2);margin-bottom:0.9rem;display:flex;align-items:center;gap:0.5rem;}
+.panel h3::before{content:'//';color:var(--border);font-size:0.8rem;font-family:'IBM Plex Mono',monospace;}
+.steps{list-style:none;}
+.steps li{display:flex;gap:0.75rem;padding:0.45rem 0;border-bottom:1px solid var(--border);font-size:0.76rem;line-height:1.6;}
+.steps li:last-child{border-bottom:none;}
+.step-n{width:22px;height:22px;border-radius:4px;background:var(--navy);color:white;font-size:0.62rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:'IBM Plex Mono',monospace;}
+/* Workflow */
+.wf-canvas{background:var(--ink);border-radius:10px;padding:2rem;position:relative;overflow:hidden;}
+.wf-grid2{position:absolute;inset:0;background-image:linear-gradient(rgba(32,80,184,0.08) 1px,transparent 1px),linear-gradient(90deg,rgba(32,80,184,0.08) 1px,transparent 1px);background-size:32px 32px;}
+.wf-label{position:absolute;top:0.75rem;left:1rem;font-size:0.57rem;letter-spacing:0.18em;text-transform:uppercase;color:rgba(255,255,255,0.3);display:flex;align-items:center;gap:0.4rem;z-index:3;font-family:'IBM Plex Mono',monospace;}
+.wf-label::before{content:'';width:7px;height:7px;border-radius:2px;background:var(--red);box-shadow:0 0 8px var(--red);animation:rpulse 2s infinite;}
+@keyframes rpulse{0%,100%{opacity:1}50%{opacity:0.2}}
+.wf-nodes{display:flex;align-items:flex-start;gap:0;padding-top:1.5rem;position:relative;z-index:2;flex-wrap:wrap;}
+.wf-stage{display:flex;flex-direction:column;align-items:center;}
+.wf-slbl{font-size:0.51rem;letter-spacing:0.14em;text-transform:uppercase;color:rgba(255,255,255,0.28);margin-bottom:0.3rem;font-family:'IBM Plex Mono',monospace;}
+.wf-node{display:flex;flex-direction:column;align-items:center;gap:0.3rem;cursor:pointer;position:relative;}
+.wf-box{width:58px;height:58px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.25rem;border:2px solid transparent;transition:all 0.3s;}
+.wf-node:hover .wf-box{transform:scale(1.1);box-shadow:0 0 20px rgba(26,42,74,0.5);}
+.wf-nlbl{font-size:0.52rem;text-align:center;color:rgba(255,255,255,0.42);max-width:66px;line-height:1.3;font-family:'IBM Plex Mono',monospace;}
+.wf-arr{color:rgba(255,255,255,0.18);padding:0 0.2rem;font-size:0.85rem;align-self:flex-start;margin-top:19px;flex-shrink:0;}
+.ttw{position:relative;}
+.tti{position:absolute;bottom:calc(100%+8px);left:50%;transform:translateX(-50%);background:white;border:1px solid var(--border);border-radius:6px;padding:0.6rem 0.9rem;font-size:0.67rem;opacity:0;pointer-events:none;transition:opacity 0.2s;z-index:50;color:var(--ink);line-height:1.5;max-width:200px;white-space:normal;text-align:left;box-shadow:0 4px 12px rgba(0,0,0,0.1);}
+.ttw:hover .tti{opacity:1;}
+/* Fleet table */
+.fleet-table{background:white;border:1px solid var(--border);border-radius:8px;overflow:hidden;font-size:0.7rem;}
+.ft-head{background:var(--surface2);border-bottom:1px solid var(--border);display:grid;grid-template-columns:60px 80px 90px 80px 90px 80px 90px;padding:0.55rem 0.85rem;gap:0.4rem;font-size:0.59rem;letter-spacing:0.08em;color:var(--navy2);font-weight:600;text-transform:uppercase;font-family:'IBM Plex Mono',monospace;}
+.ft-row{display:grid;grid-template-columns:60px 80px 90px 80px 90px 80px 90px;padding:0.52rem 0.85rem;gap:0.4rem;border-bottom:1px solid rgba(208,216,232,0.4);align-items:center;transition:background 0.15s;}
+.ft-row:hover{background:var(--surface2);}
+.ft-row:last-child{border-bottom:none;}
+.fb{display:inline-block;padding:0.1rem 0.42rem;border-radius:4px;font-size:0.58rem;font-weight:600;font-family:'IBM Plex Mono',monospace;}
+.fb-ok{background:rgba(10,106,56,0.1);color:var(--green);border:1px solid rgba(10,106,56,0.2);}
+.fb-warn{background:rgba(176,112,16,0.1);color:var(--amber);border:1px solid rgba(176,112,16,0.2);}
+.fb-due{background:rgba(192,32,32,0.1);color:var(--red);border:1px solid rgba(192,32,32,0.2);}
+.fb-serv{background:rgba(26,42,74,0.1);color:var(--navy);border:1px solid rgba(26,42,74,0.2);}
+/* Maint alert */
+.maint-row{background:white;border:1px solid var(--border);border-radius:8px;padding:0.7rem 1rem;margin-bottom:0.4rem;display:flex;gap:0.75rem;align-items:flex-start;font-size:0.73rem;transition:all 0.3s;}
+.maint-row.due-now{border-color:var(--red);background:rgba(192,32,32,0.03);}
+.maint-row.due-soon{border-color:var(--amber);background:rgba(176,112,16,0.03);}
+.maint-row.ok-m{border-color:var(--green);background:rgba(10,106,56,0.03);}
+.mr-icon{font-size:1.1rem;flex-shrink:0;}
+.mr-title{font-weight:600;color:var(--ink);}
+.mr-detail{font-size:0.63rem;color:var(--muted);margin-top:0.1rem;}
+.mr-badge{margin-left:auto;font-size:0.58rem;padding:0.1rem 0.42rem;border-radius:4px;font-weight:600;font-family:'IBM Plex Mono',monospace;white-space:nowrap;}
+.mrb-due{background:rgba(192,32,32,0.1);color:var(--red);border:1px solid rgba(192,32,32,0.2);}
+.mrb-soon{background:rgba(176,112,16,0.1);color:var(--amber);border:1px solid rgba(176,112,16,0.2);}
+.mrb-ok{background:rgba(10,106,56,0.1);color:var(--green);border:1px solid rgba(10,106,56,0.2);}
+/* PS list */
+.ps-list{list-style:none;}
+.ps-list li{display:flex;gap:0.75rem;padding:0.45rem 0;border-bottom:1px solid var(--border);font-size:0.74rem;line-height:1.5;transition:all 0.3s;}
+.ps-list li:last-child{border-bottom:none;}
+.ps-num{width:20px;height:20px;border-radius:4px;background:var(--border);color:white;font-size:0.6rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;transition:background 0.3s;font-family:'IBM Plex Mono',monospace;}
+.info-navy{padding:0.75rem 1rem;border-radius:6px;font-size:0.77rem;line-height:1.6;background:rgba(26,42,74,0.06);border:1px solid rgba(26,42,74,0.15);color:var(--navy2);}
+.info-green{padding:0.75rem 1rem;border-radius:6px;font-size:0.77rem;line-height:1.6;background:rgba(10,106,56,0.06);border:1px solid rgba(10,106,56,0.15);color:var(--green);}
+.ba-bad{padding:0.6rem 0.9rem;border-radius:6px;font-size:0.76rem;line-height:1.5;background:rgba(192,32,32,0.04);border:1px solid rgba(192,32,32,0.12);}
+.ba-good{padding:0.6rem 0.9rem;border-radius:6px;font-size:0.76rem;line-height:1.5;background:rgba(10,106,56,0.05);border:1px solid rgba(10,106,56,0.14);}
+.quote-block{background:var(--ink);border-radius:10px;padding:1.75rem 2rem;color:white;border-left:4px solid var(--blue);}
+.quote-text{font-size:1.05rem;line-height:1.78;margin-bottom:0.75rem;font-weight:300;}
+.quote-text strong{color:#93c5fd;}
+.slide-counter{position:fixed;bottom:1.5rem;left:2rem;font-size:0.62rem;color:var(--muted);z-index:100;font-family:'IBM Plex Mono',monospace;}
+.slide-nav{position:fixed;bottom:1.5rem;right:2rem;display:flex;gap:0.5rem;z-index:100;}
+.nav-btn{background:white;border:1px solid var(--border);color:var(--text);padding:0.55rem 1.2rem;border-radius:6px;font-family:'IBM Plex Mono',monospace;font-size:0.7rem;cursor:pointer;transition:all 0.2s;}
+.nav-btn:hover{border-color:var(--navy);color:var(--navy);}
+.nav-btn.primary{background:var(--navy);border-color:var(--navy);color:white;}
+.nav-btn.primary:hover{background:var(--navy2);}
+.run-btn{background:var(--navy);color:white;border:none;border-radius:6px;padding:0.7rem 1.5rem;font-family:'IBM Plex Mono',monospace;font-size:0.72rem;cursor:pointer;transition:all 0.2s;width:100%;text-align:center;}
+.run-btn:hover{background:var(--navy2);}
+.animate-in{opacity:0;animation:fadeUp 0.5s ease-out forwards;}
+.slide.active .animate-in:nth-child(1){animation-delay:0.05s;}
+.slide.active .animate-in:nth-child(2){animation-delay:0.15s;}
+.slide.active .animate-in:nth-child(3){animation-delay:0.25s;}
+.slide.active .animate-in:nth-child(4){animation-delay:0.35s;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+</style>
+</head>
+<body>
+<div class="left-accent"></div>
+<nav>
+  <div class="nav-brand">LOGISTICS · Fleet Management</div>
+  <div class="nav-dots" id="navDots"></div>
+  <div class="timer" id="timerBadge">⏱ 00:00</div>
+</nav>
+
+<!-- SLIDE 1: HERO -->
+<section class="slide active" id="slide-0">
+  <div class="hero-grid"></div>
+  <div class="slide-inner">
+    <div class="animate-in"><div class="hero-badge">n8n AI Automation · Logistics & Supply Chain</div></div>
+    <div class="animate-in"><h1 class="hero-title">Every Vehicle.<br><span>Monitored.</span><br>Maintained.</h1></div>
+    <div class="animate-in"><p class="hero-desc">Automated fleet health monitoring — maintenance schedules tracked, service reminders sent before breakdowns happen, fuel efficiency analysed, and vehicle utilisation optimised across the whole fleet.</p></div>
+    <div class="animate-in">
+      <div class="kpi-strip">
+        <div class="kpi"><div class="kpi-val">40%</div><div class="kpi-lbl">Fewer Breakdowns</div></div>
+        <div class="kpi"><div class="kpi-val">100%</div><div class="kpi-lbl">Fleet Tracked</div></div>
+        <div class="kpi"><div class="kpi-val">Auto</div><div class="kpi-lbl">Service Reminders</div></div>
+        <div class="kpi"><div class="kpi-val">Live</div><div class="kpi-lbl">Fleet Dashboard</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 2: PROBLEM -->
+<section class="slide" id="slide-1">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">01 — The Problem</div><div class="sec-title">Fleet That Breaks<br><span>Without Warning</span></div><p class="sec-desc">A logistics company's biggest variable cost — after fuel — is unplanned vehicle downtime. Breakdowns that could have been prevented with scheduled maintenance cost 3–5x more than the service would have.</p></div>
+    <div class="animate-in two-col" style="margin-bottom:1.5rem">
+      <div class="card"><div class="card-icon">🔧</div><div class="card-title">Reactive Maintenance</div><div class="card-desc">Trucks serviced only when they break down. Oil changes missed. Tyre pressure not checked. Brake pads worn past safe limit. Each breakdown costs: recovery, lost revenue, emergency repairs, and customer trust.</div></div>
+      <div class="card"><div class="card-icon">📋</div><div class="card-title">Manual Service Tracking</div><div class="card-desc">Service records in a manual logbook per vehicle. Nobody checks until something goes wrong. Fleet manager doesn't know which vehicles are due for service, which roadworthiness certificates are expiring, or which tyres are near-end.</div></div>
+      <div class="card"><div class="card-icon">⛽</div><div class="card-title">Fuel Leakage</div><div class="card-desc">Driver reports 80 litres consumed. GPS shows 400km driven. Average consumption for that truck type is 0.15L/km = 60 litres expected. 20-litre discrepancy. Without automated tracking, this theft or waste goes undetected.</div></div>
+      <div class="card"><div class="card-icon">📊</div><div class="card-title">No Utilisation Data</div><div class="card-desc">Some trucks run 5 days a week. Others sit idle 3 days. No routing optimisation. Asset under-utilisation directly reduces revenue per vehicle. Without data, fleet expansion decisions are guesswork.</div></div>
+    </div>
+    <div class="animate-in"><div class="info-navy">✅ n8n monitors every vehicle's km, service schedule, fuel consumption, and document expiry — sending alerts before problems occur and flagging anomalies that signal misuse or mechanical issues.</div></div>
+  </div>
+</section>
+
+<!-- SLIDE 3: WORKFLOW -->
+<section class="slide" id="slide-2">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">02 — The Blueprint</div><div class="sec-title">n8n Fleet Management<br><span>Automation</span></div><p class="sec-desc">Every vehicle tracked in real time. Maintenance scheduled automatically. Fuel anomalies flagged. Document expiries managed. Fleet manager focuses on decisions, not data collection.</p></div>
+    <div class="animate-in wf-canvas">
+      <div class="wf-grid2"></div>
+      <div class="wf-label">n8n canvas — fleet management pipeline</div>
+      <div class="wf-nodes">
+        <div class="wf-stage"><div class="wf-slbl">Monitor</div>
+          <div style="display:flex;flex-direction:column;gap:0.35rem">
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#0a1a2a,#1d4ed8);color:#93c5fd;border-color:#1d4ed8;">📡</div><div class="wf-nlbl">GPS &<br>OBD Data</div><div class="tti">Vehicle GPS and OBD-II diagnostics feed into n8n continuously. km driven, engine hours, speed, fuel level, fault codes all captured automatically.</div></div>
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a1a0a,#78350f);color:#fde68a;border-color:#78350f;">⛽</div><div class="wf-nlbl">Fuel Card<br>Integration</div><div class="tti">Fuel card transactions captured automatically. Litres purchased, location, time. Cross-referenced with GPS km to detect consumption anomalies.</div></div>
+          </div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-stage"><div class="wf-slbl">Analyse</div>
+          <div style="display:flex;flex-direction:column;gap:0.35rem">
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a0a0a,#991b1b);color:#fca5a5;border-color:#991b1b;">🧠</div><div class="wf-nlbl">GPT-4o<br>Anomaly</div><div class="tti">GPT-4o analyses OBD fault codes. Classifies: critical (stop vehicle), serious (service within 48hrs), advisory (next scheduled service). Explains fault in plain language for driver.</div></div>
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#0a1a1a,#065f46);color:#6ee7b7;border-color:#065f46;">📊</div><div class="wf-nlbl">Fuel<br>Analysis</div><div class="tti">Actual fuel consumption vs expected per route compared daily. Anomalies >15% flagged: possible theft, mechanical issue, or route deviation. Fleet manager notified with evidence.</div></div>
+          </div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-stage"><div class="wf-slbl">Schedule</div>
+          <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#0a0a1a,#1e3a5f);color:#93c5fd;border-color:#1e3a5f;">🗓️</div><div class="wf-nlbl">Service<br>Scheduler</div><div class="tti">Maintenance due calculated from km since last service. 500km before due: fleet manager + mechanic notified. Vehicle added to workshop schedule automatically.</div></div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-stage"><div class="wf-slbl">Alert</div>
+          <div style="display:flex;flex-direction:column;gap:0.35rem">
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a0a0a,#7f1d1d);color:#fca5a5;border-color:#7f1d1d;">📄</div><div class="wf-nlbl">Document<br>Expiry</div><div class="tti">Roadworthiness certificates, insurance, driver licences, fire extinguisher dates all tracked. 30-day and 7-day alerts sent automatically. Expired documents: vehicle grounded until resolved.</div></div>
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a0a2e,#6d28d9);color:#c4b5fd;border-color:#6d28d9;">📊</div><div class="wf-nlbl">Fleet<br>Dashboard</div><div class="tti">Live dashboard: all vehicles, km this week, last service date, next service due, document status, fuel efficiency, current location. Fleet manager sees everything from one screen.</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 4: SIM 1 — FLEET STATUS -->
+<section class="slide" id="slide-3">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">03 — Simulation 1</div><div class="sec-title">Live Fleet Status<br><span>Dashboard</span></div><p class="sec-desc">Monday morning fleet health check. n8n has scanned all 8 vehicles overnight and flagged 3 items requiring attention — before a single wheel turns today.</p></div>
+    <div class="animate-in" style="margin-bottom:1.25rem">
+      <div class="fleet-table">
+        <div class="ft-head"><div>Vehicle</div><div>KM This Wk</div><div>Last Service</div><div>Next Due</div><div>Fuel Eff.</div><div>Docs</div><div>Status</div></div>
+        <div class="ft-row"><div style="font-family:'IBM Plex Mono',monospace">LG-001</div><div>1,240km</div><div>8 Mar</div><div style="color:var(--red);font-weight:700">320km away</div><div>0.14L/km</div><div><span class="fb fb-ok">Valid ✓</span></div><div><span class="fb fb-due">Service Due</span></div></div>
+        <div class="ft-row"><div style="font-family:'IBM Plex Mono',monospace">LG-002</div><div>980km</div><div>1 Apr</div><div>2,100km away</div><div style="color:var(--red)">0.22L/km ⚠</div><div><span class="fb fb-ok">Valid ✓</span></div><div><span class="fb fb-warn">Fuel Flag</span></div></div>
+        <div class="ft-row"><div style="font-family:'IBM Plex Mono',monospace">LG-003</div><div>1,580km</div><div>22 Mar</div><div>1,420km away</div><div>0.15L/km</div><div><span class="fb fb-warn">Exp: 15 May</span></div><div><span class="fb fb-ok">OK ✓</span></div></div>
+        <div class="ft-row"><div style="font-family:'IBM Plex Mono',monospace">LG-004</div><div>720km</div><div>5 Apr</div><div>3,280km away</div><div>0.16L/km</div><div><span class="fb fb-ok">Valid ✓</span></div><div><span class="fb fb-ok">OK ✓</span></div></div>
+        <div class="ft-row"><div style="font-family:'IBM Plex Mono',monospace">LG-005</div><div>0km</div><div>—</div><div>—</div><div>—</div><div><span class="fb fb-due">Expired!</span></div><div><span class="fb fb-serv">Grounded</span></div></div>
+      </div>
+    </div>
+    <div class="animate-in two-col">
+      <div>
+        <div style="font-size:0.61rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);font-family:'IBM Plex Mono',monospace;margin-bottom:0.4rem">Maintenance Alerts — Today</div>
+        <div class="maint-row due-now"><div class="mr-icon">🔧</div><div><div class="mr-title">LG-001 — Service Overdue</div><div class="mr-detail">320km past service interval — workshop booking needed today</div></div><span class="mr-badge mrb-due">Due Now</span></div>
+        <div class="maint-row due-soon"><div class="mr-icon">⛽</div><div><div class="mr-title">LG-002 — Fuel Anomaly</div><div class="mr-detail">47% above expected consumption — investigation required</div></div><span class="mr-badge mrb-soon">Investigate</span></div>
+        <div class="maint-row due-soon"><div class="mr-icon">📄</div><div><div class="mr-title">LG-003 — Certificate Expiring</div><div class="mr-detail">Roadworthiness expires May 15 — renewal in 35 days</div></div><span class="mr-badge mrb-soon">35 days</span></div>
+      </div>
+      <div class="info-navy">✅ These 3 alerts were generated automatically at 6am Monday, before any dispatch. LG-001 is now booked for service today. LG-005 remains grounded until roadworthiness is renewed — n8n enforces the compliance rule automatically.</div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 5: BEFORE/AFTER -->
+<section class="slide" id="slide-4">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">04 — Operational Impact</div><div class="sec-title">A Fleet That<br><span>Runs</span></div></div>
+    <div class="animate-in two-col" style="margin-bottom:1.5rem">
+      <div>
+        <div style="font-size:0.62rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--red);margin-bottom:0.75rem;font-weight:600;font-family:'IBM Plex Mono',monospace">❌ BEFORE</div>
+        <div style="display:flex;flex-direction:column;gap:0.5rem">
+          <div class="ba-bad">Vehicles serviced only after breakdown — 3–5x cost of planned maintenance</div>
+          <div class="ba-bad">Fuel theft undetected — 15–20% leakage industry average without monitoring</div>
+          <div class="ba-bad">Roadworthiness certificate expires — vehicle operates illegally unknowingly</div>
+          <div class="ba-bad">Service logbooks manual — nobody checks, nobody knows</div>
+          <div class="ba-bad">Fleet utilisation unknown — under-used assets, over-used others</div>
+        </div>
+      </div>
+      <div>
+        <div style="font-size:0.62rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--green);margin-bottom:0.75rem;font-weight:600;font-family:'IBM Plex Mono',monospace">✅ AFTER</div>
+        <div style="display:flex;flex-direction:column;gap:0.5rem">
+          <div class="ba-good">Service due 500km in advance — no unplanned breakdowns</div>
+          <div class="ba-good">Daily fuel anomaly detection — theft or mechanical issues caught immediately</div>
+          <div class="ba-good">Document expiry tracked — vehicle grounded automatically if expired</div>
+          <div class="ba-good">Live fleet dashboard — fleet manager sees all 8 vehicles from one screen</div>
+          <div class="ba-good">Utilisation data — idle assets identified, routes optimised</div>
+        </div>
+      </div>
+    </div>
+    <div class="animate-in">
+      <div class="quote-block">
+        <div class="quote-text">"Every hour a truck is broken down costs 3–5x the cost of the service that would have prevented it. <strong>Predictive fleet maintenance</strong> is the highest-ROI automation any logistics company can implement."</div>
+        <div style="font-size:0.62rem;color:rgba(255,255,255,0.3);font-family:'IBM Plex Mono',monospace">STACK: n8n · GPT-4o · GPS/OBD APIs · Fuel Card APIs · Google Sheets · Slack · Gmail · Google Maps</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="slide-counter" id="slideCounter">Slide 1 of 5</div>
+<div class="slide-nav">
+  <button class="nav-btn" onclick="prevSlide()">← Prev</button>
+  <button class="nav-btn primary" onclick="nextSlide()">Next →</button>
+</div>
+<script>
+const slides=document.querySelectorAll('.slide'),total=slides.length;let cur=0;
+const dots=document.getElementById('navDots');
+for(let i=0;i<total;i++){const d=document.createElement('div');d.className='nav-dot'+(i===0?' active':'');d.onclick=()=>goTo(i);dots.appendChild(d);}
+function goTo(n){slides[cur].classList.remove('active');dots.children[cur].classList.remove('active');if(cur<n)dots.children[cur].classList.add('done');cur=n;slides[cur].classList.add('active');dots.children[cur].classList.add('active');document.getElementById('slideCounter').textContent=`Slide ${cur+1} of ${total}`;}
+function nextSlide(){if(cur<total-1)goTo(cur+1);}function prevSlide(){if(cur>0)goTo(cur-1);}
+document.addEventListener('keydown',e=>{if(e.key==='ArrowRight'||e.key==='ArrowDown')nextSlide();if(e.key==='ArrowLeft'||e.key==='ArrowUp')prevSlide();});
+let secs=0;setInterval(()=>{secs++;const m=String(Math.floor(secs/60)).padStart(2,'0'),s=String(secs%60).padStart(2,'0');document.getElementById('timerBadge').textContent=`⏱ ${m}:${s}`;if(secs>=840)document.getElementById('timerBadge').style.color='#c02020';},1000);
+</script>
+</body>
+</html>
