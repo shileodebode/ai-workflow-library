@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Operations — Internal Task Management Automation</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f4f7f9;--surface:#ffffff;--surface2:#e8eff4;--border:#d0dce8;
+  --ink:#08141e;--teal:#0e7490;--teal2:#0a5c78;--slate:#334e68;
+  --cyan:#22d3ee;--sky:#e0f7ff;--green:#0d6e3f;--red:#c42020;
+  --amber:#c07010;--purple:#5e3aa8;--text:#0a1828;--muted:#5a7080;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;overflow-x:hidden;}
+.top-bar{position:fixed;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,var(--teal),var(--cyan),var(--teal));z-index:200;}
+nav{position:fixed;top:4px;left:0;right:0;z-index:100;background:rgba(244,247,249,0.97);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 2.5rem;height:54px;}
+.nav-brand{font-family:'JetBrains Mono',monospace;font-size:0.7rem;color:var(--teal2);letter-spacing:0.06em;}
+.nav-dots{display:flex;gap:0.3rem;}
+.nav-dot{width:7px;height:7px;border-radius:50%;background:var(--border);cursor:pointer;transition:all 0.2s;}
+.nav-dot.active{background:var(--teal);transform:scale(1.5);}
+.nav-dot.done{background:var(--green);}
+.timer{font-size:0.67rem;color:var(--teal);background:rgba(14,116,144,0.08);border:1px solid rgba(14,116,144,0.2);padding:0.2rem 0.75rem;border-radius:20px;font-family:'JetBrains Mono',monospace;}
+.slide{min-height:100vh;padding:78px 0 50px;display:none;flex-direction:column;align-items:center;justify-content:center;position:relative;overflow:hidden;}
+.slide.active{display:flex;}
+.slide-inner{width:100%;max-width:1140px;padding:0 2.5rem;position:relative;z-index:2;}
+.hero-mesh{position:absolute;top:-80px;right:-80px;width:540px;height:540px;border-radius:50%;background:radial-gradient(circle,rgba(14,116,144,0.06) 0%,transparent 65%);pointer-events:none;}
+.hero-badge{display:inline-flex;align-items:center;gap:0.5rem;background:var(--sky);border:1px solid rgba(14,116,144,0.2);color:var(--teal2);font-size:0.67rem;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;padding:0.28rem 0.9rem;border-radius:8px;margin-bottom:1.5rem;font-family:'JetBrains Mono',monospace;}
+h1.hero-title{font-family:'Syne',sans-serif;font-size:clamp(2.8rem,5.5vw,4.8rem);font-weight:800;line-height:1.0;letter-spacing:-0.03em;color:var(--ink);margin-bottom:1.5rem;}
+h1.hero-title span{color:var(--teal);}
+.hero-desc{font-size:0.97rem;color:var(--muted);max-width:510px;line-height:1.78;margin-bottom:2.5rem;font-weight:300;}
+.kpi-strip{display:flex;gap:1px;background:var(--border);border-radius:12px;overflow:hidden;max-width:640px;box-shadow:0 2px 12px rgba(14,116,144,0.07);}
+.kpi{background:white;padding:1.1rem 1.4rem;flex:1;}
+.kpi-val{font-family:'Syne',sans-serif;font-size:1.9rem;font-weight:800;color:var(--teal);line-height:1;}
+.kpi-lbl{font-size:0.59rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);margin-top:0.2rem;font-family:'JetBrains Mono',monospace;}
+.sec-tag{font-size:0.61rem;letter-spacing:0.22em;text-transform:uppercase;color:var(--teal);margin-bottom:0.4rem;font-weight:600;font-family:'JetBrains Mono',monospace;display:flex;align-items:center;gap:0.4rem;}
+.sec-tag::before{content:'';width:16px;height:2px;background:var(--teal);}
+.sec-title{font-family:'Syne',sans-serif;font-size:clamp(1.9rem,3.8vw,3rem);font-weight:800;line-height:1.05;margin-bottom:0.5rem;color:var(--ink);letter-spacing:-0.02em;}
+.sec-title span{color:var(--teal);}
+.sec-desc{font-size:0.87rem;color:var(--muted);margin-bottom:1.85rem;max-width:540px;line-height:1.78;font-weight:300;}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;}
+.three-col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;}
+.lr{display:grid;grid-template-columns:1.1fr 1fr;gap:2rem;align-items:start;}
+.lr-rev{display:grid;grid-template-columns:1fr 1.15fr;gap:2rem;align-items:start;}
+.card{background:white;border:1px solid var(--border);border-radius:12px;padding:1.25rem;transition:all 0.2s;box-shadow:0 1px 4px rgba(0,0,0,0.04);}
+.card:hover{border-color:var(--teal);transform:translateY(-2px);box-shadow:0 6px 20px rgba(14,116,144,0.1);}
+.card-icon{font-size:1.4rem;margin-bottom:0.5rem;}
+.card-title{font-family:'Syne',sans-serif;font-size:0.92rem;font-weight:700;margin-bottom:0.3rem;color:var(--ink);}
+.card-desc{font-size:0.72rem;color:var(--muted);line-height:1.65;}
+.panel{background:white;border:1px solid var(--border);border-radius:12px;padding:1.4rem;}
+.panel h3{font-family:'Syne',sans-serif;font-size:0.88rem;font-weight:700;color:var(--teal2);margin-bottom:0.9rem;display:flex;align-items:center;gap:0.5rem;}
+.panel h3::before{content:'//';color:var(--border);font-size:0.8rem;font-family:'JetBrains Mono',monospace;}
+.steps{list-style:none;}
+.steps li{display:flex;gap:0.75rem;padding:0.45rem 0;border-bottom:1px solid var(--border);font-size:0.76rem;line-height:1.6;}
+.steps li:last-child{border-bottom:none;}
+.step-n{width:22px;height:22px;border-radius:6px;background:var(--teal);color:white;font-size:0.62rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:'JetBrains Mono',monospace;}
+/* Workflow */
+.wf-canvas{background:var(--ink);border-radius:14px;padding:2rem;position:relative;overflow:hidden;}
+.wf-grid{position:absolute;inset:0;background-image:radial-gradient(circle,rgba(14,116,144,0.18) 1px,transparent 1px);background-size:28px 28px;opacity:0.5;}
+.wf-label{position:absolute;top:0.75rem;left:1rem;font-size:0.57rem;letter-spacing:0.18em;text-transform:uppercase;color:rgba(255,255,255,0.3);display:flex;align-items:center;gap:0.4rem;z-index:3;font-family:'JetBrains Mono',monospace;}
+.wf-label::before{content:'';width:7px;height:7px;border-radius:50%;background:var(--cyan);box-shadow:0 0 8px var(--cyan);animation:cpulse 2s infinite;}
+@keyframes cpulse{0%,100%{opacity:1}50%{opacity:0.2}}
+.wf-nodes{display:flex;align-items:flex-start;gap:0;padding-top:1.5rem;position:relative;z-index:2;flex-wrap:wrap;}
+.wf-stage{display:flex;flex-direction:column;align-items:center;}
+.wf-slbl{font-size:0.51rem;letter-spacing:0.14em;text-transform:uppercase;color:rgba(255,255,255,0.28);margin-bottom:0.3rem;font-family:'JetBrains Mono',monospace;}
+.wf-node{display:flex;flex-direction:column;align-items:center;gap:0.3rem;cursor:pointer;position:relative;}
+.wf-box{width:58px;height:58px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.25rem;border:2px solid transparent;transition:all 0.3s;}
+.wf-node:hover .wf-box{transform:scale(1.1);box-shadow:0 0 20px rgba(14,116,144,0.4);}
+.wf-nlbl{font-size:0.52rem;text-align:center;color:rgba(255,255,255,0.42);max-width:66px;line-height:1.3;font-family:'JetBrains Mono',monospace;}
+.wf-arr{color:rgba(255,255,255,0.18);padding:0 0.2rem;font-size:0.85rem;align-self:flex-start;margin-top:19px;flex-shrink:0;}
+.ttw{position:relative;}
+.tti{position:absolute;bottom:calc(100%+8px);left:50%;transform:translateX(-50%);background:white;border:1px solid var(--border);border-radius:8px;padding:0.6rem 0.9rem;font-size:0.67rem;opacity:0;pointer-events:none;transition:opacity 0.2s;z-index:50;color:var(--ink);line-height:1.5;max-width:200px;white-space:normal;text-align:left;box-shadow:0 4px 16px rgba(0,0,0,0.1);}
+.ttw:hover .tti{opacity:1;}
+/* Kanban board */
+.kanban{display:grid;grid-template-columns:repeat(4,1fr);gap:0.75rem;}
+.k-col{background:var(--surface2);border-radius:10px;padding:0.75rem;}
+.k-col-hdr{font-size:0.61rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);font-weight:700;margin-bottom:0.6rem;padding-bottom:0.5rem;border-bottom:1px solid var(--border);font-family:'JetBrains Mono',monospace;}
+.k-card{background:white;border:1px solid var(--border);border-radius:8px;padding:0.6rem 0.75rem;margin-bottom:0.4rem;font-size:0.7rem;transition:all 0.25s;box-shadow:0 1px 3px rgba(0,0,0,0.04);}
+.k-card:hover{border-color:var(--teal);transform:translateY(-1px);}
+.k-card.moving{border-color:var(--cyan);background:rgba(34,211,238,0.04);transform:scale(1.02);}
+.kc-title{font-weight:600;color:var(--ink);margin-bottom:0.15rem;}
+.kc-meta{color:var(--muted);font-size:0.62rem;}
+.kc-owner{display:inline-flex;align-items:center;gap:0.25rem;margin-top:0.3rem;font-size:0.6rem;background:rgba(14,116,144,0.08);color:var(--teal2);padding:0.1rem 0.4rem;border-radius:20px;font-family:'JetBrains Mono',monospace;}
+/* Task creation */
+.task-form{background:white;border:1px solid var(--border);border-radius:12px;overflow:hidden;}
+.tf-header{background:var(--teal);color:white;padding:0.85rem 1.1rem;display:flex;align-items:center;justify-content:space-between;}
+.tf-title{font-family:'Syne',sans-serif;font-size:0.88rem;font-weight:700;}
+.tf-body{padding:1rem;}
+.tf-field label{font-size:0.6rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:0.18rem;font-family:'JetBrains Mono',monospace;}
+.tf-input{background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:0.4rem 0.65rem;font-size:0.72rem;color:var(--text);font-family:'Inter',sans-serif;width:100%;min-height:26px;margin-bottom:0.5rem;transition:border-color 0.3s;}
+/* Overdue alert */
+.overdue-alert{background:rgba(196,32,32,0.04);border:1px solid rgba(196,32,32,0.18);border-radius:8px;padding:0.75rem 1rem;margin-bottom:0.4rem;font-size:0.73rem;display:flex;gap:0.75rem;align-items:flex-start;}
+.alert-dot{width:8px;height:8px;border-radius:50%;background:var(--red);flex-shrink:0;margin-top:4px;}
+/* PS list */
+.ps-list{list-style:none;}
+.ps-list li{display:flex;gap:0.75rem;padding:0.45rem 0;border-bottom:1px solid var(--border);font-size:0.74rem;line-height:1.5;transition:all 0.3s;}
+.ps-list li:last-child{border-bottom:none;}
+.ps-num{width:20px;height:20px;border-radius:6px;background:var(--border);color:white;font-size:0.6rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;transition:background 0.3s;font-family:'JetBrains Mono',monospace;}
+/* Info */
+.info-teal{padding:0.75rem 1rem;border-radius:8px;font-size:0.77rem;line-height:1.6;background:rgba(14,116,144,0.06);border:1px solid rgba(14,116,144,0.15);color:var(--teal2);}
+.info-green{padding:0.75rem 1rem;border-radius:8px;font-size:0.77rem;line-height:1.6;background:rgba(13,110,63,0.06);border:1px solid rgba(13,110,63,0.15);color:var(--green);}
+.ba-bad{padding:0.6rem 0.9rem;border-radius:8px;font-size:0.76rem;line-height:1.5;background:rgba(196,32,32,0.04);border:1px solid rgba(196,32,32,0.12);}
+.ba-good{padding:0.6rem 0.9rem;border-radius:8px;font-size:0.76rem;line-height:1.5;background:rgba(13,110,63,0.05);border:1px solid rgba(13,110,63,0.14);}
+.quote-block{background:var(--ink);border-radius:14px;padding:1.75rem 2rem;color:white;}
+.quote-text{font-size:1.05rem;line-height:1.78;margin-bottom:0.75rem;font-weight:300;}
+.quote-text strong{color:var(--cyan);}
+.slide-counter{position:fixed;bottom:1.5rem;left:2rem;font-size:0.62rem;color:var(--muted);z-index:100;font-family:'JetBrains Mono',monospace;}
+.slide-nav{position:fixed;bottom:1.5rem;right:2rem;display:flex;gap:0.5rem;z-index:100;}
+.nav-btn{background:white;border:1px solid var(--border);color:var(--text);padding:0.55rem 1.2rem;border-radius:8px;font-family:'JetBrains Mono',monospace;font-size:0.7rem;cursor:pointer;transition:all 0.2s;}
+.nav-btn:hover{border-color:var(--teal);color:var(--teal);}
+.nav-btn.primary{background:var(--teal);border-color:var(--teal);color:white;}
+.nav-btn.primary:hover{background:var(--teal2);}
+.run-btn{background:var(--teal);color:white;border:none;border-radius:8px;padding:0.7rem 1.5rem;font-family:'JetBrains Mono',monospace;font-size:0.72rem;cursor:pointer;transition:all 0.2s;width:100%;text-align:center;}
+.run-btn:hover{background:var(--teal2);}
+.animate-in{opacity:0;animation:fadeUp 0.5s ease-out forwards;}
+.slide.active .animate-in:nth-child(1){animation-delay:0.05s;}
+.slide.active .animate-in:nth-child(2){animation-delay:0.15s;}
+.slide.active .animate-in:nth-child(3){animation-delay:0.25s;}
+.slide.active .animate-in:nth-child(4){animation-delay:0.35s;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+</style>
+</head>
+<body>
+<div class="top-bar"></div>
+<nav>
+  <div class="nav-brand">OPS · Internal Task Management</div>
+  <div class="nav-dots" id="navDots"></div>
+  <div class="timer" id="timerBadge">⏱ 00:00</div>
+</nav>
+
+<!-- SLIDE 1: HERO -->
+<section class="slide active" id="slide-0">
+  <div class="hero-mesh"></div>
+  <div class="slide-inner">
+    <div class="animate-in"><div class="hero-badge">n8n AI Automation · Operations</div></div>
+    <div class="animate-in"><h1 class="hero-title">Tasks Assigned.<br><span>Tracked.</span><br>Never Dropped.</h1></div>
+    <div class="animate-in"><p class="hero-desc">Operational tasks created automatically from email, Slack, and forms — assigned to the right person, tracked through completion, and escalated when overdue. Zero things fall through the cracks.</p></div>
+    <div class="animate-in">
+      <div class="kpi-strip">
+        <div class="kpi"><div class="kpi-val">100%</div><div class="kpi-lbl">Tasks Tracked</div></div>
+        <div class="kpi"><div class="kpi-val">Auto</div><div class="kpi-lbl">Assignment Logic</div></div>
+        <div class="kpi"><div class="kpi-val">0</div><div class="kpi-lbl">Dropped Tasks</div></div>
+        <div class="kpi"><div class="kpi-val">Live</div><div class="kpi-lbl">Team Dashboard</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 2: PROBLEM -->
+<section class="slide" id="slide-1">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">01 — The Problem</div><div class="sec-title">Tasks That Live<br><span>in Inboxes</span></div><p class="sec-desc">Most operational tasks are born in email threads and Slack messages — and die there too. No central tracking, no ownership, no visibility. Things get done when someone remembers. Or they don't.</p></div>
+    <div class="animate-in two-col" style="margin-bottom:1.5rem">
+      <div class="card"><div class="card-icon">📧</div><div class="card-title">Tasks in Email Threads</div><div class="card-desc">"Can you send me that report?" buried in a 12-email chain. "Please follow up with the supplier" replied to and forgotten. Email is where action items go to die — unless someone extracts and tracks them.</div></div>
+      <div class="card"><div class="card-icon">🤷</div><div class="card-title">Unclear Ownership</div><div class="card-desc">"Someone should handle this." But who? Tasks without clear owners get assumed by everyone and done by nobody. Or done twice. Or done wrong because no one checked the requirement.</div></div>
+      <div class="card"><div class="card-icon">🔕</div><div class="card-title">No Deadline Enforcement</div><div class="card-desc">Task assigned on Monday with "by Friday" in the message. Friday arrives. Nobody followed up. Manager only finds out task is incomplete when a client calls. The deadline had no teeth.</div></div>
+      <div class="card"><div class="card-icon">📊</div><div class="card-title">Zero Team Visibility</div><div class="card-desc">Manager has no idea what their team is working on, what's overdue, or where bottlenecks are forming — until it's too late. Operational visibility requires a system, not a vibe.</div></div>
+    </div>
+    <div class="animate-in"><div class="info-teal">✅ n8n extracts action items from emails and messages, creates tasks in Jira/Asana/Notion, assigns them with due dates, and escalates automatically when anything goes overdue.</div></div>
+  </div>
+</section>
+
+<!-- SLIDE 3: WORKFLOW -->
+<section class="slide" id="slide-2">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">02 — The Blueprint</div><div class="sec-title">n8n Task Management<br><span>Architecture</span></div><p class="sec-desc">Every request, every email, every Slack message — parsed for action items, turned into tracked tasks, assigned to the right person, and monitored to completion.</p></div>
+    <div class="animate-in wf-canvas">
+      <div class="wf-grid"></div>
+      <div class="wf-label">n8n canvas — task management pipeline</div>
+      <div class="wf-nodes">
+        <div class="wf-stage"><div class="wf-slbl">Capture</div>
+          <div style="display:flex;flex-direction:column;gap:0.35rem">
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a3a1a,#166534);color:#4ade80;border-color:#166534;">📧</div><div class="wf-nlbl">Email<br>Parser</div><div class="tti">Gmail trigger scans inbound emails tagged or sent to ops@company.com. GPT-4o extracts action items, deadlines, and responsible parties from the email body.</div></div>
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#0a0a1a,#1e3a5f);color:#93c5fd;border-color:#1e3a5f;">💬</div><div class="wf-nlbl">Slack<br>Commands</div><div class="tti">/task command in Slack creates a task instantly. Or @ops-bot "Create task: [description] for [person] by [date]" — natural language parsed by GPT-4o.</div></div>
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a0a1a,#7c3aed);color:#d8b4fe;border-color:#7c3aed;">📋</div><div class="wf-nlbl">Form<br>Submit</div><div class="tti">Internal request forms (IT requests, maintenance, procurement) feed directly into the task system with pre-populated fields and priority levels.</div></div>
+          </div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-stage"><div class="wf-slbl">Create</div>
+          <div style="display:flex;flex-direction:column;gap:0.35rem">
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a0a0a,#991b1b);color:#fca5a5;border-color:#991b1b;">🧠</div><div class="wf-nlbl">GPT-4o<br>Structure</div><div class="tti">GPT-4o enriches task: generates clear title, description, acceptance criteria, priority (P1–P4), suggested deadline, and tags the right category and team.</div></div>
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#0a1a2a,#1d4ed8);color:#93c5fd;border-color:#1d4ed8;">🗂️</div><div class="wf-nlbl">Jira/Asana<br>Create</div><div class="tti">Task created in project management tool with all fields pre-filled. Linked to the originating email/Slack message for full context. Labels and project auto-assigned.</div></div>
+          </div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-stage"><div class="wf-slbl">Assign</div>
+          <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a1a0a,#78350f);color:#fde68a;border-color:#78350f;">👤</div><div class="wf-nlbl">Smart<br>Assign</div><div class="tti">Assigned based on: task category → team member skill map. Current workload — avoids overloading one person. Seniority — high-priority tasks to senior staff only.</div></div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-stage"><div class="wf-slbl">Track</div>
+          <div style="display:flex;flex-direction:column;gap:0.35rem">
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#0a1a1a,#065f46);color:#6ee7b7;border-color:#065f46;">⏰</div><div class="wf-nlbl">Deadline<br>Monitor</div><div class="tti">n8n cron checks all open tasks daily. 24hr before deadline: reminder to assignee. At deadline: manager notified. 24hr overdue: automatic escalation.</div></div>
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#0a0a1a,#1e3a5f);color:#93c5fd;border-color:#1e3a5f;">📊</div><div class="wf-nlbl">Ops<br>Dashboard</div><div class="tti">Live Google Sheets/Notion dashboard: all open tasks by owner, department, priority, and status. Manager sees team workload and overdue items at a glance.</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 4: SIM 1 — TASK CREATION -->
+<section class="slide" id="slide-3">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">03 — Simulation 1</div><div class="sec-title">Live: Email → Tasks<br><span>Created Automatically</span></div><p class="sec-desc">An operations email arrives from the CEO with three buried action items. Watch GPT-4o extract each one, create structured tasks, and assign them to the right team members.</p></div>
+    <div class="animate-in lr">
+      <div style="display:flex;flex-direction:column;gap:1rem">
+        <div style="background:var(--ink);border-radius:10px;padding:1.1rem;color:white;font-size:0.73rem;line-height:1.75">
+          <div style="font-family:'JetBrains Mono',monospace;font-size:0.6rem;color:var(--cyan);margin-bottom:0.5rem">📧 ops@company.ng — From: CEO</div>
+          Team,<br><br>
+          Quick follow-ups from today's management meeting:<br>
+          1. Kemi please prepare the Q2 board deck by next Friday<br>
+          2. Tunde — chase the Lagos office lease renewal, it expires in 6 weeks<br>
+          3. Someone needs to order the new server equipment before end of month<br><br>
+          <span style="color:rgba(255,255,255,0.4);font-size:0.65rem">— Sent by CEO · n8n extracting action items...</span>
+        </div>
+        <div class="panel">
+          <h3>Extraction Pipeline</h3>
+          <ul class="ps-list" id="taskSteps">
+            <li id="ts1" style="opacity:0.3"><div class="ps-num">1</div><div>Email received → GPT-4o parsing action items</div></li>
+            <li id="ts2" style="opacity:0.3"><div class="ps-num">2</div><div>3 tasks extracted with owners + deadlines</div></li>
+            <li id="ts3" style="opacity:0.3"><div class="ps-num">3</div><div>Tasks created in Jira with acceptance criteria</div></li>
+            <li id="ts4" style="opacity:0.3"><div class="ps-num">4</div><div>Assignees notified via Slack with task link</div></li>
+          </ul>
+        </div>
+        <button class="run-btn" id="taskBtn" onclick="runTaskSim()">▶ EXTRACT & CREATE TASKS</button>
+      </div>
+      <div id="taskBoard" style="display:flex;flex-direction:column;gap:0.5rem">
+        <div class="k-card" id="tk1" style="opacity:0.3;border-left:3px solid var(--border)">
+          <div class="kc-title" id="tt1">Awaiting extraction...</div>
+          <div class="kc-meta" id="tm1"></div>
+          <div class="kc-owner" id="to1"></div>
+        </div>
+        <div class="k-card" id="tk2" style="opacity:0.3;border-left:3px solid var(--border)">
+          <div class="kc-title" id="tt2">Awaiting extraction...</div>
+          <div class="kc-meta" id="tm2"></div>
+          <div class="kc-owner" id="to2"></div>
+        </div>
+        <div class="k-card" id="tk3" style="opacity:0.3;border-left:3px solid var(--border)">
+          <div class="kc-title" id="tt3">Awaiting extraction...</div>
+          <div class="kc-meta" id="tm3"></div>
+          <div class="kc-owner" id="to3"></div>
+        </div>
+        <div id="taskSuccess" style="display:none;background:rgba(13,110,63,0.07);border:1px solid rgba(13,110,63,0.2);border-radius:8px;padding:0.65rem 0.85rem;font-size:0.72rem;color:var(--green)">✅ 3 tasks created in Jira · Assignees notified via Slack</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 5: SIM 2 — KANBAN LIVE -->
+<section class="slide" id="slide-4">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">04 — Simulation 2</div><div class="sec-title">Live Kanban Board<br><span>& Overdue Alerts</span></div><p class="sec-desc">The team's live operational board. Watch tasks move through stages — and overdue items trigger automatic escalation alerts to the manager.</p></div>
+    <div class="animate-in kanban" style="margin-bottom:1.25rem">
+      <div class="k-col">
+        <div class="k-col-hdr">📥 Backlog</div>
+        <div class="k-card"><div class="kc-title">Server equipment order</div><div class="kc-meta">P2 · Due: Apr 30</div><div class="kc-owner">👤 Babatunde I.</div></div>
+        <div class="k-card"><div class="kc-title">Update vendor contracts database</div><div class="kc-meta">P3 · Due: May 5</div><div class="kc-owner">👤 Ngozi E.</div></div>
+      </div>
+      <div class="k-col">
+        <div class="k-col-hdr">🔄 In Progress</div>
+        <div class="k-card"><div class="kc-title">Q2 board deck preparation</div><div class="kc-meta">P1 · Due: Apr 18</div><div class="kc-owner">👤 Kemi A.</div></div>
+        <div class="k-card"><div class="kc-title">Lagos office lease renewal</div><div class="kc-meta">P1 · Due: Apr 20</div><div class="kc-owner">👤 Tunde F.</div></div>
+      </div>
+      <div class="k-col">
+        <div class="k-col-hdr">👁 Review</div>
+        <div class="k-card"><div class="kc-title">Staff appraisal process doc</div><div class="kc-meta">P2 · In review</div><div class="kc-owner">👤 Amaka O.</div></div>
+      </div>
+      <div class="k-col">
+        <div class="k-col-hdr">✅ Done</div>
+        <div class="k-card" style="opacity:0.7"><div class="kc-title">Q1 expense reconciliation</div><div class="kc-meta">Completed Apr 8</div><div class="kc-owner">👤 Seun B.</div></div>
+        <div class="k-card" style="opacity:0.7"><div class="kc-title">Office cleaning contract renewal</div><div class="kc-meta">Completed Apr 7</div><div class="kc-owner">👤 Ngozi E.</div></div>
+      </div>
+    </div>
+    <div class="animate-in two-col">
+      <div>
+        <div style="font-size:0.61rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);font-family:'JetBrains Mono',monospace;margin-bottom:0.4rem">🚨 Overdue Alerts — Auto-generated</div>
+        <div class="overdue-alert"><div class="alert-dot"></div><div><strong>Server equipment order</strong> — Assigned to Babatunde<br><span style="color:var(--muted);font-size:0.65rem">2 days overdue · Escalated to Ops Manager via Slack</span></div></div>
+      </div>
+      <div class="info-teal">💡 n8n scans all tasks every morning at 8am. Overdue tasks auto-escalate to the line manager with a summary of what's outstanding. No manual follow-up required — the system chases for you.</div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 6: BEFORE/AFTER -->
+<section class="slide" id="slide-5">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">05 — Business Impact</div><div class="sec-title">Operations That<br><span>Actually Execute</span></div></div>
+    <div class="animate-in two-col" style="margin-bottom:1.5rem">
+      <div>
+        <div style="font-size:0.62rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--red);margin-bottom:0.75rem;font-weight:600;font-family:'JetBrains Mono',monospace">❌ BEFORE</div>
+        <div style="display:flex;flex-direction:column;gap:0.5rem">
+          <div class="ba-bad">Action items buried in email threads — forgotten within 48 hours</div>
+          <div class="ba-bad">No clear ownership — tasks assumed by everyone, done by nobody</div>
+          <div class="ba-bad">Deadlines in message body only — no enforcement, no reminders</div>
+          <div class="ba-bad">Manager has no visibility — discovers overdue tasks by accident</div>
+          <div class="ba-bad">Overdue tasks identified at weekly meeting — a week too late</div>
+        </div>
+      </div>
+      <div>
+        <div style="font-size:0.62rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--green);margin-bottom:0.75rem;font-weight:600;font-family:'JetBrains Mono',monospace">✅ AFTER</div>
+        <div style="display:flex;flex-direction:column;gap:0.5rem">
+          <div class="ba-good">GPT-4o extracts action items from emails and Slack instantly</div>
+          <div class="ba-good">Every task has one owner, a deadline, and a priority level</div>
+          <div class="ba-good">24hr reminders + overdue escalations fire automatically</div>
+          <div class="ba-good">Live Kanban board — manager sees all tasks and status in real time</div>
+          <div class="ba-good">Overdue alerts at 8am daily — zero tasks drop through the cracks</div>
+        </div>
+      </div>
+    </div>
+    <div class="animate-in">
+      <div class="quote-block">
+        <div class="quote-text">"The difference between a high-performing team and a chaotic one isn't talent — it's <strong>task visibility and accountability</strong>. This automation ensures every action item is captured, owned, and tracked to completion without adding management overhead."</div>
+        <div style="font-size:0.62rem;color:rgba(255,255,255,0.3);font-family:'JetBrains Mono',monospace">STACK: n8n · GPT-4o · Jira/Asana/Notion · Gmail · Slack · Google Sheets</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="slide-counter" id="slideCounter">Slide 1 of 6</div>
+<div class="slide-nav">
+  <button class="nav-btn" onclick="prevSlide()">← Prev</button>
+  <button class="nav-btn primary" onclick="nextSlide()">Next →</button>
+</div>
+<script>
+const slides=document.querySelectorAll('.slide'),total=slides.length;let cur=0;
+const dots=document.getElementById('navDots');
+for(let i=0;i<total;i++){const d=document.createElement('div');d.className='nav-dot'+(i===0?' active':'');d.onclick=()=>goTo(i);dots.appendChild(d);}
+function goTo(n){slides[cur].classList.remove('active');dots.children[cur].classList.remove('active');if(cur<n)dots.children[cur].classList.add('done');cur=n;slides[cur].classList.add('active');dots.children[cur].classList.add('active');document.getElementById('slideCounter').textContent=`Slide ${cur+1} of ${total}`;}
+function nextSlide(){if(cur<total-1)goTo(cur+1);}function prevSlide(){if(cur>0)goTo(cur-1);}
+document.addEventListener('keydown',e=>{if(e.key==='ArrowRight'||e.key==='ArrowDown')nextSlide();if(e.key==='ArrowLeft'||e.key==='ArrowUp')prevSlide();});
+let secs=0;setInterval(()=>{secs++;const m=String(Math.floor(secs/60)).padStart(2,'0'),s=String(secs%60).padStart(2,'0');document.getElementById('timerBadge').textContent=`⏱ ${m}:${s}`;if(secs>=840)document.getElementById('timerBadge').style.color='#c42020';},1000);
+function delay(ms){return new Promise(r=>setTimeout(r,ms));}
+const taskData=[
+  {title:'Prepare Q2 Board Deck',meta:'P1 · Due: Fri 18 Apr · Jira: OPS-0041',owner:'👤 Kemi Adeyemi',color:'#c42020'},
+  {title:'Chase Lagos Office Lease Renewal',meta:'P1 · Due: Sun 20 Apr · Jira: OPS-0042',owner:'👤 Tunde Fashola',color:'#c07010'},
+  {title:'Order Server Equipment',meta:'P2 · Due: Wed 30 Apr · Jira: OPS-0043',owner:'👤 Babatunde Ike',color:'#0e7490'},
+];
+let taskRunning=false;
+async function runTaskSim(){
+  if(taskRunning)return;taskRunning=true;
+  const btn=document.getElementById('taskBtn');btn.textContent='Extracting...';
+  document.getElementById('taskSuccess').style.display='none';
+  taskData.forEach((_,i)=>{
+    const card=document.getElementById('tk'+(i+1));
+    if(card){card.style.opacity='0.3';card.style.borderLeft='3px solid var(--border)';}
+    const t=document.getElementById('tt'+(i+1));if(t)t.textContent='Awaiting extraction...';
+    const m=document.getElementById('tm'+(i+1));if(m)m.textContent='';
+    const o=document.getElementById('to'+(i+1));if(o)o.textContent='';
+  });
+  const steps=['ts1','ts2','ts3','ts4'];
+  steps.forEach(id=>{const el=document.getElementById(id);if(el){el.style.opacity='0.3';el.querySelector('.ps-num').style.background='var(--border)';}});
+  const light=(i)=>{steps.forEach(id=>{const el=document.getElementById(id);if(el){el.style.opacity='0.3';el.querySelector('.ps-num').style.background='var(--border)';}});const el=document.getElementById(steps[i]);if(el){el.style.opacity='1';el.style.color='var(--teal)';el.querySelector('.ps-num').style.background='var(--teal)';}};
+  light(0);await delay(700);light(1);
+  for(let i=0;i<taskData.length;i++){
+    await delay(600);
+    const d=taskData[i];
+    const card=document.getElementById('tk'+(i+1));
+    document.getElementById('tt'+(i+1)).textContent=d.title;
+    document.getElementById('tm'+(i+1)).textContent=d.meta;
+    document.getElementById('to'+(i+1)).textContent=d.owner;
+    if(card){card.style.opacity='1';card.style.borderLeft=`3px solid ${d.color}`;}
+  }
+  light(2);await delay(500);light(3);
+  document.getElementById('taskSuccess').style.display='block';
+  btn.textContent='↺ Reset & Run Again';taskRunning=false;
+}
+</script>
+</body>
+</html>
