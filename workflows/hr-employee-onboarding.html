@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HR Employee Onboarding Automation</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,500;0,600;0,700;1,300;1,500&family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f7f5f0;--surface:#ffffff;--surface2:#eff0eb;--border:#ddddd0;--ink:#1a1f14;--sage:#5a7a5a;--sage2:#3d5c3d;--warm:#8b7355;--cream:#f5f0e8;--rust:#b85c38;--sky:#4a7fa5;--green:#3d8b5a;--yellow:#c4a832;--text:#2a2f24;--muted:#7a8070;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-serif;overflow-x:hidden;}
+nav{position:fixed;top:0;left:0;right:0;z-index:100;background:var(--cream);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 2.5rem;height:56px;}
+.nav-brand{font-family:'Cormorant Garamond',serif;font-size:1rem;font-weight:600;color:var(--sage2);letter-spacing:0.05em;}
+.nav-dots{display:flex;gap:0.3rem;}
+.nav-dot{width:7px;height:7px;border-radius:50%;background:var(--border);cursor:pointer;transition:all 0.2s;}
+.nav-dot.active{background:var(--sage);transform:scale(1.5);}
+.nav-dot.done{background:var(--green);}
+.timer{font-size:0.68rem;color:var(--sage2);background:rgba(90,122,90,0.08);border:1px solid rgba(90,122,90,0.2);padding:0.2rem 0.7rem;border-radius:20px;font-family:'IBM Plex Mono',monospace;}
+.slide{min-height:100vh;padding:76px 0 50px;display:none;flex-direction:column;align-items:center;justify-content:center;position:relative;overflow:hidden;}
+.slide.active{display:flex;}
+.slide-inner{width:100%;max-width:1140px;padding:0 2.5rem;position:relative;z-index:2;}
+.hero-bg{position:absolute;inset:0;background:linear-gradient(135deg,#e8ede3 0%,#f5f0e8 50%,#e8ede3 100%);}
+.org-texture{position:absolute;inset:0;background-image:radial-gradient(circle at 20% 80%,rgba(90,122,90,0.06) 0%,transparent 50%),radial-gradient(circle at 80% 20%,rgba(139,115,85,0.05) 0%,transparent 50%);}
+.leaf-accent{position:absolute;right:5%;top:15%;font-size:8rem;opacity:0.04;transform:rotate(15deg);pointer-events:none;}
+.eyebrow{font-size:0.63rem;letter-spacing:0.25em;text-transform:uppercase;color:var(--sage);margin-bottom:1.2rem;display:flex;align-items:center;gap:0.6rem;font-family:'IBM Plex Mono',monospace;}
+.eyebrow::before{content:'';width:24px;height:1px;background:var(--sage);}
+h1.hero-title{font-family:'Cormorant Garamond',serif;font-size:clamp(2.8rem,5.5vw,4.5rem);font-weight:300;line-height:1.08;margin-bottom:1.5rem;letter-spacing:-0.01em;color:var(--ink);}
+h1.hero-title strong{font-weight:700;color:var(--sage2);}
+h1.hero-title em{font-style:italic;color:var(--warm);}
+.hero-desc{font-size:0.92rem;color:var(--muted);max-width:500px;line-height:1.8;margin-bottom:2.5rem;font-weight:300;}
+.kpi-row{display:flex;gap:1.5rem;flex-wrap:wrap;}
+.kpi{background:white;border:1px solid var(--border);padding:1rem 1.5rem;border-radius:2px;min-width:120px;}
+.kpi-val{font-family:'Cormorant Garamond',serif;font-size:2rem;font-weight:700;color:var(--sage2);line-height:1;}
+.kpi-lbl{font-size:0.6rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);margin-top:0.2rem;}
+.sec-eyebrow{font-size:0.62rem;letter-spacing:0.22em;text-transform:uppercase;color:var(--sage);margin-bottom:0.4rem;font-family:'IBM Plex Mono',monospace;}
+.sec-title{font-family:'Cormorant Garamond',serif;font-size:clamp(2rem,3.5vw,3rem);font-weight:600;line-height:1.1;margin-bottom:0.5rem;color:var(--ink);}
+.sec-title em{font-style:italic;color:var(--warm);}
+.sec-desc{font-size:0.86rem;color:var(--muted);margin-bottom:1.75rem;max-width:540px;line-height:1.75;font-weight:300;}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;}
+.three-col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;}
+.lr{display:grid;grid-template-columns:1.1fr 1fr;gap:2rem;align-items:start;}
+.lr-rev{display:grid;grid-template-columns:1fr 1.15fr;gap:2rem;align-items:start;}
+.card{background:white;border:1px solid var(--border);padding:1.25rem;transition:all 0.2s;border-radius:2px;}
+.card:hover{border-color:var(--sage);transform:translateY(-2px);box-shadow:0 4px 16px rgba(90,122,90,0.08);}
+.card-icon{font-size:1.4rem;margin-bottom:0.5rem;}
+.card-title{font-family:'Cormorant Garamond',serif;font-size:1.05rem;font-weight:600;margin-bottom:0.3rem;}
+.card-desc{font-size:0.73rem;color:var(--muted);line-height:1.65;font-weight:300;}
+.panel{background:white;border:1px solid var(--border);padding:1.4rem;border-radius:2px;}
+.panel h3{font-family:'Cormorant Garamond',serif;font-size:1rem;font-weight:700;color:var(--sage2);margin-bottom:0.9rem;display:flex;align-items:center;gap:0.5rem;}
+.panel h3::before{content:'—';color:var(--border);}
+.steps{list-style:none;}
+.steps li{display:flex;gap:0.75rem;padding:0.45rem 0;border-bottom:1px solid var(--border);font-size:0.76rem;line-height:1.6;font-weight:300;}
+.steps li:last-child{border-bottom:none;}
+.step-n{width:22px;height:22px;border-radius:50%;background:var(--sage);color:white;font-size:0.62rem;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:'IBM Plex Mono',monospace;}
+/* Workflow */
+.wf-canvas{background:var(--ink);border:1px solid rgba(90,122,90,0.2);padding:2rem;position:relative;overflow:hidden;border-radius:2px;}
+.wf-dots{position:absolute;inset:0;background-image:radial-gradient(circle,rgba(90,122,90,0.2) 1px,transparent 1px);background-size:28px 28px;opacity:0.5;}
+.wf-label{position:absolute;top:0.75rem;left:1rem;font-size:0.58rem;letter-spacing:0.15em;text-transform:uppercase;color:rgba(90,122,90,0.7);display:flex;align-items:center;gap:0.4rem;z-index:3;font-family:'IBM Plex Mono',monospace;}
+.wf-label::before{content:'';width:7px;height:7px;border-radius:50%;background:#a3d9a5;box-shadow:0 0 8px #a3d9a5;animation:gpulse 2s infinite;}
+@keyframes gpulse{0%,100%{opacity:1}50%{opacity:0.2}}
+.wf-nodes{display:flex;align-items:flex-start;gap:0;padding-top:1.5rem;position:relative;z-index:2;flex-wrap:wrap;}
+.wf-stage{display:flex;flex-direction:column;align-items:center;gap:0.3rem;}
+.wf-slbl{font-size:0.54rem;letter-spacing:0.12em;text-transform:uppercase;color:rgba(255,255,255,0.28);margin-bottom:0.2rem;font-family:'IBM Plex Mono',monospace;}
+.wf-node{display:flex;flex-direction:column;align-items:center;gap:0.3rem;cursor:pointer;position:relative;}
+.wf-box{width:58px;height:58px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.25rem;border:2px solid transparent;transition:all 0.3s;}
+.wf-node:hover .wf-box{transform:scale(1.1);box-shadow:0 0 18px rgba(90,122,90,0.4);}
+.wf-nlbl{font-size:0.53rem;text-align:center;color:rgba(255,255,255,0.4);max-width:65px;line-height:1.3;font-family:'IBM Plex Mono',monospace;}
+.wf-arr{color:rgba(255,255,255,0.15);padding:0 0.2rem;font-size:0.85rem;align-self:flex-start;margin-top:19px;flex-shrink:0;}
+.ttw{position:relative;}
+.tti{position:absolute;bottom:calc(100%+8px);left:50%;transform:translateX(-50%);background:white;border:1px solid var(--border);border-radius:2px;padding:0.6rem 0.9rem;font-size:0.67rem;opacity:0;pointer-events:none;transition:opacity 0.2s;z-index:50;color:var(--ink);line-height:1.5;max-width:200px;white-space:normal;text-align:left;}
+.ttw:hover .tti{opacity:1;}
+/* Onboarding checklist */
+.checklist{display:flex;flex-direction:column;gap:0.4rem;}
+.check-item{display:flex;align-items:center;gap:0.75rem;padding:0.6rem 0.85rem;background:white;border:1px solid var(--border);border-radius:2px;font-size:0.75rem;transition:all 0.3s;}
+.check-item.pending{border-color:var(--border);}
+.check-item.in-progress{border-color:var(--yellow);background:rgba(196,168,50,0.04);}
+.check-item.done{border-color:var(--green);background:rgba(61,139,90,0.04);}
+.check-box{width:18px;height:18px;border-radius:50%;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all 0.3s;font-size:0.65rem;}
+.check-item.done .check-box{background:var(--green);border-color:var(--green);color:white;}
+.check-item.in-progress .check-box{background:var(--yellow);border-color:var(--yellow);color:white;}
+.check-title{flex:1;font-weight:400;}
+.check-owner{font-size:0.62rem;color:var(--muted);margin-left:auto;}
+/* Welcome email */
+.welcome-email{background:white;border:1px solid var(--border);border-radius:2px;overflow:hidden;}
+.we-header{background:linear-gradient(135deg,var(--sage2),var(--sage));color:white;padding:1.5rem;text-align:center;}
+.we-logo{font-family:'Cormorant Garamond',serif;font-size:1.5rem;font-weight:700;letter-spacing:0.1em;margin-bottom:0.25rem;}
+.we-subtitle{font-size:0.7rem;opacity:0.7;letter-spacing:0.15em;text-transform:uppercase;}
+.we-body{padding:1.25rem;font-size:0.73rem;line-height:1.75;font-weight:300;}
+/* Document tracker */
+.doc-tracker{background:white;border:1px solid var(--border);border-radius:2px;overflow:hidden;}
+.doc-header{background:var(--cream);border-bottom:1px solid var(--border);padding:0.65rem 1rem;font-family:'Cormorant Garamond',serif;font-size:0.9rem;font-weight:600;display:flex;align-items:center;justify-content:space-between;}
+.doc-item{display:flex;align-items:center;gap:0.75rem;padding:0.55rem 1rem;border-bottom:1px solid rgba(221,221,208,0.5);font-size:0.73rem;transition:background 0.15s;}
+.doc-item:hover{background:var(--bg);}
+.doc-item:last-child{border-bottom:none;}
+.doc-icon{font-size:0.9rem;flex-shrink:0;}
+.doc-name{flex:1;font-weight:400;}
+.doc-status{font-size:0.62rem;padding:0.12rem 0.45rem;border-radius:20px;font-weight:500;}
+.ds-pending{background:rgba(196,168,50,0.12);color:var(--yellow);border:1px solid rgba(196,168,50,0.25);}
+.ds-received{background:rgba(61,139,90,0.12);color:var(--green);border:1px solid rgba(61,139,90,0.25);}
+.ds-signed{background:rgba(74,127,165,0.12);color:var(--sky);border:1px solid rgba(74,127,165,0.25);}
+/* Sheet */
+.sheet-table{background:white;border:1px solid var(--border);overflow:hidden;font-size:0.7rem;border-radius:2px;}
+.sheet-head{background:rgba(90,122,90,0.07);border-bottom:1px solid var(--border);display:grid;grid-template-columns:36px 120px 120px 110px 90px 70px;padding:0.55rem 0.75rem;gap:0.4rem;font-size:0.61rem;letter-spacing:0.05em;color:var(--sage2);font-weight:600;font-family:'IBM Plex Mono',monospace;}
+.sheet-row{display:grid;grid-template-columns:36px 120px 120px 110px 90px 70px;padding:0.5rem 0.75rem;gap:0.4rem;border-bottom:1px solid rgba(221,221,208,0.5);align-items:center;transition:background 0.15s;}
+.sheet-row:hover{background:var(--bg);}
+.sheet-row:last-child{border-bottom:none;}
+.s-badge{display:inline-block;padding:0.1rem 0.45rem;border-radius:20px;font-size:0.58rem;font-weight:500;}
+.sb-active{background:rgba(61,139,90,0.12);color:var(--green);border:1px solid rgba(61,139,90,0.25);}
+.sb-pend{background:rgba(196,168,50,0.1);color:var(--yellow);border:1px solid rgba(196,168,50,0.2);}
+.sb-done{background:rgba(74,127,165,0.1);color:var(--sky);border:1px solid rgba(74,127,165,0.2);}
+/* Ba */
+.ba-bad{padding:0.6rem 0.9rem;border-radius:2px;font-size:0.75rem;line-height:1.5;background:rgba(184,92,56,0.05);border:1px solid rgba(184,92,56,0.15);}
+.ba-good{padding:0.6rem 0.9rem;border-radius:2px;font-size:0.75rem;line-height:1.5;background:rgba(61,139,90,0.05);border:1px solid rgba(61,139,90,0.15);}
+.quote-block{background:linear-gradient(135deg,var(--sage2),#2d4a2d);color:white;padding:1.75rem 2rem;border-radius:2px;}
+.quote-text{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:1.2rem;line-height:1.7;margin-bottom:0.75rem;font-weight:300;}
+.info-sage{padding:0.7rem 1rem;border-radius:2px;font-size:0.76rem;line-height:1.6;background:rgba(90,122,90,0.07);border:1px solid rgba(90,122,90,0.2);color:var(--sage2);}
+.ps-list{list-style:none;}
+.ps-list li{display:flex;gap:0.75rem;padding:0.45rem 0;border-bottom:1px solid var(--border);font-size:0.74rem;line-height:1.5;transition:all 0.3s;font-weight:300;}
+.ps-list li:last-child{border-bottom:none;}
+.ps-num{width:20px;height:20px;border-radius:50%;background:var(--border);color:white;font-size:0.6rem;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;transition:background 0.3s;font-family:'IBM Plex Mono',monospace;}
+.run-btn{background:var(--sage2);color:white;border:none;padding:0.7rem 1.5rem;font-family:'IBM Plex Mono',monospace;font-size:0.74rem;cursor:pointer;letter-spacing:0.06em;transition:all 0.2s;width:100%;text-align:center;border-radius:2px;}
+.run-btn:hover{background:var(--sage);}
+.slide-counter{position:fixed;bottom:1.5rem;left:2rem;font-size:0.62rem;color:var(--muted);letter-spacing:0.1em;z-index:100;font-family:'IBM Plex Mono',monospace;}
+.slide-nav{position:fixed;bottom:1.5rem;right:2rem;display:flex;gap:0.5rem;z-index:100;}
+.nav-btn{background:white;border:1px solid var(--border);color:var(--ink);padding:0.55rem 1.2rem;font-family:'IBM Plex Mono',monospace;font-size:0.7rem;cursor:pointer;transition:all 0.2s;border-radius:2px;}
+.nav-btn:hover{border-color:var(--sage);color:var(--sage);}
+.nav-btn.primary{background:var(--sage2);border-color:var(--sage2);color:white;}
+.nav-btn.primary:hover{background:var(--sage);}
+.animate-in{opacity:0;animation:fadeUp 0.5s ease-out forwards;}
+.slide.active .animate-in:nth-child(1){animation-delay:0.05s;}
+.slide.active .animate-in:nth-child(2){animation-delay:0.15s;}
+.slide.active .animate-in:nth-child(3){animation-delay:0.25s;}
+.slide.active .animate-in:nth-child(4){animation-delay:0.35s;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+</style>
+</head>
+<body>
+<nav>
+  <div class="nav-brand">HR · Employee Onboarding Automation</div>
+  <div class="nav-dots" id="navDots"></div>
+  <div class="timer" id="timerBadge">⏱ 00:00</div>
+</nav>
+
+<!-- SLIDE 1 -->
+<section class="slide active" id="slide-0">
+  <div class="hero-bg"></div><div class="org-texture"></div><div class="leaf-accent">🌿</div>
+  <div class="slide-inner">
+    <div class="animate-in"><div class="eyebrow">n8n AI Automation · HR Department</div></div>
+    <div class="animate-in"><h1 class="hero-title">Seamless<br><strong>Employee</strong><br><em>Onboarding,</em><br>Automated</h1></div>
+    <div class="animate-in"><p class="hero-desc">From offer accepted to day-one ready — every document, tool access, welcome message, and task assigned automatically. New hires feel welcomed; HR feels relieved.</p></div>
+    <div class="animate-in">
+      <div class="kpi-row">
+        <div class="kpi"><div class="kpi-val">12</div><div class="kpi-lbl">HR Hours Saved per Hire</div></div>
+        <div class="kpi"><div class="kpi-val">100%</div><div class="kpi-lbl">Task Completion Rate</div></div>
+        <div class="kpi"><div class="kpi-val">Day 1</div><div class="kpi-lbl">New Hire Ready</div></div>
+        <div class="kpi"><div class="kpi-val">0</div><div class="kpi-lbl">Missed Steps</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 2: PROBLEM -->
+<section class="slide" id="slide-1">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-eyebrow">01 — The Challenge</div><div class="sec-title">Onboarding is <em>Broken</em><br>in Most Companies</div><p class="sec-desc">Poor onboarding costs companies in retention, productivity, and employee satisfaction — and most of it is caused by manual, forgettable processes.</p></div>
+    <div class="animate-in two-col" style="margin-bottom:1.5rem">
+      <div class="card"><div class="card-icon">📋</div><div class="card-title">Forgotten Tasks</div><div class="card-desc">HR forgets to request laptop setup, create email accounts, or assign desk. New hire arrives to no computer, no access, and a very bad first impression.</div></div>
+      <div class="card"><div class="card-icon">📄</div><div class="card-title">Document Chaos</div><div class="card-desc">Employment contracts, tax forms, NDAs sent via random emails. No tracking of what's been signed, what's missing, what's expired.</div></div>
+      <div class="card"><div class="card-icon">👤</div><div class="card-title">No Human Welcome</div><div class="card-desc">New hires feel invisible. No structured introduction to the team, culture, or tools. 20% of new hires quit within 45 days — onboarding is cited as primary reason.</div></div>
+      <div class="card"><div class="card-icon">🔑</div><div class="card-title">IT Access Delays</div><div class="card-desc">IT tickets raised manually — often forgotten. New hires spend their first week chasing email passwords and Slack invites instead of contributing.</div></div>
+    </div>
+    <div class="animate-in"><div class="info-sage">✅ n8n orchestrates every onboarding step — from offer letter to 90-day check-in. Nothing falls through the cracks, ever.</div></div>
+  </div>
+</section>
+
+<!-- SLIDE 3: WORKFLOW -->
+<section class="slide" id="slide-2">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-eyebrow">02 — The Blueprint</div><div class="sec-title">n8n Onboarding<br><em>Workflow</em></div><p class="sec-desc">Triggered the moment an offer is accepted. Runs for 90 days. Involves HR, IT, the manager, and the new hire — all coordinated automatically.</p></div>
+    <div class="animate-in wf-canvas">
+      <div class="wf-dots"></div><div class="wf-label">n8n canvas — onboarding pipeline</div>
+      <div class="wf-nodes">
+        <div class="wf-stage"><div class="wf-slbl">Trigger</div>
+          <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#0a2a1a,#065f46);color:#a3d9a5;border-color:#065f46;">✅</div><div class="wf-nlbl">Offer<br>Accepted</div><div class="tti">Triggered when candidate status changes to "Offer Accepted" in HR system or Google Sheets. Starts the 90-day onboarding workflow.</div></div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-stage"><div class="wf-slbl">Documents</div>
+          <div style="display:flex;flex-direction:column;gap:0.3rem">
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a1a0a,#78350f);color:#fde68a;border-color:#78350f;">📄</div><div class="wf-nlbl">Contract<br>& Forms</div><div class="tti">DocuSign/PandaDoc API sends employment contract, tax forms, NDA for e-signature. Status tracked in Sheets.</div></div>
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#0a1a2a,#1d4ed8);color:#93c5fd;border-color:#1d4ed8;">🌐</div><div class="wf-nlbl">Portal<br>Access</div><div class="tti">HR portal account created automatically. New hire receives login credentials and onboarding checklist link.</div></div>
+          </div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-stage"><div class="wf-slbl">IT Setup</div>
+          <div style="display:flex;flex-direction:column;gap:0.3rem">
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a0a2e,#6d28d9);color:#c4b5fd;border-color:#6d28d9;">💻</div><div class="wf-nlbl">IT<br>Ticket</div><div class="tti">Jira/Freshdesk ticket auto-created for IT: laptop model, software, permissions based on department role template.</div></div>
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#0a1a0a,#14532d);color:#86efac;border-color:#14532d;">🔑</div><div class="wf-nlbl">Tool<br>Access</div><div class="tti">Google Workspace, Slack, Notion, HRMS accounts created via APIs. Invite emails sent automatically to new hire.</div></div>
+          </div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-stage"><div class="wf-slbl">Welcome</div>
+          <div style="display:flex;flex-direction:column;gap:0.3rem">
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#2a1a0a,#92400e);color:#fcd34d;border-color:#92400e;">💌</div><div class="wf-nlbl">Welcome<br>Email</div><div class="tti">GPT-4o generates personalised welcome email with first-week schedule, team intro, culture guide, and buddy assignment.</div></div>
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#0a1a1a,#065f46);color:#6ee7b7;border-color:#065f46;">👥</div><div class="wf-nlbl">Slack<br>Intro</div><div class="tti">Auto-post in #introductions Slack channel: "Please welcome [Name] to the [Team] team! They're joining us as [Role]."</div></div>
+          </div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-stage"><div class="wf-slbl">30/60/90</div>
+          <div style="display:flex;flex-direction:column;gap:0.3rem">
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a0a0a,#991b1b);color:#fca5a5;border-color:#991b1b;">📊</div><div class="wf-nlbl">Check-in<br>Surveys</div><div class="tti">Automated surveys at day 30, 60, 90 to new hire and their manager. Results logged to Sheets and flagged to HR if score drops below threshold.</div></div>
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#0a0a1a,#1e3a5f);color:#93c5fd;border-color:#1e3a5f;">🎯</div><div class="wf-nlbl">Goal<br>Setting</div><div class="tti">Day 14: n8n sends manager a goal-setting template. Day 30: follows up if not completed. Keeps new hire and manager aligned.</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 4: SIM 1 — CHECKLIST -->
+<section class="slide" id="slide-3">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-eyebrow">03 — Simulation 1</div><div class="sec-title">Live: Onboarding<br><em>Checklist Automation</em></div><p class="sec-desc">Chidera Okafor just accepted their offer as Senior Marketing Manager. Watch every onboarding task trigger and complete automatically.</p></div>
+    <div class="animate-in lr">
+      <div style="display:flex;flex-direction:column;gap:1rem">
+        <div class="panel">
+          <h3>Pipeline Steps</h3>
+          <ul class="ps-list" id="onbSteps">
+            <li id="os1" style="opacity:0.3"><div class="ps-num">1</div><div>Offer acceptance detected in HR system</div></li>
+            <li id="os2" style="opacity:0.3"><div class="ps-num">2</div><div>Contract & NDA sent via DocuSign</div></li>
+            <li id="os3" style="opacity:0.3"><div class="ps-num">3</div><div>IT ticket created — laptop + software</div></li>
+            <li id="os4" style="opacity:0.3"><div class="ps-num">4</div><div>Google Workspace & Slack accounts created</div></li>
+            <li id="os5" style="opacity:0.3"><div class="ps-num">5</div><div>Welcome email + first-week schedule sent</div></li>
+            <li id="os6" style="opacity:0.3"><div class="ps-num">6</div><div>Buddy assigned, intro email sent to buddy</div></li>
+            <li id="os7" style="opacity:0.3"><div class="ps-num">7</div><div>Slack #introductions post scheduled for Day 1</div></li>
+            <li id="os8" style="opacity:0.3"><div class="ps-num">8</div><div>30/60/90 check-in surveys scheduled ✅</div></li>
+          </ul>
+        </div>
+        <button class="run-btn" id="onbBtn" onclick="runOnbSim()">▶ ONBOARD CHIDERA NOW</button>
+      </div>
+      <div>
+        <div style="margin-bottom:0.5rem;font-size:0.61rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);font-family:'IBM Plex Mono',monospace">Onboarding Task Board</div>
+        <div class="checklist" id="onbChecklist">
+          <div class="check-item pending" id="ot1"><div class="check-box">○</div><div class="check-title">Employment Contract Sent</div><div class="check-owner">DocuSign</div></div>
+          <div class="check-item pending" id="ot2"><div class="check-box">○</div><div class="check-title">NDA Sent for Signature</div><div class="check-owner">DocuSign</div></div>
+          <div class="check-item pending" id="ot3"><div class="check-box">○</div><div class="check-title">Laptop Setup Request</div><div class="check-owner">IT / Jira</div></div>
+          <div class="check-item pending" id="ot4"><div class="check-box">○</div><div class="check-title">Google Workspace Account</div><div class="check-owner">IT API</div></div>
+          <div class="check-item pending" id="ot5"><div class="check-box">○</div><div class="check-title">Slack Account Created</div><div class="check-owner">Slack API</div></div>
+          <div class="check-item pending" id="ot6"><div class="check-box">○</div><div class="check-title">Welcome Email Sent</div><div class="check-owner">Gmail / GPT-4o</div></div>
+          <div class="check-item pending" id="ot7"><div class="check-box">○</div><div class="check-title">Buddy Assigned & Notified</div><div class="check-owner">n8n</div></div>
+          <div class="check-item pending" id="ot8"><div class="check-box">○</div><div class="check-title">Check-in Surveys Scheduled</div><div class="check-owner">n8n Timer</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 5: SIM 2 — WELCOME EMAIL -->
+<section class="slide" id="slide-4">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-eyebrow">04 — Simulation 2</div><div class="sec-title">AI-Generated<br><em>Welcome Experience</em></div><p class="sec-desc">GPT-4o generates a fully personalised welcome email and document pack — not a template, a genuinely warm onboarding experience.</p></div>
+    <div class="animate-in lr-rev">
+      <div style="display:flex;flex-direction:column;gap:1rem">
+        <div class="panel">
+          <h3>Document Tracker</h3>
+          <div class="doc-tracker" id="docTracker">
+            <div class="doc-header"><span>📁 Chidera Okafor — Documents</span><span style="font-size:0.65rem;color:var(--muted)" id="docCount">0/5 Complete</span></div>
+            <div class="doc-item" id="doc1"><div class="doc-icon">📝</div><div class="doc-name">Employment Contract</div><span class="doc-status ds-pending" id="ds1">Pending</span></div>
+            <div class="doc-item" id="doc2"><div class="doc-icon">🔒</div><div class="doc-name">Non-Disclosure Agreement</div><span class="doc-status ds-pending" id="ds2">Pending</span></div>
+            <div class="doc-item" id="doc3"><div class="doc-icon">🏦</div><div class="doc-name">Bank Details Form</div><span class="doc-status ds-pending" id="ds3">Pending</span></div>
+            <div class="doc-item" id="doc4"><div class="doc-icon">📋</div><div class="doc-name">Tax / PAYE Form</div><span class="doc-status ds-pending" id="ds4">Pending</span></div>
+            <div class="doc-item" id="doc5"><div class="doc-icon">📸</div><div class="doc-name">ID Verification Uploaded</div><span class="doc-status ds-pending" id="ds5">Pending</span></div>
+          </div>
+        </div>
+        <button class="run-btn" id="docBtn" onclick="runDocSim()">▶ SIMULATE DOCUMENT FLOW</button>
+      </div>
+      <div class="welcome-email" id="welcomeEmail">
+        <div class="we-header">
+          <div class="we-logo">WELCOME TO THE TEAM</div>
+          <div class="we-subtitle">AI-Generated · Personalised for Chidera</div>
+        </div>
+        <div class="we-body">
+          Hi <strong>Chidera</strong>,<br><br>
+          We are genuinely thrilled to welcome you to the <strong>Marketing team</strong> as our new Senior Marketing Manager. 🎉<br><br>
+          <strong>Your first week at a glance:</strong><br>
+          📅 <strong>Mon:</strong> Induction with HR · Laptop setup · Team intro call<br>
+          📅 <strong>Tue:</strong> 1:1 with your manager, Tobi Adeyemi<br>
+          📅 <strong>Wed:</strong> Marketing tools walkthrough — HubSpot, Canva, Analytics<br>
+          📅 <strong>Thu:</strong> Sit-in on campaign planning meeting<br>
+          📅 <strong>Fri:</strong> First week reflection + buddy check-in<br><br>
+          <strong>Your onboarding buddy is Kemi Ojo</strong> — she'll reach out today to say hello 👋<br><br>
+          Your login credentials for Google Workspace and Slack will arrive in a separate email shortly.<br><br>
+          We can't wait to see what you build with us. 🌿<br>
+          <span style="color:var(--muted);font-size:0.65rem">— HR Team · Generated by n8n + GPT-4o · Zero manual effort</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 6: SIM 3 — 90 DAY TRACKER -->
+<section class="slide" id="slide-5">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-eyebrow">05 — Simulation 3</div><div class="sec-title">90-Day Check-in<br><em>Automation</em></div><p class="sec-desc">After Day 1, n8n keeps running — sending pulse surveys, reminding managers, and flagging disengagement before it becomes a resignation.</p></div>
+    <div class="animate-in" style="margin-bottom:1.5rem">
+      <div class="sheet-table">
+        <div class="sheet-head"><div>#</div><div>New Hire</div><div>Role</div><div>Start Date</div><div>Day 30 Score</div><div>Status</div></div>
+        <div class="sheet-row"><div style="color:var(--muted)">001</div><div>Chidera Okafor</div><div>Sr. Mktg Mgr</div><div>Apr 7</div><div><span style="color:var(--green);font-weight:600">9.2 / 10</span></div><div><span class="s-badge sb-active">On Track</span></div></div>
+        <div class="sheet-row"><div style="color:var(--muted)">002</div><div>Tunde Afolabi</div><div>Data Analyst</div><div>Apr 1</div><div><span style="color:var(--yellow);font-weight:600">6.1 / 10</span></div><div><span class="s-badge sb-pend">Flagged ⚠️</span></div></div>
+        <div class="sheet-row"><div style="color:var(--muted)">003</div><div>Amara Diallo</div><div>Product Mgr</div><div>Mar 24</div><div><span style="color:var(--green);font-weight:600">8.7 / 10</span></div><div><span class="s-badge sb-active">On Track</span></div></div>
+        <div class="sheet-row"><div style="color:var(--muted)">004</div><div>Seun Babatunde</div><div>Engineer</div><div>Mar 17</div><div><span style="color:var(--green);font-weight:600">8.4 / 10</span></div><div><span class="s-badge sb-done">Day 60 Done</span></div></div>
+      </div>
+    </div>
+    <div class="animate-in two-col">
+      <div class="panel">
+        <h3>What the Flag Triggers</h3>
+        <ul class="steps">
+          <li><div class="step-n">1</div><div>Score below 7.0 → Slack alert to HR manager immediately</div></li>
+          <li><div class="step-n">2</div><div>GPT-4o drafts suggested intervention email for HR to review</div></li>
+          <li><div class="step-n">3</div><div>1:1 meeting with manager auto-scheduled within 48 hours</div></li>
+          <li><div class="step-n">4</div><div>Case logged in Sheets for retention tracking</div></li>
+        </ul>
+      </div>
+      <div class="panel">
+        <h3>Tunde's Alert — Auto-Generated</h3>
+        <div style="font-size:0.73rem;line-height:1.7;font-weight:300;background:rgba(196,168,50,0.05);border:1px solid rgba(196,168,50,0.2);padding:0.75rem;border-radius:2px">
+          🚨 <strong>Retention Alert</strong><br>
+          Tunde Afolabi scored 6.1/10 on Day 30 survey. Key concern: <em>"Not feeling fully integrated into the team."</em><br><br>
+          <strong>Suggested action:</strong> Schedule informal team lunch + reassign buddy. Manager check-in recommended within 48hrs.<br><br>
+          <span style="color:var(--muted);font-size:0.65rem">Auto-sent to HR Manager via Slack · n8n + GPT-4o</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 7: BEFORE/AFTER -->
+<section class="slide" id="slide-6">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-eyebrow">06 — Business Impact</div><div class="sec-title">The Case for<br><em>Automated Onboarding</em></div></div>
+    <div class="animate-in two-col" style="margin-bottom:1.5rem">
+      <div>
+        <div style="font-size:0.62rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--rust);margin-bottom:0.75rem;font-weight:500">❌ Before Automation</div>
+        <div style="display:flex;flex-direction:column;gap:0.5rem">
+          <div class="ba-bad">HR spends 12+ hours per hire on admin coordination</div>
+          <div class="ba-bad">20% of new hires experience incomplete Day 1 setup</div>
+          <div class="ba-bad">Documents tracked in email threads — items go missing</div>
+          <div class="ba-bad">No 30/60/90 follow-up — disengagement goes undetected</div>
+          <div class="ba-bad">New hires feel forgotten — impacting retention</div>
+        </div>
+      </div>
+      <div>
+        <div style="font-size:0.62rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--green);margin-bottom:0.75rem;font-weight:500">✅ After Automation</div>
+        <div style="display:flex;flex-direction:column;gap:0.5rem">
+          <div class="ba-good">12 hours of HR admin automated — zero manual chasing</div>
+          <div class="ba-good">100% of Day 1 tasks completed before hire arrives</div>
+          <div class="ba-good">All documents tracked, e-signed, and filed automatically</div>
+          <div class="ba-good">Disengagement flagged at Day 30 — retention intervention triggered</div>
+          <div class="ba-good">New hires feel genuinely welcomed — personalised experience</div>
+        </div>
+      </div>
+    </div>
+    <div class="animate-in">
+      <div class="quote-block">
+        <div class="quote-text">"The best onboarding experiences don't feel automated — they feel personal. This workflow achieves both: the scale of automation with the warmth of intention."</div>
+        <div style="font-size:0.63rem;color:rgba(255,255,255,0.4);letter-spacing:0.1em">STACK: n8n · GPT-4o · DocuSign API · Google Workspace API · Slack API · Jira · Calendly · Google Sheets</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="slide-counter" id="slideCounter">Slide 1 of 7</div>
+<div class="slide-nav">
+  <button class="nav-btn" onclick="prevSlide()">← Prev</button>
+  <button class="nav-btn primary" onclick="nextSlide()">Next →</button>
+</div>
+
+<script>
+const slides=document.querySelectorAll('.slide'),total=slides.length;let cur=0;
+const dots=document.getElementById('navDots');
+for(let i=0;i<total;i++){const d=document.createElement('div');d.className='nav-dot'+(i===0?' active':'');d.onclick=()=>goTo(i);dots.appendChild(d);}
+function goTo(n){slides[cur].classList.remove('active');dots.children[cur].classList.remove('active');if(cur<n)dots.children[cur].classList.add('done');cur=n;slides[cur].classList.add('active');dots.children[cur].classList.add('active');document.getElementById('slideCounter').textContent=`Slide ${cur+1} of ${total}`;}
+function nextSlide(){if(cur<total-1)goTo(cur+1);}function prevSlide(){if(cur>0)goTo(cur-1);}
+document.addEventListener('keydown',e=>{if(e.key==='ArrowRight'||e.key==='ArrowDown')nextSlide();if(e.key==='ArrowLeft'||e.key==='ArrowUp')prevSlide();});
+let secs=0;setInterval(()=>{secs++;const m=String(Math.floor(secs/60)).padStart(2,'0'),s=String(secs%60).padStart(2,'0');document.getElementById('timerBadge').textContent=`⏱ ${m}:${s}`;if(secs>=840)document.getElementById('timerBadge').style.color='#b85c38';},1000);
+function delay(ms){return new Promise(r=>setTimeout(r,ms));}
+let onbRunning=false;
+async function runOnbSim(){
+  if(onbRunning)return;onbRunning=true;
+  const btn=document.getElementById('onbBtn');btn.textContent='Running...';btn.style.opacity='0.7';
+  const taskIds=['ot1','ot2','ot3','ot4','ot5','ot6','ot7','ot8'];
+  const stepIds=['os1','os2','os3','os4','os5','os6','os7','os8'];
+  taskIds.forEach(id=>{const el=document.getElementById(id);if(el){el.className='check-item pending';el.querySelector('.check-box').textContent='○';}});
+  stepIds.forEach(id=>{const el=document.getElementById(id);if(el){el.style.opacity='0.3';el.querySelector('.ps-num').style.background='var(--border)';}});
+  for(let i=0;i<taskIds.length;i++){
+    const step=document.getElementById(stepIds[i]);
+    if(step){step.style.opacity='1';step.style.color='var(--sage)';step.querySelector('.ps-num').style.background='var(--yellow)';if(i>0){const prev=document.getElementById(stepIds[i-1]);if(prev)prev.querySelector('.ps-num').style.background='var(--sage)';}}
+    const task=document.getElementById(taskIds[i]);
+    if(task){task.className='check-item in-progress';task.querySelector('.check-box').textContent='…';}
+    await delay(600);
+    if(task){task.className='check-item done';task.querySelector('.check-box').textContent='✓';}
+  }
+  btn.textContent='↺ Reset & Run Again';btn.style.opacity='1';onbRunning=false;
+}
+let docRunning=false;
+async function runDocSim(){
+  if(docRunning)return;docRunning=true;
+  const btn=document.getElementById('docBtn');btn.textContent='Processing...';
+  const docs=[['ds1','ds-pending','ds-received','Sent'],['ds2','ds-pending','ds-received','Sent'],['ds3','ds-pending','ds-received','Sent'],['ds4','ds-pending','ds-signed','Signed ✓'],['ds5','ds-pending','ds-signed','Verified ✓']];
+  let done=0;
+  for(const[id,,cls,txt]of docs){
+    await delay(600);
+    const el=document.getElementById(id);
+    if(el){el.className='doc-status '+cls;el.textContent=txt;}
+    done++;
+    document.getElementById('docCount').textContent=`${done}/5 Complete`;
+  }
+  btn.textContent='↺ Reset & Run Again';docRunning=false;
+}
+</script>
+</body>
+</html>
