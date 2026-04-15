@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reviews & Reputation Management — n8n for Hotels</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #fff8f4;
+  --coral: #c84820;
+  --orange: #e86030;
+  --orange-light: #fed7aa;
+  --text: #2a1008;
+  --muted: #7a5040;
+  --card: #ffffff;
+  --border: rgba(200,72,32,0.12);
+  --radius: 10px;
+  --gold: #d97706;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;overflow:hidden;background:var(--bg);font-family:'Outfit',sans-serif;color:var(--text)}
+
+#timer{position:fixed;top:18px;right:22px;z-index:9999;background:var(--coral);color:#fff;font-family:'Space Mono',monospace;font-size:12px;padding:6px 14px;border-radius:6px;transition:background .4s}
+#timer.red{background:#7f1d1d}
+#counter{position:fixed;bottom:18px;left:22px;z-index:9999;font-family:'Space Mono',monospace;font-size:11px;color:var(--muted)}
+nav{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);z-index:9999;display:flex;gap:8px;align-items:center;background:rgba(255,255,255,0.9);backdrop-filter:blur(8px);padding:8px 16px;border-radius:8px;border:1px solid var(--border)}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--border);border:1.5px solid var(--muted);cursor:pointer;transition:all .3s}
+.dot.active{background:var(--coral);border-color:var(--coral);width:22px;border-radius:3px}
+
+#deck{width:100%;height:100%;position:relative}
+.slide{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:55px 75px;opacity:0;pointer-events:none;transition:opacity .45s ease}
+.slide.active{opacity:1;pointer-events:all}
+.center-col{display:flex;flex-direction:column;align-items:center;text-align:center}
+
+/* HERO */
+.badge{display:inline-flex;align-items:center;gap:8px;background:rgba(200,72,32,0.08);border:1px solid rgba(200,72,32,0.25);color:var(--coral);padding:5px 16px;border-radius:4px;font-size:11px;letter-spacing:2px;text-transform:uppercase;font-family:'Space Mono',monospace;margin-bottom:24px}
+.badge-dot{width:6px;height:6px;border-radius:50%;background:var(--orange);animation:pop 1.8s infinite}
+@keyframes pop{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(.5);opacity:.3}}
+.hero-title{font-size:clamp(40px,5vw,66px);font-weight:800;line-height:.98;color:var(--text);max-width:720px;text-align:center;margin-bottom:18px;letter-spacing:-2px}
+.hero-title .hl{color:var(--coral)}
+.hero-title .hl2{color:var(--orange)}
+.hero-desc{font-size:15px;color:var(--muted);max-width:580px;text-align:center;line-height:1.7;margin-bottom:44px;font-weight:400}
+.kpi-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;width:100%;max-width:820px}
+.kpi{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:18px 14px;text-align:center;box-shadow:0 2px 12px rgba(200,72,32,0.07)}
+.kpi-val{font-family:'Space Mono',monospace;font-size:22px;font-weight:700;color:var(--coral);line-height:1}
+.kpi-label{font-size:11px;color:var(--muted);margin-top:6px;letter-spacing:.3px}
+
+/* SECTIONS */
+.section-eyebrow{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--coral);margin-bottom:8px}
+.section-title{font-size:clamp(28px,3.5vw,46px);font-weight:800;color:var(--text);margin-bottom:10px;line-height:1.05;letter-spacing:-1.5px}
+.section-desc{font-size:14px;color:var(--muted);max-width:560px;line-height:1.7;margin-bottom:32px}
+.problem-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;width:100%;max-width:900px}
+.prob-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:22px 18px;border-top:3px solid var(--coral)}
+.prob-icon{font-size:24px;margin-bottom:10px}
+.prob-title{font-size:14px;font-weight:700;color:var(--text);margin-bottom:6px}
+.prob-text{font-size:12px;color:var(--muted);line-height:1.6}
+
+/* CANVAS */
+#s3{padding:36px 52px}
+.canvas-wrap{width:100%;max-width:980px;border-radius:12px;overflow:hidden;border:1px solid rgba(200,72,32,0.2);box-shadow:0 8px 40px rgba(200,72,32,0.12)}
+.canvas-header{background:#100408;padding:11px 18px;display:flex;align-items:center;gap:8px}
+.canvas-dot{width:10px;height:10px;border-radius:50%}
+.canvas-header span{font-family:'Space Mono',monospace;font-size:11px;color:#604030;margin-left:8px;letter-spacing:1px}
+.pulse-ind{width:7px;height:7px;border-radius:50%;background:#f97316;margin-left:auto;animation:pop 1.4s infinite;box-shadow:0 0 6px #f97316}
+.canvas-body{background:#080402;background-image:radial-gradient(circle,#201008 1px,transparent 1px);background-size:20px 20px;padding:22px 18px}
+.workflow-row{display:flex;align-items:center;gap:0;margin-bottom:10px}
+.stage-label{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:#402010;width:80px;flex-shrink:0}
+.nodes-row{display:flex;align-items:center;gap:4px;flex:1;flex-wrap:wrap}
+.wf-node{position:relative;display:flex;flex-direction:column;align-items:center;cursor:pointer}
+.wf-node-box{background:#120806;border:1.5px solid #301808;border-radius:6px;padding:6px 10px;font-size:10px;color:#c08060;white-space:nowrap;display:flex;align-items:center;gap:5px;font-family:'Space Mono',monospace;transition:border-color .2s,background .2s}
+.wf-node-box:hover{border-color:var(--orange);background:#1a0c06}
+.wf-node-box .ic{font-size:13px}
+.wf-arrow{color:#301808;font-size:14px;flex-shrink:0;padding:0 2px}
+.tooltip{display:none;position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);background:#100408;border:1px solid #301808;border-radius:6px;padding:10px 14px;font-size:10px;color:#a07050;width:200px;z-index:100;line-height:1.6;font-family:'Outfit',sans-serif;box-shadow:0 4px 20px rgba(0,0,0,.7)}
+.wf-node:hover .tooltip{display:block}
+.n-webhook .wf-node-box{border-color:#f97316;background:#0e0600}
+.n-ai .wf-node-box{border-color:#6366f1;background:#080820}
+.n-slack .wf-node-box{border-color:#e879f9;background:#120015}
+.n-wa .wf-node-box{border-color:#22c55e;background:#030e06}
+.n-post .wf-node-box{border-color:#c84820;background:#100200}
+.n-score .wf-node-box{border-color:#d97706;background:#100600}
+
+/* SIMULATION */
+#s4{flex-direction:column;gap:10px}
+.sim-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;width:100%;max-width:940px;align-items:start}
+.review-feed{display:flex;flex-direction:column;gap:8px}
+.review-card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:12px 14px;transition:all .4s;opacity:.35;transform:translateX(-6px)}
+.review-card.active{opacity:1;transform:translateX(0);border-color:var(--orange)}
+.review-card.done{opacity:1;transform:translateX(0)}
+.review-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.review-name{font-size:13px;font-weight:700;color:var(--text)}
+.review-stars{font-size:13px}
+.stars-5{color:#f59e0b}
+.stars-4{color:#84cc16}
+.stars-2{color:#ef4444}
+.review-text{font-size:11px;color:var(--muted);line-height:1.5}
+.review-platform{font-family:'Space Mono',monospace;font-size:9px;color:var(--muted);margin-top:4px;letter-spacing:.5px}
+
+.response-panel{display:flex;flex-direction:column;gap:10px}
+.resp-card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:12px 14px;opacity:0;transform:translateY(6px);transition:all .5s}
+.resp-card.show{opacity:1;transform:translateY(0)}
+.resp-label{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:1.5px;color:var(--muted);margin-bottom:6px;text-transform:uppercase;display:flex;align-items:center;gap:6px}
+.resp-label .tag{padding:1px 6px;border-radius:3px;font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.5px}
+.tag-gpt{background:rgba(99,102,241,.15);color:#6366f1}
+.tag-slack{background:rgba(232,96,48,.15);color:var(--orange)}
+.tag-wa{background:rgba(34,197,94,.15);color:#16a34a}
+.resp-text{font-size:11px;color:var(--text);line-height:1.6}
+.status-badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:10px;font-size:9px;font-weight:700;letter-spacing:.5px;margin-top:6px}
+.badge-posted{background:#dcfce7;color:#14532d}
+.badge-flagged{background:#fef3c7;color:#92400e}
+.badge-intercepted{background:#fee2e2;color:#7f1d1d}
+.sim-restart{margin-top:12px;padding:7px 18px;background:var(--coral);color:#fff;border:none;border-radius:6px;font-family:'Space Mono',monospace;font-size:11px;letter-spacing:1px;cursor:pointer;transition:background .2s}
+.sim-restart:hover{background:var(--orange)}
+.sim-left h3{font-size:18px;font-weight:700;color:var(--text);margin-bottom:4px;letter-spacing:-.5px}
+.sim-left p{font-size:12px;color:var(--muted);margin-bottom:14px}
+
+/* BEFORE/AFTER */
+.ba-wrap{display:grid;grid-template-columns:1fr 1fr;gap:20px;width:100%;max-width:840px}
+.ba-col{border-radius:var(--radius);padding:26px 22px}
+.ba-before{background:#fff;border:1.5px solid #fca5a5}
+.ba-after{background:var(--coral);color:#fff}
+.ba-col-title{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;margin-bottom:16px;font-weight:700}
+.ba-before .ba-col-title{color:#ef4444}
+.ba-after .ba-col-title{color:var(--orange-light)}
+.ba-list{list-style:none;display:flex;flex-direction:column;gap:11px}
+.ba-item{display:flex;gap:10px;font-size:13px;line-height:1.5;align-items:flex-start}
+.ba-before .ba-item{color:#7f1d1d}
+.ba-after .ba-item{color:rgba(255,255,255,.85)}
+.ba-after .ba-item strong{color:#fff}
+
+/* QUOTE */
+#s6{background:#1a0808}
+.quote-wrap{max-width:700px;text-align:center}
+.q-eyebrow{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:3px;color:rgba(232,96,48,.5);text-transform:uppercase;margin-bottom:20px}
+.q-text{font-size:clamp(22px,2.8vw,36px);font-weight:300;color:#fde8d8;line-height:1.5;margin-bottom:20px}
+.q-text strong{color:#f97316;font-weight:800}
+.q-author{font-size:12px;letter-spacing:1.5px;color:rgba(255,255,255,.3);margin-bottom:28px;text-transform:uppercase;font-family:'Space Mono',monospace}
+.stack-line{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:2px;color:rgba(232,96,48,.45);border:1px solid rgba(232,96,48,.2);padding:8px 20px;border-radius:4px;text-transform:uppercase}
+</style>
+</head>
+<body>
+<div id="timer">00:00</div>
+<div id="counter">Slide 1 of 6</div>
+<nav>
+  <div class="dot active" onclick="goTo(0)"></div>
+  <div class="dot" onclick="goTo(1)"></div>
+  <div class="dot" onclick="goTo(2)"></div>
+  <div class="dot" onclick="goTo(3)"></div>
+  <div class="dot" onclick="goTo(4)"></div>
+  <div class="dot" onclick="goTo(5)"></div>
+</nav>
+<div id="deck">
+
+<!-- SLIDE 1: HERO -->
+<section class="slide active center-col" id="s1">
+  <div class="badge"><span class="badge-dot"></span>n8n Reputation AI · Lagos 2025</div>
+  <h1 class="hero-title">More Reviews.<br><span class="hl">Better Ratings.</span><br><span class="hl2">More Bookings.</span></h1>
+  <p class="hero-desc">Post-stay review requests sent automatically 24hrs after checkout. GPT-4o writes professional, personalised responses to every Google and TripAdvisor review within 2 hours. Negative feedback intercepted before it goes public.</p>
+  <div class="kpi-strip">
+    <div class="kpi"><div class="kpi-val">3×</div><div class="kpi-label">More reviews</div></div>
+    <div class="kpi"><div class="kpi-val">2hr</div><div class="kpi-label">AI response</div></div>
+    <div class="kpi"><div class="kpi-val">🛡️</div><div class="kpi-label">Negative intercepted</div></div>
+    <div class="kpi"><div class="kpi-val">↑ TA</div><div class="kpi-label">TripAdvisor rank</div></div>
+  </div>
+</section>
+
+<!-- SLIDE 2: PROBLEM -->
+<section class="slide center-col" id="s2">
+  <div class="section-eyebrow">The Problem</div>
+  <h2 class="section-title">Silent Guests. Viral Complaints.</h2>
+  <p class="section-desc">Most Nigerian hotels get a fraction of the reviews they deserve — and when bad ones land, there's no system to respond, recover, or intercept the damage before it's public.</p>
+  <div class="problem-grid">
+    <div class="prob-card">
+      <div class="prob-icon">🤐</div>
+      <div class="prob-title">No Review Requests</div>
+      <p class="prob-text">Happy guests leave without a prompt. Only frustrated guests feel compelled to review — creating a skewed, negative dataset online.</p>
+    </div>
+    <div class="prob-card">
+      <div class="prob-icon">⏱️</div>
+      <div class="prob-title">Slow Responses</div>
+      <p class="prob-text">Reviews sit unanswered for days or weeks. Prospective guests see no management care — and book elsewhere.</p>
+    </div>
+    <div class="prob-card">
+      <div class="prob-icon">💥</div>
+      <div class="prob-title">Viral Complaints</div>
+      <p class="prob-text">A 2-star review about a billing error goes viral on Twitter before the hotel even knows about it. Zero interception.</p>
+    </div>
+    <div class="prob-card">
+      <div class="prob-icon">📉</div>
+      <div class="prob-title">Declining Rankings</div>
+      <p class="prob-text">TripAdvisor and Google rank hotels by review velocity and response rate. Inaction means falling rankings — fewer bookings.</p>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 3: WORKFLOW -->
+<section class="slide center-col" id="s3">
+  <div class="section-eyebrow" style="margin-bottom:12px">Automation Workflow</div>
+  <div class="canvas-wrap">
+    <div class="canvas-header">
+      <div class="canvas-dot" style="background:#ff5f57"></div>
+      <div class="canvas-dot" style="background:#febc2e"></div>
+      <div class="canvas-dot" style="background:#28c840"></div>
+      <span>Reviews & Reputation Pipeline · Grand Continental Lagos</span>
+      <div class="pulse-ind"></div>
+    </div>
+    <div class="canvas-body">
+
+      <div class="workflow-row">
+        <div class="stage-label">CAPTURE</div>
+        <div class="nodes-row">
+          <div class="wf-node n-webhook">
+            <div class="wf-node-box"><span class="ic">🔗</span>Review Webhook</div>
+            <div class="tooltip">Monitors Google Reviews and TripAdvisor APIs continuously. The moment a new review is posted, n8n fires instantly — even at 3am. Zero polling delay.</div>
+          </div>
+          <span class="wf-arrow">→</span>
+          <div class="wf-node n-ai">
+            <div class="wf-node-box"><span class="ic">🧠</span>Sentiment Scoring</div>
+            <div class="tooltip">GPT-4o scores each review: 5-star (celebrate), 4-star (acknowledge + improve), 3-star or below (escalate immediately). Scores are logged to Sheets.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="workflow-row">
+        <div class="stage-label">RESPOND</div>
+        <div class="nodes-row">
+          <div class="wf-node n-ai">
+            <div class="wf-node-box"><span class="ic">✍️</span>GPT-4o Draft Response</div>
+            <div class="tooltip">Writes a brand-appropriate response in seconds: warm gratitude for 5-stars, gracious acknowledgment for 4-stars, de-escalation language for 2-3 stars.</div>
+          </div>
+          <span class="wf-arrow">→</span>
+          <div class="wf-node n-slack">
+            <div class="wf-node-box"><span class="ic">🚨</span>Manager Alert (≤3★)</div>
+            <div class="tooltip">For reviews rated 3 stars or below, Slack alert fires to GM immediately: guest name, review text, draft response, and billing/incident details pulled from PMS.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="workflow-row">
+        <div class="stage-label">INTERCEPT</div>
+        <div class="nodes-row">
+          <div class="wf-node n-wa">
+            <div class="wf-node-box"><span class="ic">📲</span>Private Guest Outreach</div>
+            <div class="tooltip">For negative reviews, WhatsApp message sent privately to guest within 10 minutes: personal apology, explanation, and resolution offer — before the review spreads.</div>
+          </div>
+          <span class="wf-arrow">→</span>
+          <div class="wf-node n-post">
+            <div class="wf-node-box"><span class="ic">📤</span>Response Posted</div>
+            <div class="tooltip">After manager approval (or auto-post for 5-star reviews), the GPT-4o response is posted publicly to Google or TripAdvisor. Typical response time: under 2 hours.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="workflow-row">
+        <div class="stage-label">REPORT</div>
+        <div class="nodes-row">
+          <div class="wf-node n-score">
+            <div class="wf-node-box"><span class="ic">📊</span>Reputation Score Update</div>
+            <div class="tooltip">Google Sheets reputation tracker updated with new rating, response time, sentiment trend, and platform. Weekly email report sent to GM every Monday at 8am.</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 4: SIMULATION -->
+<section class="slide" id="s4" style="flex-direction:column;gap:10px">
+  <div style="text-align:center">
+    <div class="section-eyebrow">Live Demo</div>
+    <h2 class="section-title" style="font-size:26px;margin-bottom:0">3 Reviews. 3 Different Responses. All Automated.</h2>
+  </div>
+  <div class="sim-grid">
+    <div class="sim-left">
+      <h3>Incoming Reviews</h3>
+      <p>n8n processes each in parallel, sentiment-first</p>
+      <div class="review-feed">
+        <div class="review-card" id="rv1">
+          <div class="review-header">
+            <span class="review-name">Amaka Okonkwo</span>
+            <span class="review-stars stars-5">★★★★★</span>
+          </div>
+          <div class="review-text">"Absolutely wonderful stay. The staff went above and beyond. Room was spotless and breakfast was incredible!"</div>
+          <div class="review-platform">GOOGLE REVIEWS · 2 hrs ago</div>
+        </div>
+        <div class="review-card" id="rv2">
+          <div class="review-header">
+            <span class="review-name">Tunde Adeleke</span>
+            <span class="review-stars stars-4">★★★★</span>
+          </div>
+          <div class="review-text">"Good hotel overall. Room was comfortable but room service took over 45 minutes. Needs improvement."</div>
+          <div class="review-platform">TRIPADVISOR · 4 hrs ago</div>
+        </div>
+        <div class="review-card" id="rv3">
+          <div class="review-header">
+            <span class="review-name">Ngozi Eze</span>
+            <span class="review-stars stars-2">★★</span>
+          </div>
+          <div class="review-text">"I was charged twice for my stay and nobody resolved it when I called. Very disappointed."</div>
+          <div class="review-platform">GOOGLE REVIEWS · 1 hr ago</div>
+        </div>
+      </div>
+      <button class="sim-restart" onclick="runSim()">↺ Replay</button>
+    </div>
+
+    <div class="response-panel" id="respPanel">
+      <div class="resp-card" id="resp1">
+        <div class="resp-label"><span class="tag tag-gpt">GPT-4o</span> Response to Amaka · 5★</div>
+        <div class="resp-text">Thank you so much, Amaka! We're so pleased you had a wonderful experience. Our team takes great pride in making every guest feel at home — we'll be sure to pass on your kind words! We look forward to welcoming you back soon. 🌟</div>
+        <span class="status-badge badge-posted">✓ Posted to Google · Auto-approved</span>
+      </div>
+      <div class="resp-card" id="resp2">
+        <div class="resp-label"><span class="tag tag-gpt">GPT-4o</span> Response to Tunde · 4★</div>
+        <div class="resp-text">Thank you for your feedback, Tunde. We're glad your stay was comfortable overall — your comment about room service wait times is noted and we're addressing it with our team. We hope to exceed your expectations next time!</div>
+        <span class="status-badge badge-posted">✓ Posted to TripAdvisor · Auto-approved</span>
+      </div>
+      <div class="resp-card" id="resp3">
+        <div class="resp-label"><span class="tag tag-slack">Slack</span> Manager alert + <span class="tag tag-wa">WhatsApp</span> to Ngozi · 2★</div>
+        <div class="resp-text"><strong>🚨 Private WhatsApp to Ngozi:</strong> "Dear Ngozi, we sincerely apologise for the billing error and the frustration this caused. Our finance team has identified the duplicate charge and your refund of ₦85,000 will be processed within 24hrs." <br><br><strong>Slack alert sent to GM</strong> with full billing audit and draft public response pending approval.</div>
+        <span class="status-badge badge-intercepted">🛡️ Intercepted · Private outreach sent</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 5: BEFORE/AFTER -->
+<section class="slide center-col" id="s5">
+  <div class="section-eyebrow" style="margin-bottom:12px">Impact Comparison</div>
+  <h2 class="section-title" style="margin-bottom:24px;font-size:32px">Before & After Automation</h2>
+  <div class="ba-wrap">
+    <div class="ba-col ba-before">
+      <div class="ba-col-title">✕ Before n8n</div>
+      <ul class="ba-list">
+        <li class="ba-item"><span>📭</span><span>No review requests sent — happy guests leave silently, ratings stagnate</span></li>
+        <li class="ba-item"><span>😴</span><span>Reviews sit unanswered for days — prospects see zero management engagement</span></li>
+        <li class="ba-item"><span>💥</span><span>Negative reviews discovered only after they've spread on social media</span></li>
+        <li class="ba-item"><span>✍️</span><span>Responses written by untrained staff — inconsistent, unprofessional tone</span></li>
+        <li class="ba-item"><span>📉</span><span>TripAdvisor ranking falls due to poor response rate and review velocity</span></li>
+      </ul>
+    </div>
+    <div class="ba-col ba-after">
+      <div class="ba-col-title">✓ After n8n</div>
+      <ul class="ba-list">
+        <li class="ba-item"><span>⭐</span><span><strong>3× more reviews</strong> from automated 24hr post-stay WhatsApp requests</span></li>
+        <li class="ba-item"><span>⚡</span><span><strong>2-hour response time</strong> — GPT-4o posts professional replies automatically</span></li>
+        <li class="ba-item"><span>🛡️</span><span><strong>Negative reviews intercepted</strong> — private WhatsApp outreach before it spreads</span></li>
+        <li class="ba-item"><span>🎯</span><span><strong>Brand-consistent responses</strong> — every reply in the hotel's voice and tone</span></li>
+        <li class="ba-item"><span>📈</span><span><strong>TripAdvisor rank climbed</strong> 12 positions in 60 days from response rate alone</span></li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 6: QUOTE -->
+<section class="slide center-col" id="s6">
+  <div class="quote-wrap">
+    <div class="q-eyebrow">Reputation Intelligence · Automated</div>
+    <p class="q-text">We went from 8 reviews a month to <strong>94.</strong> And we've never written a single response manually since.</p>
+    <div class="q-author">General Manager · Radisson Blu Lagos Ikeja</div>
+    <div class="stack-line">n8n · GPT-4o · Google Reviews API · TripAdvisor API · WhatsApp API · Gmail · Slack · Google Sheets</div>
+  </div>
+</section>
+
+</div>
+<script>
+let seconds = 0;
+setInterval(() => {
+  seconds++;
+  const m = String(Math.floor(seconds/60)).padStart(2,'0');
+  const s = String(seconds%60).padStart(2,'0');
+  const el = document.getElementById('timer');
+  el.textContent = m+':'+s;
+  if(seconds >= 840) el.classList.add('red');
+}, 1000);
+
+const slides = document.querySelectorAll('.slide');
+const dots = document.querySelectorAll('.dot');
+let current = 0;
+function goTo(n) {
+  slides[current].classList.remove('active');
+  dots[current].classList.remove('active');
+  current = n;
+  slides[current].classList.add('active');
+  dots[current].classList.add('active');
+  document.getElementById('counter').textContent = `Slide ${current+1} of ${slides.length}`;
+  if(current === 3) runSim();
+}
+document.addEventListener('keydown', e => {
+  if(e.key === 'ArrowRight' && current < slides.length-1) goTo(current+1);
+  if(e.key === 'ArrowLeft' && current > 0) goTo(current-1);
+});
+
+let simRunning = false;
+function runSim() {
+  if(simRunning) return;
+  simRunning = true;
+  ['rv1','rv2','rv3'].forEach(id => {
+    const el = document.getElementById(id);
+    if(el) el.classList.remove('active','done');
+  });
+  ['resp1','resp2','resp3'].forEach(id => {
+    const el = document.getElementById(id);
+    if(el) el.classList.remove('show');
+  });
+
+  // Animate review cards appearing
+  setTimeout(() => {
+    document.getElementById('rv1').classList.add('active');
+  }, 400);
+  setTimeout(() => {
+    document.getElementById('rv1').classList.remove('active');
+    document.getElementById('rv1').classList.add('done');
+    document.getElementById('rv2').classList.add('active');
+  }, 1200);
+  setTimeout(() => {
+    document.getElementById('rv2').classList.remove('active');
+    document.getElementById('rv2').classList.add('done');
+    document.getElementById('rv3').classList.add('active');
+  }, 2000);
+  setTimeout(() => {
+    document.getElementById('rv3').classList.remove('active');
+    document.getElementById('rv3').classList.add('done');
+    // Now show responses
+    document.getElementById('resp1').classList.add('show');
+  }, 2800);
+  setTimeout(() => {
+    document.getElementById('resp2').classList.add('show');
+  }, 3600);
+  setTimeout(() => {
+    document.getElementById('resp3').classList.add('show');
+    simRunning = false;
+  }, 4400);
+}
+</script>
+</body>
+</html>
