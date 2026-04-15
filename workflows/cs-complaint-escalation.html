@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Customer Service — Complaint Escalation Automation</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#fdf8f3;--surface:#ffffff;--surface2:#f7f0e8;--border:#e8ddd0;--ink:#1a1008;--orange:#d4620a;--orange2:#b85208;--amber:#e8920a;--warm:#f5c842;--cream:#fef3e2;--green:#1a7a42;--red:#c82828;--blue:#1a52a8;--teal:#0a7a68;--text:#2a1a08;--muted:#7a6050;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'Sora',sans-serif;overflow-x:hidden;}
+.alert-stripe{position:fixed;top:0;left:0;right:0;height:4px;z-index:200;background:repeating-linear-gradient(45deg,var(--orange),var(--orange) 10px,var(--amber) 10px,var(--amber) 20px);}
+nav{position:fixed;top:4px;left:0;right:0;z-index:100;background:rgba(253,248,243,0.97);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 2.5rem;height:54px;}
+.nav-brand{font-family:'IBM Plex Mono',monospace;font-size:0.72rem;color:var(--orange2);letter-spacing:0.05em;}
+.nav-dots{display:flex;gap:0.3rem;}
+.nav-dot{width:7px;height:7px;border-radius:50%;background:var(--border);cursor:pointer;transition:all 0.2s;}
+.nav-dot.active{background:var(--orange);transform:scale(1.5);}
+.nav-dot.done{background:var(--green);}
+.timer{font-size:0.67rem;color:var(--orange);background:rgba(212,98,10,0.08);border:1px solid rgba(212,98,10,0.2);padding:0.2rem 0.75rem;border-radius:20px;font-family:'IBM Plex Mono',monospace;}
+.slide{min-height:100vh;padding:78px 0 50px;display:none;flex-direction:column;align-items:center;justify-content:center;position:relative;overflow:hidden;}
+.slide.active{display:flex;}
+.slide-inner{width:100%;max-width:1140px;padding:0 2.5rem;position:relative;z-index:2;}
+.hero-flame{position:absolute;right:5%;top:10%;font-size:18rem;opacity:0.04;pointer-events:none;}
+.hero-bg{position:absolute;inset:0;background:radial-gradient(ellipse at 80% 50%,rgba(212,98,10,0.04) 0%,transparent 60%);pointer-events:none;}
+.hero-tag{display:inline-flex;align-items:center;gap:0.5rem;background:var(--cream);border:1px solid rgba(212,98,10,0.2);color:var(--orange2);font-size:0.67rem;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;padding:0.28rem 0.85rem;border-radius:6px;margin-bottom:1.5rem;font-family:'IBM Plex Mono',monospace;}
+.hero-tag::before{content:'⚡';font-size:0.65rem;}
+h1.hero-title{font-family:'Sora',sans-serif;font-size:clamp(2.8rem,5.5vw,4.8rem);font-weight:800;line-height:1.0;letter-spacing:-0.03em;color:var(--ink);margin-bottom:1.5rem;}
+h1.hero-title span{color:var(--orange);}
+.hero-desc{font-size:0.97rem;color:var(--muted);max-width:510px;line-height:1.78;margin-bottom:2.5rem;font-weight:300;}
+.kpi-strip{display:flex;gap:1px;background:var(--border);border:1px solid var(--border);border-radius:12px;overflow:hidden;max-width:620px;box-shadow:0 2px 12px rgba(212,98,10,0.07);}
+.kpi{background:white;padding:1.1rem 1.4rem;flex:1;}
+.kpi-val{font-family:'Sora',sans-serif;font-size:1.85rem;font-weight:800;color:var(--orange);line-height:1;}
+.kpi-lbl{font-size:0.59rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);margin-top:0.2rem;font-family:'IBM Plex Mono',monospace;}
+.sec-tag{font-size:0.61rem;letter-spacing:0.22em;text-transform:uppercase;color:var(--orange);margin-bottom:0.4rem;font-weight:600;font-family:'IBM Plex Mono',monospace;}
+.sec-title{font-family:'Sora',sans-serif;font-size:clamp(1.9rem,3.8vw,3rem);font-weight:800;line-height:1.05;margin-bottom:0.5rem;color:var(--ink);letter-spacing:-0.02em;}
+.sec-title span{color:var(--orange);}
+.sec-desc{font-size:0.87rem;color:var(--muted);margin-bottom:1.85rem;max-width:540px;line-height:1.78;font-weight:300;}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;}
+.lr{display:grid;grid-template-columns:1.1fr 1fr;gap:2rem;align-items:start;}
+.lr-rev{display:grid;grid-template-columns:1fr 1.15fr;gap:2rem;align-items:start;}
+.card{background:white;border:1px solid var(--border);border-radius:12px;padding:1.25rem;transition:all 0.2s;box-shadow:0 1px 4px rgba(0,0,0,0.04);}
+.card:hover{border-color:var(--orange);transform:translateY(-2px);box-shadow:0 6px 20px rgba(212,98,10,0.1);}
+.card-icon{font-size:1.4rem;margin-bottom:0.5rem;}
+.card-title{font-family:'Sora',sans-serif;font-size:0.97rem;font-weight:700;margin-bottom:0.3rem;color:var(--ink);}
+.card-desc{font-size:0.72rem;color:var(--muted);line-height:1.65;}
+.panel{background:white;border:1px solid var(--border);border-radius:12px;padding:1.4rem;}
+.panel h3{font-family:'Sora',sans-serif;font-size:0.9rem;font-weight:700;color:var(--orange2);margin-bottom:0.9rem;display:flex;align-items:center;gap:0.5rem;}
+.panel h3::before{content:'!';width:18px;height:18px;background:var(--orange);color:white;border-radius:50%;font-size:0.7rem;display:flex;align-items:center;justify-content:center;font-weight:800;flex-shrink:0;}
+.steps{list-style:none;}
+.steps li{display:flex;gap:0.75rem;padding:0.45rem 0;border-bottom:1px solid var(--border);font-size:0.76rem;line-height:1.6;}
+.steps li:last-child{border-bottom:none;}
+.step-n{width:22px;height:22px;border-radius:6px;background:var(--orange);color:white;font-size:0.62rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:'IBM Plex Mono',monospace;}
+/* Workflow */
+.wf-canvas{background:var(--ink);border-radius:16px;padding:2rem;position:relative;overflow:hidden;}
+.wf-heat{position:absolute;inset:0;background:radial-gradient(ellipse at 30% 50%,rgba(212,98,10,0.1) 0%,transparent 60%),radial-gradient(ellipse at 70% 50%,rgba(232,146,10,0.06) 0%,transparent 60%);}
+.wf-dots{position:absolute;inset:0;background-image:radial-gradient(circle,rgba(212,98,10,0.18) 1px,transparent 1px);background-size:28px 28px;opacity:0.5;}
+.wf-label{position:absolute;top:0.75rem;left:1rem;font-size:0.57rem;letter-spacing:0.18em;text-transform:uppercase;color:rgba(255,255,255,0.3);display:flex;align-items:center;gap:0.4rem;z-index:3;font-family:'IBM Plex Mono',monospace;}
+.wf-label::before{content:'';width:7px;height:7px;border-radius:50%;background:var(--amber);box-shadow:0 0 8px var(--amber);animation:apulse 2s infinite;}
+@keyframes apulse{0%,100%{opacity:1}50%{opacity:0.2}}
+.wf-nodes{display:flex;align-items:flex-start;gap:0;padding-top:1.5rem;position:relative;z-index:2;flex-wrap:wrap;}
+.wf-stage{display:flex;flex-direction:column;align-items:center;}
+.wf-slbl{font-size:0.51rem;letter-spacing:0.14em;text-transform:uppercase;color:rgba(255,255,255,0.28);margin-bottom:0.3rem;font-family:'IBM Plex Mono',monospace;}
+.wf-node{display:flex;flex-direction:column;align-items:center;gap:0.3rem;cursor:pointer;position:relative;}
+.wf-box{width:58px;height:58px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.25rem;border:2px solid transparent;transition:all 0.3s;}
+.wf-node:hover .wf-box{transform:scale(1.1);box-shadow:0 0 20px rgba(212,98,10,0.4);}
+.wf-nlbl{font-size:0.52rem;text-align:center;color:rgba(255,255,255,0.42);max-width:66px;line-height:1.3;font-family:'IBM Plex Mono',monospace;}
+.wf-arr{color:rgba(255,255,255,0.18);padding:0 0.2rem;font-size:0.85rem;align-self:flex-start;margin-top:19px;flex-shrink:0;}
+.ttw{position:relative;}
+.tti{position:absolute;bottom:calc(100%+8px);left:50%;transform:translateX(-50%);background:white;border:1px solid var(--border);border-radius:8px;padding:0.6rem 0.9rem;font-size:0.67rem;opacity:0;pointer-events:none;transition:opacity 0.2s;z-index:50;color:var(--ink);line-height:1.5;max-width:200px;white-space:normal;text-align:left;box-shadow:0 4px 16px rgba(0,0,0,0.1);}
+.ttw:hover .tti{opacity:1;}
+/* Complaint cards */
+.complaint-card{background:white;border:1px solid var(--border);border-radius:10px;padding:0.85rem 1rem;margin-bottom:0.5rem;display:flex;gap:0.75rem;align-items:flex-start;transition:all 0.3s;}
+.complaint-card.detected{border-color:var(--orange);background:rgba(212,98,10,0.03);}
+.complaint-card.escalated{border-color:var(--red);background:rgba(200,40,40,0.03);}
+.complaint-card.resolved{border-color:var(--green);background:rgba(26,122,66,0.04);}
+.cc-sev{width:8px;border-radius:4px;align-self:stretch;flex-shrink:0;}
+.sev-critical{background:var(--red);}
+.sev-high{background:var(--orange);}
+.sev-med{background:var(--amber);}
+.cc-name{font-weight:600;font-size:0.78rem;color:var(--ink);}
+.cc-issue{font-size:0.67rem;color:var(--muted);margin-top:0.1rem;}
+.cc-badge{margin-left:auto;font-size:0.59rem;padding:0.1rem 0.45rem;border-radius:20px;font-weight:600;font-family:'IBM Plex Mono',monospace;white-space:nowrap;}
+.cb-new{background:rgba(212,98,10,0.1);color:var(--orange);border:1px solid rgba(212,98,10,0.2);}
+.cb-esc{background:rgba(200,40,40,0.1);color:var(--red);border:1px solid rgba(200,40,40,0.2);}
+.cb-vip{background:rgba(26,82,168,0.1);color:var(--blue);border:1px solid rgba(26,82,168,0.2);}
+.cb-res{background:rgba(26,122,66,0.1);color:var(--green);border:1px solid rgba(26,122,66,0.2);}
+/* Sentiment meter */
+.sent-meter{background:white;border:1px solid var(--border);border-radius:10px;padding:1rem 1.1rem;}
+.sent-label{font-size:0.62rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);font-family:'IBM Plex Mono',monospace;margin-bottom:0.5rem;}
+.sent-scale{display:flex;height:8px;border-radius:4px;overflow:hidden;margin-bottom:0.35rem;}
+.sent-angry{background:var(--red);transition:flex 1s ease;}
+.sent-frustrated{background:var(--orange);transition:flex 1s ease;}
+.sent-neutral{background:var(--amber);transition:flex 1s ease;}
+.sent-satisfied{background:var(--green);transition:flex 1s ease;}
+.sent-legend{display:flex;gap:0.75rem;font-size:0.58rem;color:var(--muted);font-family:'IBM Plex Mono',monospace;}
+.sl-dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:0.25rem;}
+/* PS list */
+.ps-list{list-style:none;}
+.ps-list li{display:flex;gap:0.75rem;padding:0.45rem 0;border-bottom:1px solid var(--border);font-size:0.74rem;line-height:1.5;transition:all 0.3s;}
+.ps-list li:last-child{border-bottom:none;}
+.ps-num{width:20px;height:20px;border-radius:6px;background:var(--border);color:white;font-size:0.6rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;transition:background 0.3s;font-family:'IBM Plex Mono',monospace;}
+/* Resolution tracker */
+.res-row{display:flex;align-items:center;gap:0.85rem;padding:0.6rem 0.85rem;background:white;border:1px solid var(--border);border-radius:8px;margin-bottom:0.4rem;font-size:0.73rem;transition:all 0.3s;}
+.res-row.active-res{border-color:var(--orange);background:rgba(212,98,10,0.03);}
+.res-row.done-res{border-color:var(--green);background:rgba(26,122,66,0.04);}
+.res-icon{font-size:1.1rem;flex-shrink:0;}
+.res-time{margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:0.63rem;color:var(--muted);}
+/* Info boxes */
+.info-orange{padding:0.75rem 1rem;border-radius:8px;font-size:0.77rem;line-height:1.6;background:rgba(212,98,10,0.06);border:1px solid rgba(212,98,10,0.15);color:var(--orange2);}
+.info-green{padding:0.75rem 1rem;border-radius:8px;font-size:0.77rem;line-height:1.6;background:rgba(26,122,66,0.06);border:1px solid rgba(26,122,66,0.15);color:var(--green);}
+.ba-bad{padding:0.6rem 0.9rem;border-radius:8px;font-size:0.76rem;line-height:1.5;background:rgba(200,40,40,0.04);border:1px solid rgba(200,40,40,0.12);}
+.ba-good{padding:0.6rem 0.9rem;border-radius:8px;font-size:0.76rem;line-height:1.5;background:rgba(26,122,66,0.05);border:1px solid rgba(26,122,66,0.14);}
+.quote-block{background:var(--ink);border-radius:14px;padding:1.75rem 2rem;color:white;border-left:4px solid var(--orange);}
+.quote-text{font-size:1.05rem;line-height:1.78;margin-bottom:0.75rem;font-weight:300;}
+.quote-text strong{color:var(--warm);}
+.slide-counter{position:fixed;bottom:1.5rem;left:2rem;font-size:0.62rem;color:var(--muted);z-index:100;font-family:'IBM Plex Mono',monospace;}
+.slide-nav{position:fixed;bottom:1.5rem;right:2rem;display:flex;gap:0.5rem;z-index:100;}
+.nav-btn{background:white;border:1px solid var(--border);color:var(--text);padding:0.55rem 1.2rem;border-radius:8px;font-family:'IBM Plex Mono',monospace;font-size:0.7rem;cursor:pointer;transition:all 0.2s;}
+.nav-btn:hover{border-color:var(--orange);color:var(--orange);}
+.nav-btn.primary{background:var(--orange);border-color:var(--orange);color:white;}
+.nav-btn.primary:hover{background:var(--orange2);}
+.run-btn{background:var(--orange);color:white;border:none;border-radius:10px;padding:0.7rem 1.5rem;font-family:'IBM Plex Mono',monospace;font-size:0.72rem;cursor:pointer;transition:all 0.2s;width:100%;text-align:center;}
+.run-btn:hover{background:var(--orange2);}
+.animate-in{opacity:0;animation:fadeUp 0.5s ease-out forwards;}
+.slide.active .animate-in:nth-child(1){animation-delay:0.05s;}
+.slide.active .animate-in:nth-child(2){animation-delay:0.15s;}
+.slide.active .animate-in:nth-child(3){animation-delay:0.25s;}
+.slide.active .animate-in:nth-child(4){animation-delay:0.35s;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+</style>
+</head>
+<body>
+<div class="alert-stripe"></div>
+<nav>
+  <div class="nav-brand">CS · Complaint Escalation</div>
+  <div class="nav-dots" id="navDots"></div>
+  <div class="timer" id="timerBadge">⏱ 00:00</div>
+</nav>
+
+<!-- SLIDE 1: HERO -->
+<section class="slide active" id="slide-0">
+  <div class="hero-flame">🔥</div><div class="hero-bg"></div>
+  <div class="slide-inner">
+    <div class="animate-in"><div class="hero-tag">n8n AI Automation · Customer Service</div></div>
+    <div class="animate-in"><h1 class="hero-title">Complaints Caught<br><span>Early.</span> Resolved<br>Fast.</h1></div>
+    <div class="animate-in"><p class="hero-desc">AI detects complaint signals in real time — frustrated emails, escalating chats, negative reviews — and routes them to the right person before they become a crisis.</p></div>
+    <div class="animate-in">
+      <div class="kpi-strip">
+        <div class="kpi"><div class="kpi-val">2min</div><div class="kpi-lbl">Detection Time</div></div>
+        <div class="kpi"><div class="kpi-val">100%</div><div class="kpi-lbl">Complaints Caught</div></div>
+        <div class="kpi"><div class="kpi-val">AI</div><div class="kpi-lbl">Sentiment Analysis</div></div>
+        <div class="kpi"><div class="kpi-val">0</div><div class="kpi-lbl">Slips Through</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 2: PROBLEM -->
+<section class="slide" id="slide-1">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">01 — The Problem</div><div class="sec-title">One Unhandled<br><span>Complaint</span> = Real Risk</div><p class="sec-desc">Complaints left to simmer become reviews. Reviews become reputation damage. One frustrated enterprise customer escalating to their board can cost more than a year of support budget.</p></div>
+    <div class="animate-in two-col" style="margin-bottom:1.5rem">
+      <div class="card"><div class="card-icon">👻</div><div class="card-title">Invisible Frustration</div><div class="card-desc">Many customers don't explicitly say "complaint." They say "this is unacceptable" or "I've been waiting three weeks." Without sentiment analysis, these signals get treated as regular tickets and join the queue.</div></div>
+      <div class="card"><div class="card-icon">🐌</div><div class="card-title">Slow Escalation Paths</div><div class="card-desc">Agent recognises a complaint, flags it manually, supervisor reads it tomorrow morning. Meanwhile the customer posted on LinkedIn. A 2-hour delay in a high-stakes complaint is often too late.</div></div>
+      <div class="card"><div class="card-icon">👑</div><div class="card-title">VIP Blindspot</div><div class="card-desc">Enterprise clients, high-LTV customers, and media contacts get the same queue as everyone else. When their complaint sits for 8 hours, the relationship — and the contract — is at risk.</div></div>
+      <div class="card"><div class="card-icon">📢</div><div class="card-title">Public Complaint Lag</div><div class="card-desc">Customer posts a 1-star review or tweets about your service. Nobody on your team sees it for hours. A fast, empathetic response in the first 30 minutes can reverse the narrative entirely.</div></div>
+    </div>
+    <div class="animate-in"><div class="info-orange">✅ n8n + GPT-4o monitors every channel, detects complaint signals in real time, and escalates to the right person within 2 minutes — before the customer reaches for their keyboard.</div></div>
+  </div>
+</section>
+
+<!-- SLIDE 3: WORKFLOW -->
+<section class="slide" id="slide-2">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">02 — The Blueprint</div><div class="sec-title">n8n Complaint<br><span>Escalation Workflow</span></div><p class="sec-desc">Every channel monitored. Every complaint detected. Every escalation routed to the right person with full context — automatically, in under 2 minutes.</p></div>
+    <div class="animate-in wf-canvas">
+      <div class="wf-heat"></div><div class="wf-dots"></div><div class="wf-label">n8n canvas — complaint escalation pipeline</div>
+      <div class="wf-nodes">
+        <div class="wf-stage"><div class="wf-slbl">Listen</div>
+          <div style="display:flex;flex-direction:column;gap:0.35rem">
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a3a1a,#166534);color:#4ade80;border-color:#166534;">📧</div><div class="wf-nlbl">Email /<br>Support</div><div class="tti">All inbound emails and support tickets scanned on arrival. Full body text passed to sentiment engine before any human sees it.</div></div>
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#0a1a2a,#1d4ed8);color:#93c5fd;border-color:#1d4ed8;">💬</div><div class="wf-nlbl">Live Chat<br>Monitor</div><div class="tti">Active chat sessions monitored in real time. Escalating tone detected mid-conversation — escalation can trigger before the chat ends.</div></div>
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#2a0a1a,#9d174d);color:#fbcfe8;border-color:#9d174d;">📲</div><div class="wf-nlbl">Social<br>Media</div><div class="tti">Twitter/X, LinkedIn, Google Reviews, Trustpilot monitored via API. Mentions of your brand scanned for complaint signals continuously.</div></div>
+          </div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-stage"><div class="wf-slbl">Analyse</div>
+          <div style="display:flex;flex-direction:column;gap:0.35rem">
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a0a0a,#991b1b);color:#fca5a5;border-color:#991b1b;">🧠</div><div class="wf-nlbl">GPT-4o<br>Sentiment</div><div class="tti">GPT-4o analyses full message context. Returns: Sentiment score (1-10), Complaint type (Service/Product/Billing/Staff), Urgency level, VIP status flag, Key complaint phrases.</div></div>
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a0a1a,#7c3aed);color:#d8b4fe;border-color:#7c3aed;">⚖️</div><div class="wf-nlbl">Severity<br>Scorer</div><div class="tti">Combines sentiment score + customer tier + complaint type + repeat complaint flag. Outputs: Critical/High/Medium. Drives escalation path.</div></div>
+          </div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-stage"><div class="wf-slbl">Escalate</div>
+          <div style="display:flex;flex-direction:column;gap:0.35rem">
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a1a0a,#78350f);color:#fde68a;border-color:#78350f;">🎯</div><div class="wf-nlbl">Smart<br>Route</div><div class="tti">Critical → CS Director notified instantly. VIP → dedicated CSM. Product complaint → Product team CC'd. Repeat complaint → senior agent only.</div></div>
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a0a0a,#7f1d1d);color:#fca5a5;border-color:#7f1d1d;">📋</div><div class="wf-nlbl">Case<br>File</div><div class="tti">Full complaint dossier created: customer history, previous complaints, LTV, contract value, complaint summary, suggested resolution approach.</div></div>
+          </div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-stage"><div class="wf-slbl">Respond</div>
+          <div style="display:flex;flex-direction:column;gap:0.35rem">
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#0a1a2a,#0369a1);color:#7dd3fc;border-color:#0369a1;">✍️</div><div class="wf-nlbl">GPT-4o<br>Draft</div><div class="tti">GPT-4o drafts an empathetic acknowledgement email from the CS manager. Tone calibrated to severity. Manager reviews and sends with one click.</div></div>
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#0a1a1a,#065f46);color:#6ee7b7;border-color:#065f46;">📊</div><div class="wf-nlbl">Track &<br>Resolve</div><div class="tti">Complaint tracked until resolved. SLA clock active. If unresolved in target time, next escalation level triggered. Resolution logged and CSAT collected.</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 4: SIM 1 — DETECTION -->
+<section class="slide" id="slide-3">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">03 — Simulation 1</div><div class="sec-title">Live: Complaints<br><span>Detected & Escalated</span></div><p class="sec-desc">Five inbound messages just arrived. Watch GPT-4o scan each one for complaint signals, score severity, and route appropriately — all within 2 minutes.</p></div>
+    <div class="animate-in lr">
+      <div style="display:flex;flex-direction:column;gap:1rem">
+        <div class="panel">
+          <h3>Escalation Pipeline</h3>
+          <ul class="ps-list" id="escSteps">
+            <li id="es1" style="opacity:0.3"><div class="ps-num">1</div><div>5 messages received across email + chat + social</div></li>
+            <li id="es2" style="opacity:0.3"><div class="ps-num">2</div><div>GPT-4o scans each for sentiment + complaint signals</div></li>
+            <li id="es3" style="opacity:0.3"><div class="ps-num">3</div><div>Severity scored: Critical / High / Medium / None</div></li>
+            <li id="es4" style="opacity:0.3"><div class="ps-num">4</div><div>VIP flag checked — enterprise clients prioritised</div></li>
+            <li id="es5" style="opacity:0.3"><div class="ps-num">5</div><div>Escalation routed + dossier built + draft response</div></li>
+            <li id="es6" style="opacity:0.3"><div class="ps-num">6</div><div>CS Director + agent notified via Slack ✅</div></li>
+          </ul>
+        </div>
+        <button class="run-btn" id="escBtn" onclick="runEscSim()">▶ DETECT & ESCALATE NOW</button>
+      </div>
+      <div id="complaintBoard" style="display:flex;flex-direction:column;gap:0">
+        <div class="complaint-card" id="cp1"><div class="cc-sev sev-critical"></div><div><div class="cc-name">Amaka Obi — FinanceHub (Enterprise)</div><div class="cc-issue">"This is absolutely unacceptable. Third outage this month. We are reviewing our contract."</div></div><span class="cc-badge cb-new" id="cpb1">Scanning...</span></div>
+        <div class="complaint-card" id="cp2"><div class="cc-sev sev-high"></div><div><div class="cc-name">Tunde Lawal — RetailCo</div><div class="cc-issue">"I've been waiting 2 weeks for a refund. Nobody responds. I'm filing a chargeback."</div></div><span class="cc-badge cb-new" id="cpb2">Scanning...</span></div>
+        <div class="complaint-card" id="cp3"><div class="cc-sev sev-med"></div><div><div class="cc-name">Ngozi E. — Google Review</div><div class="cc-issue">"Support took 4 days to reply. Not impressed."</div></div><span class="cc-badge cb-new" id="cpb3">Scanning...</span></div>
+        <div class="complaint-card" id="cp4"><div class="cc-sev sev-med"></div><div><div class="cc-name">Seun A. — Live Chat</div><div class="cc-issue">"Can someone just help me? I've asked this 3 times already."</div></div><span class="cc-badge cb-new" id="cpb4">Scanning...</span></div>
+        <div class="complaint-card" id="cp5"><div class="cc-sev" style="background:var(--green)"></div><div><div class="cc-name">Fatima B. — Support Email</div><div class="cc-issue">"Hi, could you help me understand how the billing works?"</div></div><span class="cc-badge cb-new" id="cpb5">Scanning...</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 5: SIM 2 — RESOLUTION TRACKER -->
+<section class="slide" id="slide-4">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">04 — Simulation 2</div><div class="sec-title">Complaint Resolution<br><span>Tracker</span></div><p class="sec-desc">Once escalated, every complaint is tracked through to resolution. SLA clocks run. Next escalation levels fire automatically if targets are missed.</p></div>
+    <div class="animate-in lr-rev">
+      <div style="display:flex;flex-direction:column;gap:1rem">
+        <div class="panel">
+          <h3>Resolution Targets</h3>
+          <ul class="steps">
+            <li><div class="step-n">🔴</div><div><strong>Critical (Enterprise/VIP):</strong> Acknowledge in 15 min, resolve in 4 hours</div></li>
+            <li><div class="step-n">🟠</div><div><strong>High:</strong> Acknowledge in 1 hour, resolve in 24 hours</div></li>
+            <li><div class="step-n">🟡</div><div><strong>Medium:</strong> Acknowledge in 4 hours, resolve in 48 hours</div></li>
+            <li><div class="step-n">🌐</div><div><strong>Public review:</strong> Respond within 30 min regardless of severity</div></li>
+          </ul>
+        </div>
+        <div class="info-orange">⚡ If resolution target missed → automatic escalation to next management level. No complaint goes cold without a senior person knowing about it.</div>
+        <button class="run-btn" id="resBtn" onclick="runResSim()">▶ SIMULATE RESOLUTION FLOW</button>
+      </div>
+      <div id="resTracker" style="display:flex;flex-direction:column;gap:0.4rem">
+        <div style="font-size:0.61rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);font-family:'IBM Plex Mono',monospace;margin-bottom:0.1rem">Amaka Obi — FinanceHub — Critical</div>
+        <div class="res-row" id="rr1"><div class="res-icon">🚨</div><div><strong>Complaint detected</strong> — GPT-4o severity: Critical</div><div class="res-time" id="rt1">—</div></div>
+        <div class="res-row" id="rr2"><div class="res-icon">📋</div><div><strong>Dossier built</strong> — customer history, LTV, previous tickets</div><div class="res-time" id="rt2">—</div></div>
+        <div class="res-row" id="rr3"><div class="res-icon">👤</div><div><strong>CS Director notified</strong> — Slack + email</div><div class="res-time" id="rt3">—</div></div>
+        <div class="res-row" id="rr4"><div class="res-icon">✍️</div><div><strong>Acknowledgement draft</strong> — GPT-4o composed, manager reviewing</div><div class="res-time" id="rt4">—</div></div>
+        <div class="res-row" id="rr5"><div class="res-icon">📧</div><div><strong>Acknowledgement sent</strong> — within 15 min SLA target</div><div class="res-time" id="rt5">—</div></div>
+        <div class="res-row" id="rr6"><div class="res-icon">✅</div><div><strong>Complaint resolved</strong> — follow-up CSAT sent</div><div class="res-time" id="rt6">—</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 6: BEFORE/AFTER -->
+<section class="slide" id="slide-5">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">05 — Business Impact</div><div class="sec-title">From Complaints to<br><span>Loyalty</span></div></div>
+    <div class="animate-in two-col" style="margin-bottom:1.5rem">
+      <div>
+        <div style="font-size:0.62rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--red);margin-bottom:0.75rem;font-weight:600;font-family:'IBM Plex Mono',monospace">❌ BEFORE</div>
+        <div style="display:flex;flex-direction:column;gap:0.5rem">
+          <div class="ba-bad">Frustrated emails treated as regular tickets — join the queue</div>
+          <div class="ba-bad">Enterprise client complaint sits for 8 hours — contract endangered</div>
+          <div class="ba-bad">Public review posted — nobody sees it for 12 hours</div>
+          <div class="ba-bad">Agent escalates manually — supervisor reads it next morning</div>
+          <div class="ba-bad">No visibility — manager discovers crisis after customer churned</div>
+        </div>
+      </div>
+      <div>
+        <div style="font-size:0.62rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--green);margin-bottom:0.75rem;font-weight:600;font-family:'IBM Plex Mono',monospace">✅ AFTER</div>
+        <div style="display:flex;flex-direction:column;gap:0.5rem">
+          <div class="ba-good">Complaint signal detected in under 2 minutes — even if buried in text</div>
+          <div class="ba-good">Enterprise clients escalated immediately to CS Director — every time</div>
+          <div class="ba-good">Public review flagged within minutes — empathetic response drafted</div>
+          <div class="ba-good">Full dossier auto-built — director walks in fully prepared</div>
+          <div class="ba-good">Real-time dashboard — management sees every active complaint live</div>
+        </div>
+      </div>
+    </div>
+    <div class="animate-in">
+      <div class="quote-block">
+        <div class="quote-text">"The fastest way to turn a complaining customer into a loyal one is to <strong>respond before they expect it</strong>. This automation makes that possible at scale — every complaint, every channel, every time."</div>
+        <div style="font-size:0.62rem;color:rgba(255,255,255,0.3);font-family:'IBM Plex Mono',monospace">STACK: n8n · GPT-4o · Zendesk · Gmail · Twitter/X API · Google Reviews · Slack · HubSpot</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="slide-counter" id="slideCounter">Slide 1 of 6</div>
+<div class="slide-nav">
+  <button class="nav-btn" onclick="prevSlide()">← Prev</button>
+  <button class="nav-btn primary" onclick="nextSlide()">Next →</button>
+</div>
+<script>
+const slides=document.querySelectorAll('.slide'),total=slides.length;let cur=0;
+const dots=document.getElementById('navDots');
+for(let i=0;i<total;i++){const d=document.createElement('div');d.className='nav-dot'+(i===0?' active':'');d.onclick=()=>goTo(i);dots.appendChild(d);}
+function goTo(n){slides[cur].classList.remove('active');dots.children[cur].classList.remove('active');if(cur<n)dots.children[cur].classList.add('done');cur=n;slides[cur].classList.add('active');dots.children[cur].classList.add('active');document.getElementById('slideCounter').textContent=`Slide ${cur+1} of ${total}`;}
+function nextSlide(){if(cur<total-1)goTo(cur+1);}function prevSlide(){if(cur>0)goTo(cur-1);}
+document.addEventListener('keydown',e=>{if(e.key==='ArrowRight'||e.key==='ArrowDown')nextSlide();if(e.key==='ArrowLeft'||e.key==='ArrowUp')prevSlide();});
+let secs=0;setInterval(()=>{secs++;const m=String(Math.floor(secs/60)).padStart(2,'0'),s=String(secs%60).padStart(2,'0');document.getElementById('timerBadge').textContent=`⏱ ${m}:${s}`;if(secs>=840)document.getElementById('timerBadge').style.color='#c82828';},1000);
+function delay(ms){return new Promise(r=>setTimeout(r,ms));}
+const escData=[
+  {cp:'cp1',b:'cpb1',cls:'escalated',badgeTxt:'🔴 Critical — VIP',badgeCls:'cb-esc'},
+  {cp:'cp2',b:'cpb2',cls:'escalated',badgeTxt:'🟠 High — Chargeback',badgeCls:'cb-esc'},
+  {cp:'cp3',b:'cpb3',cls:'detected',badgeTxt:'🟡 Medium — Review',badgeCls:'cb-vip'},
+  {cp:'cp4',b:'cpb4',cls:'detected',badgeTxt:'🟡 Medium — Repeat',badgeCls:'cb-vip'},
+  {cp:'cp5',b:'cpb5',cls:'resolved',badgeTxt:'✅ No complaint',badgeCls:'cb-res'},
+];
+let escRunning=false;
+async function runEscSim(){
+  if(escRunning)return;escRunning=true;
+  const btn=document.getElementById('escBtn');btn.textContent='Scanning...';
+  escData.forEach(d=>{const el=document.getElementById(d.cp);const b=document.getElementById(d.b);if(el)el.className='complaint-card';if(b){b.className='cc-badge cb-new';b.textContent='Scanning...';}});
+  const steps=['es1','es2','es3','es4','es5','es6'];
+  steps.forEach(id=>{const el=document.getElementById(id);if(el){el.style.opacity='0.3';el.querySelector('.ps-num').style.background='var(--border)';}});
+  const light=(i)=>{steps.forEach(id=>{const el=document.getElementById(id);if(el){el.style.opacity='0.3';el.querySelector('.ps-num').style.background='var(--border)';}});const el=document.getElementById(steps[i]);if(el){el.style.opacity='1';el.style.color='var(--orange)';el.querySelector('.ps-num').style.background='var(--orange)';}};
+  for(let s=0;s<2;s++){light(s);await delay(550);}
+  for(const d of escData){
+    light(2);await delay(400);
+    const el=document.getElementById(d.cp);const b=document.getElementById(d.b);
+    if(el)el.classList.add(d.cls);
+    if(b){b.className='cc-badge '+d.badgeCls;b.textContent=d.badgeTxt;}
+  }
+  for(let s=3;s<6;s++){light(s);await delay(500);}
+  btn.textContent='↺ Reset & Run Again';escRunning=false;
+}
+const resTimes=['0:00','0:45','1:12','2:08','11:34','3:48:00'];
+const resDone=['done-res','done-res','done-res','done-res','done-res','done-res'];
+let resRunning=false;
+async function runResSim(){
+  if(resRunning)return;resRunning=true;
+  const btn=document.getElementById('resBtn');btn.textContent='Running...';
+  for(let i=1;i<=6;i++){const el=document.getElementById('rr'+i);const t=document.getElementById('rt'+i);if(el)el.className='res-row';if(t)t.textContent='—';}
+  for(let i=1;i<=6;i++){
+    await delay(700);
+    const el=document.getElementById('rr'+i);const t=document.getElementById('rt'+i);
+    if(el)el.classList.add('active-res');
+    await delay(400);
+    if(el){el.className='res-row done-res';}
+    if(t)t.textContent=resTimes[i-1];
+  }
+  btn.textContent='↺ Reset & Run Again';resRunning=false;
+}
+</script>
+</body>
+</html>
