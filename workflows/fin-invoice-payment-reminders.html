@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Finance & Operations — Invoice & Payment Reminders Automation</title>
+<link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Work+Sans:wght@300;400;500;600;700&family=Source+Code+Pro:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f5faf6;--surface:#ffffff;--surface2:#eaf4ec;--border:#cce0d0;
+  --ink:#081808;--forest:#1a4a28;--forest2:#0f3820;--green:#1a7a38;
+  --mint:#2aaa5a;--lime:#68c870;--red:#c82020;--amber:#c47a10;
+  --blue:#1a4a8a;--text:#102018;--muted:#507060;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'Work Sans',sans-serif;overflow-x:hidden;}
+.left-rule{position:fixed;left:0;top:0;bottom:0;width:4px;background:linear-gradient(to bottom,var(--forest),var(--mint),var(--lime));z-index:200;}
+nav{position:fixed;top:0;left:4px;right:0;z-index:100;background:rgba(245,250,246,0.97);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 2.5rem;height:54px;}
+.nav-brand{font-family:'Source Code Pro',monospace;font-size:0.7rem;color:var(--forest2);letter-spacing:0.06em;}
+.nav-dots{display:flex;gap:0.3rem;}
+.nav-dot{width:7px;height:7px;border-radius:50%;background:var(--border);cursor:pointer;transition:all 0.2s;}
+.nav-dot.active{background:var(--forest);transform:scale(1.5);}
+.nav-dot.done{background:var(--mint);}
+.timer{font-size:0.67rem;color:var(--forest);background:rgba(26,74,40,0.07);border:1px solid rgba(26,74,40,0.18);padding:0.2rem 0.75rem;border-radius:20px;font-family:'Source Code Pro',monospace;}
+.slide{min-height:100vh;padding:78px 0 50px;display:none;flex-direction:column;align-items:center;justify-content:center;position:relative;overflow:hidden;}
+.slide.active{display:flex;}
+.slide-inner{width:100%;max-width:1140px;padding:0 2.5rem;position:relative;z-index:2;}
+.hero-leaf{position:absolute;right:6%;top:15%;font-size:16rem;opacity:0.04;transform:rotate(15deg);pointer-events:none;}
+.hero-badge{display:inline-flex;align-items:center;gap:0.5rem;background:var(--surface2);border:1px solid rgba(26,74,40,0.2);color:var(--forest2);font-size:0.67rem;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;padding:0.28rem 0.9rem;border-radius:20px;margin-bottom:1.5rem;font-family:'Source Code Pro',monospace;}
+h1.hero-title{font-family:'Libre Baskerville',serif;font-size:clamp(2.8rem,5.2vw,4.5rem);font-weight:700;line-height:1.06;letter-spacing:-0.01em;color:var(--ink);margin-bottom:1.5rem;}
+h1.hero-title em{font-style:italic;color:var(--forest);}
+.hero-desc{font-size:0.97rem;color:var(--muted);max-width:510px;line-height:1.78;margin-bottom:2.5rem;font-weight:300;}
+.kpi-strip{display:flex;gap:1px;background:var(--border);border-radius:10px;overflow:hidden;max-width:620px;box-shadow:0 2px 10px rgba(26,74,40,0.07);}
+.kpi{background:white;padding:1.1rem 1.4rem;flex:1;}
+.kpi-val{font-family:'Libre Baskerville',serif;font-size:1.9rem;font-weight:700;color:var(--forest);line-height:1;}
+.kpi-lbl{font-size:0.59rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);margin-top:0.2rem;font-family:'Source Code Pro',monospace;}
+.sec-tag{font-size:0.61rem;letter-spacing:0.22em;text-transform:uppercase;color:var(--forest);margin-bottom:0.4rem;font-weight:600;font-family:'Source Code Pro',monospace;display:flex;align-items:center;gap:0.4rem;}
+.sec-tag::before{content:'→';}
+.sec-title{font-family:'Libre Baskerville',serif;font-size:clamp(1.9rem,3.6vw,2.9rem);font-weight:700;line-height:1.08;margin-bottom:0.5rem;color:var(--ink);}
+.sec-title em{font-style:italic;color:var(--forest);}
+.sec-desc{font-size:0.87rem;color:var(--muted);margin-bottom:1.85rem;max-width:540px;line-height:1.78;font-weight:300;}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;}
+.three-col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;}
+.lr{display:grid;grid-template-columns:1.1fr 1fr;gap:2rem;align-items:start;}
+.lr-rev{display:grid;grid-template-columns:1fr 1.15fr;gap:2rem;align-items:start;}
+.card{background:white;border:1px solid var(--border);border-radius:10px;padding:1.25rem;transition:all 0.2s;box-shadow:0 1px 4px rgba(0,0,0,0.04);}
+.card:hover{border-color:var(--forest);transform:translateY(-2px);box-shadow:0 6px 18px rgba(26,74,40,0.08);}
+.card-icon{font-size:1.4rem;margin-bottom:0.5rem;}
+.card-title{font-family:'Libre Baskerville',serif;font-size:1rem;font-weight:700;margin-bottom:0.3rem;color:var(--ink);}
+.card-desc{font-size:0.72rem;color:var(--muted);line-height:1.65;}
+.panel{background:white;border:1px solid var(--border);border-radius:10px;padding:1.4rem;}
+.panel h3{font-family:'Libre Baskerville',serif;font-size:0.95rem;font-weight:700;color:var(--forest2);margin-bottom:0.9rem;display:flex;align-items:center;gap:0.5rem;}
+.panel h3::before{content:'§';color:var(--border);font-size:1rem;}
+.steps{list-style:none;}
+.steps li{display:flex;gap:0.75rem;padding:0.45rem 0;border-bottom:1px solid var(--border);font-size:0.76rem;line-height:1.6;}
+.steps li:last-child{border-bottom:none;}
+.step-n{width:22px;height:22px;border-radius:50%;background:var(--forest);color:white;font-size:0.62rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+/* Workflow */
+.wf-canvas{background:var(--ink);border-radius:12px;padding:2rem;position:relative;overflow:hidden;}
+.wf-dots{position:absolute;inset:0;background-image:radial-gradient(circle,rgba(42,170,90,0.15) 1px,transparent 1px);background-size:28px 28px;opacity:0.5;}
+.wf-label{position:absolute;top:0.75rem;left:1rem;font-size:0.57rem;letter-spacing:0.18em;text-transform:uppercase;color:rgba(255,255,255,0.3);display:flex;align-items:center;gap:0.4rem;z-index:3;font-family:'Source Code Pro',monospace;}
+.wf-label::before{content:'';width:7px;height:7px;border-radius:50%;background:var(--mint);box-shadow:0 0 8px var(--mint);animation:mpulse 2s infinite;}
+@keyframes mpulse{0%,100%{opacity:1}50%{opacity:0.2}}
+.wf-nodes{display:flex;align-items:flex-start;gap:0;padding-top:1.5rem;position:relative;z-index:2;flex-wrap:wrap;}
+.wf-stage{display:flex;flex-direction:column;align-items:center;}
+.wf-slbl{font-size:0.51rem;letter-spacing:0.14em;text-transform:uppercase;color:rgba(255,255,255,0.28);margin-bottom:0.3rem;font-family:'Source Code Pro',monospace;}
+.wf-node{display:flex;flex-direction:column;align-items:center;gap:0.3rem;cursor:pointer;position:relative;}
+.wf-box{width:58px;height:58px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.25rem;border:2px solid transparent;transition:all 0.3s;}
+.wf-node:hover .wf-box{transform:scale(1.1);box-shadow:0 0 20px rgba(42,170,90,0.4);}
+.wf-nlbl{font-size:0.52rem;text-align:center;color:rgba(255,255,255,0.42);max-width:66px;line-height:1.3;font-family:'Source Code Pro',monospace;}
+.wf-arr{color:rgba(255,255,255,0.18);padding:0 0.2rem;font-size:0.85rem;align-self:flex-start;margin-top:19px;flex-shrink:0;}
+.ttw{position:relative;}
+.tti{position:absolute;bottom:calc(100%+8px);left:50%;transform:translateX(-50%);background:white;border:1px solid var(--border);border-radius:8px;padding:0.6rem 0.9rem;font-size:0.67rem;opacity:0;pointer-events:none;transition:opacity 0.2s;z-index:50;color:var(--ink);line-height:1.5;max-width:200px;white-space:normal;text-align:left;box-shadow:0 4px 12px rgba(0,0,0,0.08);}
+.ttw:hover .tti{opacity:1;}
+/* Invoice card */
+.invoice-row{background:white;border:1px solid var(--border);border-radius:10px;padding:0.85rem 1rem;margin-bottom:0.5rem;display:flex;gap:0.85rem;align-items:center;transition:all 0.3s;}
+.invoice-row.overdue-inv{border-color:var(--red);background:rgba(200,32,32,0.02);}
+.invoice-row.reminded-inv{border-color:var(--amber);background:rgba(196,122,16,0.02);}
+.invoice-row.paid-inv{border-color:var(--forest);background:rgba(26,74,40,0.03);}
+.inv-num{font-family:'Source Code Pro',monospace;font-size:0.65rem;color:var(--muted);flex-shrink:0;min-width:80px;}
+.inv-client{font-weight:600;font-size:0.78rem;color:var(--ink);}
+.inv-amount{font-family:'Libre Baskerville',serif;font-size:0.9rem;font-weight:700;color:var(--forest);margin-left:auto;flex-shrink:0;}
+.inv-badge{font-size:0.58rem;padding:0.1rem 0.42rem;border-radius:20px;font-weight:600;font-family:'Source Code Pro',monospace;white-space:nowrap;margin-left:0.5rem;}
+.ib-due{background:rgba(196,122,16,0.1);color:var(--amber);border:1px solid rgba(196,122,16,0.2);}
+.ib-over{background:rgba(200,32,32,0.1);color:var(--red);border:1px solid rgba(200,32,32,0.18);}
+.ib-paid{background:rgba(26,74,40,0.1);color:var(--forest);border:1px solid rgba(26,74,40,0.2);}
+.ib-sent{background:rgba(26,74,136,0.1);color:var(--blue);border:1px solid rgba(26,74,136,0.2);}
+/* Reminder timeline */
+.rem-timeline{background:white;border:1px solid var(--border);border-radius:10px;padding:1rem 1.25rem;}
+.rt-item{display:flex;gap:0.85rem;padding:0.55rem 0;border-bottom:1px solid var(--border);font-size:0.73rem;align-items:flex-start;transition:all 0.3s;}
+.rt-item:last-child{border-bottom:none;}
+.rt-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;margin-top:4px;}
+.rt-time{font-family:'Source Code Pro',monospace;font-size:0.62rem;color:var(--muted);flex-shrink:0;min-width:60px;}
+.rt-fired{background:rgba(26,74,40,0.06);border-color:rgba(26,74,40,0.2);}
+.rt-upcoming{opacity:0.5;}
+/* PS list */
+.ps-list{list-style:none;}
+.ps-list li{display:flex;gap:0.75rem;padding:0.45rem 0;border-bottom:1px solid var(--border);font-size:0.74rem;line-height:1.5;transition:all 0.3s;}
+.ps-list li:last-child{border-bottom:none;}
+.ps-num{width:20px;height:20px;border-radius:50%;background:var(--border);color:white;font-size:0.6rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;transition:background 0.3s;}
+/* Info */
+.info-forest{padding:0.75rem 1rem;border-radius:8px;font-size:0.77rem;line-height:1.6;background:rgba(26,74,40,0.06);border:1px solid rgba(26,74,40,0.15);color:var(--forest2);}
+.ba-bad{padding:0.6rem 0.9rem;border-radius:8px;font-size:0.76rem;line-height:1.5;background:rgba(200,32,32,0.04);border:1px solid rgba(200,32,32,0.12);}
+.ba-good{padding:0.6rem 0.9rem;border-radius:8px;font-size:0.76rem;line-height:1.5;background:rgba(26,74,40,0.05);border:1px solid rgba(26,74,40,0.14);}
+.quote-block{background:var(--ink);border-radius:12px;padding:1.75rem 2rem;color:white;}
+.quote-text{font-family:'Libre Baskerville',serif;font-style:italic;font-size:1.05rem;line-height:1.78;margin-bottom:0.75rem;font-weight:400;}
+.quote-text strong{color:var(--lime);font-style:normal;}
+.slide-counter{position:fixed;bottom:1.5rem;left:2rem;font-size:0.62rem;color:var(--muted);z-index:100;font-family:'Source Code Pro',monospace;}
+.slide-nav{position:fixed;bottom:1.5rem;right:2rem;display:flex;gap:0.5rem;z-index:100;}
+.nav-btn{background:white;border:1px solid var(--border);color:var(--text);padding:0.55rem 1.2rem;border-radius:8px;font-family:'Source Code Pro',monospace;font-size:0.7rem;cursor:pointer;transition:all 0.2s;}
+.nav-btn:hover{border-color:var(--forest);color:var(--forest);}
+.nav-btn.primary{background:var(--forest);border-color:var(--forest);color:white;}
+.nav-btn.primary:hover{background:var(--forest2);}
+.run-btn{background:var(--forest);color:white;border:none;border-radius:8px;padding:0.7rem 1.5rem;font-family:'Source Code Pro',monospace;font-size:0.72rem;cursor:pointer;transition:all 0.2s;width:100%;text-align:center;}
+.run-btn:hover{background:var(--forest2);}
+.animate-in{opacity:0;animation:fadeUp 0.5s ease-out forwards;}
+.slide.active .animate-in:nth-child(1){animation-delay:0.05s;}
+.slide.active .animate-in:nth-child(2){animation-delay:0.15s;}
+.slide.active .animate-in:nth-child(3){animation-delay:0.25s;}
+.slide.active .animate-in:nth-child(4){animation-delay:0.35s;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+</style>
+</head>
+<body>
+<div class="left-rule"></div>
+<nav>
+  <div class="nav-brand">FIN · Invoice & Payment Reminders</div>
+  <div class="nav-dots" id="navDots"></div>
+  <div class="timer" id="timerBadge">⏱ 00:00</div>
+</nav>
+
+<!-- SLIDE 1: HERO -->
+<section class="slide active" id="slide-0">
+  <div class="hero-leaf">💷</div>
+  <div class="slide-inner">
+    <div class="animate-in"><div class="hero-badge">n8n AI Automation · Finance & Operations</div></div>
+    <div class="animate-in"><h1 class="hero-title">Get Paid Faster.<br><em>Every Invoice</em><br>Chased.</h1></div>
+    <div class="animate-in"><p class="hero-desc">Automated payment reminders sent at the right time, in the right tone — from polite nudge to firm final notice. Cash flow improves. Late payment awkwardness disappears.</p></div>
+    <div class="animate-in">
+      <div class="kpi-strip">
+        <div class="kpi"><div class="kpi-val">40%</div><div class="kpi-lbl">Faster Payment</div></div>
+        <div class="kpi"><div class="kpi-val">100%</div><div class="kpi-lbl">Invoices Chased</div></div>
+        <div class="kpi"><div class="kpi-val">AI</div><div class="kpi-lbl">Tone Calibrated</div></div>
+        <div class="kpi"><div class="kpi-val">0</div><div class="kpi-lbl">Awkward Calls</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 2: PROBLEM -->
+<section class="slide" id="slide-1">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">01 — The Problem</div><div class="sec-title">Late Payments Are<br><em>Killing Cash Flow</em></div><p class="sec-desc">In Nigeria and across Africa, late B2B payments are endemic. The average invoice is paid 45 days past due — not because clients can't pay, but because nobody consistently follows up.</p></div>
+    <div class="animate-in two-col" style="margin-bottom:1.5rem">
+      <div class="card"><div class="card-icon">📬</div><div class="card-title">Nobody Follows Up</div><div class="card-desc">Finance sends an invoice, adds it to a spreadsheet, and hopes. When it's not paid, they send one awkward email a week later. Then nothing. 30% of invoices are paid late because nobody chased systematically.</div></div>
+      <div class="card"><div class="card-icon">😬</div><div class="card-title">Relationship Fear</div><div class="card-desc">Finance staff avoid aggressive follow-up because they don't want to damage client relationships. Automation removes the human awkwardness — the system chases, not a person. Tone escalates on a schedule.</div></div>
+      <div class="card"><div class="card-icon">📊</div><div class="card-title">No AR Visibility</div><div class="card-desc">No real-time view of what's owed, what's overdue, and by how much. Finance discovers cash flow problems at month-end — not 3 weeks earlier when something could be done.</div></div>
+      <div class="card"><div class="card-icon">🔄</div><div class="card-title">Manual Everything</div><div class="card-desc">Pulling ageing reports from accounting software, writing individual reminder emails, tracking responses in a spreadsheet. Finance spends 6+ hours a week on AR management that automation handles in minutes.</div></div>
+    </div>
+    <div class="animate-in"><div class="info-forest">✅ n8n monitors every invoice, fires a calibrated 4-touch reminder sequence, detects payment, and escalates to a human only when genuinely needed — fully automatic.</div></div>
+  </div>
+</section>
+
+<!-- SLIDE 3: WORKFLOW -->
+<section class="slide" id="slide-2">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">02 — The Blueprint</div><div class="sec-title">n8n Invoice Reminder<br><em>Pipeline</em></div><p class="sec-desc">Invoice sent → n8n monitors the due date → fires reminders at the right times → detects payment → stops automatically. No human involvement unless escalation required.</p></div>
+    <div class="animate-in wf-canvas">
+      <div class="wf-dots"></div>
+      <div class="wf-label">n8n canvas — invoice reminder pipeline</div>
+      <div class="wf-nodes">
+        <div class="wf-stage"><div class="wf-slbl">Trigger</div>
+          <div style="display:flex;flex-direction:column;gap:0.35rem">
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#0a1a2a,#1d4ed8);color:#93c5fd;border-color:#1d4ed8;">🧾</div><div class="wf-nlbl">Invoice<br>Created</div><div class="tti">New invoice created in Xero/QuickBooks/Wave triggers n8n. Due date, client info, and payment terms extracted automatically.</div></div>
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a1a0a,#78350f);color:#fde68a;border-color:#78350f;">⏰</div><div class="wf-nlbl">Due Date<br>Monitor</div><div class="tti">n8n cron checks open invoices daily. Calculates days until/since due. Triggers reminder sequence based on schedule.</div></div>
+          </div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-stage"><div class="wf-slbl">Remind</div>
+          <div style="display:flex;flex-direction:column;gap:0.35rem">
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a0a0a,#991b1b);color:#fca5a5;border-color:#991b1b;">🧠</div><div class="wf-nlbl">GPT-4o<br>Tone</div><div class="tti">GPT-4o calibrates tone per reminder: T-7 (warm), Due (neutral), T+3 (direct), T+7 (firm). Also adjusts for client relationship: key account = always gentler.</div></div>
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a3a1a,#166534);color:#4ade80;border-color:#166534;">📧</div><div class="wf-nlbl">Email<br>Send</div><div class="tti">Reminder sent from finance@company.com with invoice PDF attached. Personalised subject line, client name, exact amount, bank details, and payment link.</div></div>
+          </div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-stage"><div class="wf-slbl">Detect</div>
+          <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#0a1a1a,#065f46);color:#6ee7b7;border-color:#065f46;">✅</div><div class="wf-nlbl">Payment<br>Detect</div><div class="tti">Xero/Paystack webhook fires when payment received. n8n immediately stops reminder sequence and sends receipt confirmation to client.</div></div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-stage"><div class="wf-slbl">Escalate</div>
+          <div style="display:flex;flex-direction:column;gap:0.35rem">
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a0a0a,#7f1d1d);color:#fca5a5;border-color:#7f1d1d;">🚨</div><div class="wf-nlbl">Human<br>Escalation</div><div class="tti">T+14 and no payment: Finance Director alerted via Slack. Client flagged for hold on new work. Legal notice template generated for Director review.</div></div>
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#0a1a2a,#0369a1);color:#7dd3fc;border-color:#0369a1;">📊</div><div class="wf-nlbl">AR<br>Dashboard</div><div class="tti">All invoices tracked in real-time: total outstanding, ageing buckets (0-30, 31-60, 60+ days), collection rate, DSO trend. Finance Director reviews every morning.</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 4: SIM 1 — REMINDER SEQUENCE -->
+<section class="slide" id="slide-3">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">03 — Simulation 1</div><div class="sec-title">Live: Reminder<br><em>Sequence Running</em></div><p class="sec-desc">Invoice #INV-2025-0284 for ₦450,000 was issued to TechVenture 28 days ago. It's now 7 days overdue. Watch n8n fire the overdue reminder with calibrated tone.</p></div>
+    <div class="animate-in lr">
+      <div style="display:flex;flex-direction:column;gap:1rem">
+        <div class="rem-timeline">
+          <div style="font-size:0.61rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);font-family:'Source Code Pro',monospace;margin-bottom:0.6rem">Reminder sequence — INV-0284 · TechVenture</div>
+          <div class="rt-item rt-fired" id="rt1"><div class="rt-dot" style="background:var(--forest)"></div><div class="rt-time">T−7 days</div><div><strong>Pre-due reminder sent</strong><br><span style="color:var(--muted);font-size:0.67rem">Friendly — "Invoice due next week"</span></div></div>
+          <div class="rt-item rt-fired" id="rt2"><div class="rt-dot" style="background:var(--amber)"></div><div class="rt-time">Due date</div><div><strong>Due date notice sent</strong><br><span style="color:var(--muted);font-size:0.67rem">Neutral — "Invoice due today"</span></div></div>
+          <div class="rt-item" id="rt3"><div class="rt-dot" style="background:var(--red)"></div><div class="rt-time">T+7 days</div><div><strong>Overdue notice — triggering now</strong><br><span style="color:var(--muted);font-size:0.67rem">Direct — "7 days overdue"</span></div></div>
+          <div class="rt-item rt-upcoming" id="rt4"><div class="rt-dot" style="background:var(--red)"></div><div class="rt-time">T+14 days</div><div>Final notice + Director escalation<br><span style="color:var(--muted);font-size:0.67rem">Firm — if unpaid, work pause</span></div></div>
+        </div>
+        <div class="panel">
+          <h3>Pipeline Steps</h3>
+          <ul class="ps-list" id="invSteps">
+            <li id="iv1" style="opacity:0.3"><div class="ps-num">1</div><div>Due date monitor — INV-0284 now 7 days overdue</div></li>
+            <li id="iv2" style="opacity:0.3"><div class="ps-num">2</div><div>Client tier checked — TechVenture (standard)</div></li>
+            <li id="iv3" style="opacity:0.3"><div class="ps-num">3</div><div>GPT-4o writes direct but professional reminder</div></li>
+            <li id="iv4" style="opacity:0.3"><div class="ps-num">4</div><div>Email sent with invoice PDF + payment link</div></li>
+            <li id="iv5" style="opacity:0.3"><div class="ps-num">5</div><div>Xero updated — reminder 3 logged ✅</div></li>
+          </ul>
+        </div>
+        <button class="run-btn" id="invBtn" onclick="runInvSim()">▶ FIRE OVERDUE REMINDER</button>
+      </div>
+      <div id="reminderReveal" style="display:none">
+        <div style="background:white;border:1px solid var(--border);border-radius:10px;overflow:hidden;">
+          <div style="background:var(--forest);color:white;padding:0.85rem 1.1rem">
+            <div style="font-size:0.6rem;opacity:0.7;font-family:'Source Code Pro',monospace">From: finance@company.ng · To: accounts@techventure.io</div>
+            <div style="font-family:'Libre Baskerville',serif;font-size:0.92rem;font-weight:700;margin-top:0.2rem">Invoice #INV-2025-0284 — 7 Days Overdue</div>
+          </div>
+          <div style="padding:1rem;font-size:0.73rem;line-height:1.75">
+            Dear <strong>Oluwaseun</strong>,<br><br>
+            I'm writing to follow up on Invoice #INV-2025-0284 for ₦450,000, which was due on 2nd April 2025 and remains outstanding.<br><br>
+            We value our relationship with TechVenture and want to resolve this promptly. Please arrange payment at your earliest convenience using the details below:<br><br>
+            <strong>Bank:</strong> First Bank of Nigeria<br>
+            <strong>Account:</strong> 3045678912<br>
+            <strong>Reference:</strong> INV-2025-0284<br><br>
+            <span style="color:var(--forest)">Or pay instantly: <u>payment.company.ng/inv-0284</u></span><br><br>
+            If there's an issue with this invoice, please reply and we'll address it immediately.<br><br>
+            <span style="color:var(--muted);font-size:0.65rem;font-style:italic">Auto-sent by n8n · Reminder 3 of 4</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 5: SIM 2 — AR DASHBOARD -->
+<section class="slide" id="slide-4">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">04 — Simulation 2</div><div class="sec-title">Live AR Dashboard<br><em>& Ageing Report</em></div><p class="sec-desc">Finance Director opens Monday morning to a fully updated AR dashboard — every outstanding invoice tracked, reminder status shown, escalations flagged. Zero manual preparation.</p></div>
+    <div class="animate-in" style="margin-bottom:1.25rem">
+      <div style="display:flex;flex-direction:column;gap:0.5rem">
+        <div style="font-size:0.61rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);font-family:'Source Code Pro',monospace;margin-bottom:0.25rem">Open Invoices — Auto-tracked by n8n</div>
+        <div class="invoice-row"><div class="inv-num">#INV-0280</div><div><div class="inv-client">FinanceHub Ltd</div><div style="font-size:0.63rem;color:var(--muted)">Due: 28 Mar · 21 days overdue</div></div><div class="inv-amount">₦820,000</div><span class="inv-badge ib-over">21d overdue</span></div>
+        <div class="invoice-row overdue-inv"><div class="inv-num">#INV-0284</div><div><div class="inv-client">TechVenture Ltd</div><div style="font-size:0.63rem;color:var(--muted)">Due: 2 Apr · 7 days overdue — R3 sent</div></div><div class="inv-amount">₦450,000</div><span class="inv-badge ib-over">7d overdue</span></div>
+        <div class="invoice-row reminded-inv"><div class="inv-num">#INV-0286</div><div><div class="inv-client">RetailCo Nigeria</div><div style="font-size:0.63rem;color:var(--muted)">Due: 9 Apr · Due today — R2 sent</div></div><div class="inv-amount">₦290,000</div><span class="inv-badge ib-due">Due today</span></div>
+        <div class="invoice-row"><div class="inv-num">#INV-0287</div><div><div class="inv-client">DataSystems Inc</div><div style="font-size:0.63rem;color:var(--muted)">Due: 16 Apr · R1 scheduled</div></div><div class="inv-amount">₦180,000</div><span class="inv-badge ib-sent">Reminder sent</span></div>
+        <div class="invoice-row paid-inv"><div class="inv-num">#INV-0282</div><div><div class="inv-client">GrowthPay Ltd</div><div style="font-size:0.63rem;color:var(--forest)">Paid: 7 Apr · Receipt sent ✓</div></div><div class="inv-amount" style="color:var(--forest)">₦650,000</div><span class="inv-badge ib-paid">Paid ✓</span></div>
+      </div>
+    </div>
+    <div class="animate-in three-col">
+      <div class="card" style="text-align:center"><div style="font-family:'Libre Baskerville',serif;font-size:1.8rem;font-weight:700;color:var(--red)">₦1.56M</div><div style="font-size:0.6rem;color:var(--muted);margin-top:0.2rem;font-family:'Source Code Pro',monospace;text-transform:uppercase;letter-spacing:0.1em">Total Overdue</div></div>
+      <div class="card" style="text-align:center"><div style="font-family:'Libre Baskerville',serif;font-size:1.8rem;font-weight:700;color:var(--amber)">₦470k</div><div style="font-size:0.6rem;color:var(--muted);margin-top:0.2rem;font-family:'Source Code Pro',monospace;text-transform:uppercase;letter-spacing:0.1em">Due This Week</div></div>
+      <div class="card" style="text-align:center"><div style="font-family:'Libre Baskerville',serif;font-size:1.8rem;font-weight:700;color:var(--forest)">₦650k</div><div style="font-size:0.6rem;color:var(--muted);margin-top:0.2rem;font-family:'Source Code Pro',monospace;text-transform:uppercase;letter-spacing:0.1em">Collected This Week</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 6: BEFORE/AFTER -->
+<section class="slide" id="slide-5">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">05 — Business Impact</div><div class="sec-title">Cash Flow That<br><em>Works For You</em></div></div>
+    <div class="animate-in two-col" style="margin-bottom:1.5rem">
+      <div>
+        <div style="font-size:0.62rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--red);margin-bottom:0.75rem;font-weight:600;font-family:'Source Code Pro',monospace">❌ BEFORE</div>
+        <div style="display:flex;flex-direction:column;gap:0.5rem">
+          <div class="ba-bad">One awkward follow-up email sent late — then silence</div>
+          <div class="ba-bad">30% of invoices paid late — average 45 days past due</div>
+          <div class="ba-bad">Finance discovers cash flow crisis at month-end</div>
+          <div class="ba-bad">6+ hrs/week manually managing AR — spreadsheets, emails</div>
+          <div class="ba-bad">Escalation only when Finance Director personally notices</div>
+        </div>
+      </div>
+      <div>
+        <div style="font-size:0.62rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--forest);margin-bottom:0.75rem;font-weight:600;font-family:'Source Code Pro',monospace">✅ AFTER</div>
+        <div style="display:flex;flex-direction:column;gap:0.5rem">
+          <div class="ba-good">4-touch calibrated sequence fires automatically on schedule</div>
+          <div class="ba-good">40% faster payment — clients respond to consistent follow-up</div>
+          <div class="ba-good">Live AR dashboard — Finance Director sees risk in real time</div>
+          <div class="ba-good">0 manual AR management — n8n tracks and chases every invoice</div>
+          <div class="ba-good">Escalation automatic at T+14 — Director only involved when needed</div>
+        </div>
+      </div>
+    </div>
+    <div class="animate-in">
+      <div class="quote-block">
+        <div class="quote-text">"Outstanding invoices aren't just a finance problem — they're a <strong>business survival problem</strong>. Consistent, automated follow-up is the single most impactful thing most SMEs can do for cash flow. This system does it without fail, for every single invoice."</div>
+        <div style="font-size:0.62rem;color:rgba(255,255,255,0.3);font-family:'Source Code Pro',monospace">STACK: n8n · GPT-4o · Xero/QuickBooks/Wave · Gmail · Paystack · Slack · Google Sheets</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="slide-counter" id="slideCounter">Slide 1 of 6</div>
+<div class="slide-nav">
+  <button class="nav-btn" onclick="prevSlide()">← Prev</button>
+  <button class="nav-btn primary" onclick="nextSlide()">Next →</button>
+</div>
+<script>
+const slides=document.querySelectorAll('.slide'),total=slides.length;let cur=0;
+const dots=document.getElementById('navDots');
+for(let i=0;i<total;i++){const d=document.createElement('div');d.className='nav-dot'+(i===0?' active':'');d.onclick=()=>goTo(i);dots.appendChild(d);}
+function goTo(n){slides[cur].classList.remove('active');dots.children[cur].classList.remove('active');if(cur<n)dots.children[cur].classList.add('done');cur=n;slides[cur].classList.add('active');dots.children[cur].classList.add('active');document.getElementById('slideCounter').textContent=`Slide ${cur+1} of ${total}`;}
+function nextSlide(){if(cur<total-1)goTo(cur+1);}function prevSlide(){if(cur>0)goTo(cur-1);}
+document.addEventListener('keydown',e=>{if(e.key==='ArrowRight'||e.key==='ArrowDown')nextSlide();if(e.key==='ArrowLeft'||e.key==='ArrowUp')prevSlide();});
+let secs=0;setInterval(()=>{secs++;const m=String(Math.floor(secs/60)).padStart(2,'0'),s=String(secs%60).padStart(2,'0');document.getElementById('timerBadge').textContent=`⏱ ${m}:${s}`;if(secs>=840)document.getElementById('timerBadge').style.color='#c82020';},1000);
+function delay(ms){return new Promise(r=>setTimeout(r,ms));}
+let invRunning=false;
+async function runInvSim(){
+  if(invRunning)return;invRunning=true;
+  const btn=document.getElementById('invBtn');btn.textContent='Triggering...';
+  document.getElementById('reminderReveal').style.display='none';
+  const steps=['iv1','iv2','iv3','iv4','iv5'];
+  steps.forEach(id=>{const el=document.getElementById(id);if(el){el.style.opacity='0.3';el.querySelector('.ps-num').style.background='var(--border)';}});
+  const light=(i)=>{steps.forEach(id=>{const el=document.getElementById(id);if(el){el.style.opacity='0.3';el.querySelector('.ps-num').style.background='var(--border)';}});const el=document.getElementById(steps[i]);if(el){el.style.opacity='1';el.style.color='var(--forest)';el.querySelector('.ps-num').style.background='var(--forest)';}};
+  for(let s=0;s<steps.length;s++){light(s);await delay(550);}
+  document.getElementById('rt3').classList.add('rt-fired');
+  document.getElementById('reminderReveal').style.display='block';
+  btn.textContent='↺ Reset & Run Again';invRunning=false;
+}
+</script>
+</body>
+</html>
