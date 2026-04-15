@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HR Offboarding & Exit Automation</title>
+<link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=Barlow+Condensed:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f4f6fa;--surface:#ffffff;--surface2:#e8edf5;--border:#c8d4e8;--navy:#0d1b3e;--silver:#4a5a78;--ice:#1a2e5a;--blue:#2a5fd8;--green:#1aaa55;--red:#cc3333;--amber:#d4840a;--text:#0e1118;--muted:#5a6a88;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'Courier Prime',monospace;overflow-x:hidden;}
+nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(244,246,250,0.97);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 2.5rem;height:56px;}
+.nav-brand{font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:1rem;color:var(--ice);letter-spacing:0.12em;text-transform:uppercase;}
+.nav-dots{display:flex;gap:0.3rem;}
+.nav-dot{width:7px;height:7px;border-radius:50%;background:var(--border);cursor:pointer;transition:all 0.2s;}
+.nav-dot.active{background:var(--blue);transform:scale(1.5);}
+.nav-dot.done{background:var(--green);}
+.timer{font-size:0.67rem;color:var(--silver);background:rgba(58,111,216,0.1);border:1px solid rgba(58,111,216,0.2);padding:0.2rem 0.7rem;border-radius:2px;letter-spacing:0.1em;}
+.slide{min-height:100vh;padding:76px 0 50px;display:none;flex-direction:column;align-items:center;justify-content:center;position:relative;overflow:hidden;}
+.slide.active{display:flex;}
+.slide-inner{width:100%;max-width:1140px;padding:0 2.5rem;position:relative;z-index:2;}
+.hero-bg{position:absolute;inset:0;background:radial-gradient(ellipse at 25% 50%,rgba(42,95,216,0.06) 0%,transparent 55%),radial-gradient(ellipse at 85% 30%,rgba(10,27,62,0.04) 0%,transparent 50%);}
+.scan-lines{position:absolute;inset:0;background-image:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(42,95,216,0.015) 2px,rgba(42,95,216,0.015) 4px);pointer-events:none;}
+.eyebrow{font-size:0.6rem;letter-spacing:0.3em;text-transform:uppercase;color:var(--blue);margin-bottom:1.2rem;display:flex;align-items:center;gap:0.5rem;font-family:'Barlow Condensed',sans-serif;}
+.eyebrow::before{content:'//';color:var(--border);}
+h1.hero-title{font-family:'Libre Baskerville',serif;font-size:clamp(2.5rem,5vw,4rem);font-weight:700;line-height:1.1;margin-bottom:1.5rem;letter-spacing:-0.02em;color:var(--ice);}
+h1.hero-title em{font-style:italic;color:var(--silver);font-weight:400;}
+.hero-desc{font-size:0.88rem;color:var(--muted);max-width:490px;line-height:1.8;margin-bottom:2.5rem;font-family:'Barlow Condensed',sans-serif;font-weight:300;letter-spacing:0.03em;}
+.kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);border:1px solid var(--border);max-width:640px;}
+.kpi{background:var(--surface);padding:1.1rem 1.5rem;}
+.kpi-val{font-family:'Libre Baskerville',serif;font-size:1.8rem;font-weight:700;color:var(--blue);line-height:1;}
+.kpi-lbl{font-size:0.58rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);margin-top:0.25rem;font-family:'Barlow Condensed',sans-serif;}
+.sec-eyebrow{font-size:0.6rem;letter-spacing:0.28em;text-transform:uppercase;color:var(--blue);margin-bottom:0.4rem;font-family:'Barlow Condensed',sans-serif;display:flex;align-items:center;gap:0.4rem;}
+.sec-eyebrow::before{content:'//';color:var(--border);}
+.sec-title{font-family:'Libre Baskerville',serif;font-size:clamp(1.8rem,3.5vw,2.8rem);font-weight:700;line-height:1.1;margin-bottom:0.5rem;color:var(--ice);}
+.sec-title em{font-style:italic;color:var(--silver);font-weight:400;}
+.sec-desc{font-size:0.84rem;color:var(--muted);margin-bottom:1.75rem;max-width:540px;line-height:1.75;font-family:'Barlow Condensed',sans-serif;font-weight:300;letter-spacing:0.02em;}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;}
+.three-col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;}
+.lr{display:grid;grid-template-columns:1.1fr 1fr;gap:1.5rem;align-items:start;}
+.lr-rev{display:grid;grid-template-columns:1fr 1.1fr;gap:1.5rem;align-items:start;}
+.card{background:var(--surface);border:1px solid var(--border);padding:1.2rem;transition:all 0.2s;}
+.card:hover{border-color:var(--blue);background:rgba(58,111,216,0.04);}
+.card-icon{font-size:1.3rem;margin-bottom:0.5rem;}
+.card-title{font-family:'Barlow Condensed',sans-serif;font-size:1rem;font-weight:600;letter-spacing:0.05em;margin-bottom:0.3rem;color:var(--ice);text-transform:uppercase;}
+.card-desc{font-size:0.71rem;color:var(--muted);line-height:1.65;font-family:'Barlow Condensed',sans-serif;font-weight:300;}
+.panel{background:var(--surface2);border:1px solid var(--border);padding:1.4rem;}
+.panel h3{font-family:'Barlow Condensed',sans-serif;font-size:0.85rem;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:var(--blue);margin-bottom:0.9rem;display:flex;align-items:center;gap:0.5rem;}
+.panel h3::before{content:'//';color:var(--border);font-size:0.75rem;}
+.steps{list-style:none;}
+.steps li{display:flex;gap:0.75rem;padding:0.45rem 0;border-bottom:1px solid rgba(37,45,64,0.6);font-size:0.75rem;line-height:1.6;font-family:'Barlow Condensed',sans-serif;font-weight:300;letter-spacing:0.02em;}
+.steps li:last-child{border-bottom:none;}
+.step-n{width:22px;height:22px;background:var(--blue);color:white;font-size:0.62rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:'Courier Prime',monospace;}
+/* workflow */
+.wf-canvas{background:#edf0f7;border:1px solid var(--border);padding:2rem;position:relative;overflow:hidden;}
+.wf-scan{position:absolute;inset:0;background-image:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(42,95,216,0.025) 3px,rgba(42,95,216,0.025) 6px);pointer-events:none;}
+.wf-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(37,45,64,0.15) 1px,transparent 1px),linear-gradient(90deg,rgba(37,45,64,0.15) 1px,transparent 1px);background-size:32px 32px;}
+.wf-label{position:absolute;top:0.7rem;left:1rem;font-size:0.57rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--muted);display:flex;align-items:center;gap:0.4rem;z-index:3;font-family:'Barlow Condensed',sans-serif;}
+.wf-label::before{content:'';width:7px;height:7px;border-radius:50%;background:var(--blue);box-shadow:0 0 8px var(--blue);animation:bpulse 2s infinite;}
+@keyframes bpulse{0%,100%{opacity:1}50%{opacity:0.2}}
+.wf-nodes{display:flex;align-items:flex-start;gap:0;padding-top:1.5rem;position:relative;z-index:2;flex-wrap:wrap;}
+.wf-stage{display:flex;flex-direction:column;align-items:center;gap:0.3rem;}
+.wf-slbl{font-size:0.52rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--muted);margin-bottom:0.2rem;font-family:'Barlow Condensed',sans-serif;}
+.wf-node{display:flex;flex-direction:column;align-items:center;gap:0.3rem;cursor:pointer;position:relative;}
+.wf-box{width:58px;height:58px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;border:2px solid transparent;transition:all 0.3s;}
+.wf-node:hover .wf-box{transform:scale(1.1);box-shadow:0 0 18px rgba(58,111,216,0.4);}
+.wf-nlbl{font-size:0.52rem;text-align:center;color:var(--muted);max-width:64px;line-height:1.3;font-family:'Barlow Condensed',sans-serif;letter-spacing:0.03em;}
+.wf-arr{color:var(--border);padding:0 0.2rem;font-size:0.85rem;align-self:flex-start;margin-top:19px;flex-shrink:0;}
+.ttw{position:relative;}
+.tti{position:absolute;bottom:calc(100%+8px);left:50%;transform:translateX(-50%);background:#ffffff;border:1px solid var(--border);padding:0.6rem 0.9rem;font-size:0.67rem;opacity:0;pointer-events:none;transition:opacity 0.2s;z-index:50;color:var(--ink,#0e1118);line-height:1.5;max-width:190px;white-space:normal;text-align:left;font-family:'Barlow Condensed',sans-serif;font-weight:300;}
+.ttw:hover .tti{opacity:1;}
+/* Access revoke sim */
+.access-grid{display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;}
+.access-item{background:#ffffff;border:1px solid var(--border);padding:0.6rem 0.85rem;display:flex;align-items:center;gap:0.6rem;font-size:0.73rem;transition:all 0.3s;}
+.access-item.revoking{border-color:var(--amber);background:rgba(243,156,18,0.05);}
+.access-item.revoked{border-color:var(--red);background:rgba(231,76,60,0.05);opacity:0.6;}
+.access-icon{font-size:0.9rem;flex-shrink:0;}
+.access-name{font-family:'Barlow Condensed',sans-serif;font-weight:500;letter-spacing:0.03em;flex:1;}
+.access-status{font-size:0.6rem;padding:0.1rem 0.45rem;font-family:'Courier Prime',monospace;font-weight:700;}
+.as-active{color:var(--green);}
+.as-revoking{color:var(--amber);}
+.as-revoked{color:var(--red);}
+/* exit interview */
+.ei-form{background:var(--surface);border:1px solid var(--border);overflow:hidden;}
+.ei-header{background:#1a2d5a;padding:0.7rem 1rem;border-bottom:1px solid var(--border);font-family:'Barlow Condensed',sans-serif;font-size:0.85rem;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--ice);}
+.ei-body{padding:1rem;display:flex;flex-direction:column;gap:0.6rem;}
+.ei-q{font-family:'Barlow Condensed',sans-serif;font-size:0.76rem;font-weight:500;color:var(--silver);margin-bottom:0.2rem;letter-spacing:0.03em;}
+.ei-a{background:var(--surface2);border:1px solid var(--border);padding:0.45rem 0.7rem;font-size:0.72rem;color:var(--text);min-height:28px;transition:border-color 0.3s;}
+/* Sheet */
+.sheet-table{background:var(--surface);border:1px solid var(--border);overflow:hidden;font-size:0.7rem;}
+.sheet-head{background:rgba(58,111,216,0.08);border-bottom:1px solid var(--border);display:grid;grid-template-columns:36px 120px 110px 100px 100px 80px;padding:0.55rem 0.75rem;gap:0.4rem;font-size:0.6rem;letter-spacing:0.08em;color:var(--blue);font-weight:700;font-family:'Barlow Condensed',sans-serif;text-transform:uppercase;}
+.sheet-row{display:grid;grid-template-columns:36px 120px 110px 100px 100px 80px;padding:0.5rem 0.75rem;gap:0.4rem;border-bottom:1px solid rgba(37,45,64,0.5);align-items:center;transition:background 0.15s;}
+.sheet-row:hover{background:rgba(58,111,216,0.03);}
+.sheet-row:last-child{border-bottom:none;}
+.s-badge{display:inline-block;padding:0.1rem 0.45rem;font-size:0.58rem;font-weight:700;letter-spacing:0.05em;font-family:'Courier Prime',monospace;}
+.sb-comp{background:rgba(46,204,113,0.12);color:var(--green);border:1px solid rgba(46,204,113,0.2);}
+.sb-pend{background:rgba(243,156,18,0.1);color:var(--amber);border:1px solid rgba(243,156,18,0.2);}
+.sb-esc{background:rgba(231,76,60,0.1);color:var(--red);border:1px solid rgba(231,76,60,0.2);}
+.ba-bad{padding:0.6rem 0.9rem;font-size:0.75rem;line-height:1.5;background:rgba(231,76,60,0.04);border:1px solid rgba(231,76,60,0.12);font-family:'Barlow Condensed',sans-serif;font-weight:300;letter-spacing:0.02em;}
+.ba-good{padding:0.6rem 0.9rem;font-size:0.75rem;line-height:1.5;background:rgba(46,204,113,0.04);border:1px solid rgba(46,204,113,0.12);font-family:'Barlow Condensed',sans-serif;font-weight:300;letter-spacing:0.02em;}
+.info-blue{padding:0.7rem 1rem;font-size:0.76rem;line-height:1.6;background:rgba(58,111,216,0.07);border:1px solid rgba(58,111,216,0.2);color:var(--silver);font-family:'Barlow Condensed',sans-serif;font-weight:300;}
+.quote-block{background:var(--navy);border:1px solid rgba(58,111,216,0.2);padding:1.75rem 2rem;}
+.quote-text{font-family:'Libre Baskerville',serif;font-style:italic;font-size:1.05rem;line-height:1.75;margin-bottom:0.75rem;color:var(--ice);}
+.ps-list{list-style:none;}
+.ps-list li{display:flex;gap:0.75rem;padding:0.45rem 0;border-bottom:1px solid rgba(37,45,64,0.5);font-size:0.73rem;line-height:1.5;transition:all 0.3s;font-family:'Barlow Condensed',sans-serif;font-weight:300;letter-spacing:0.02em;}
+.ps-list li:last-child{border-bottom:none;}
+.ps-num{width:20px;height:20px;background:var(--muted);color:white;font-size:0.6rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;transition:background 0.3s;font-family:'Courier Prime',monospace;}
+.run-btn{background:var(--blue);color:white;border:none;padding:0.7rem 1.5rem;font-family:'Courier Prime',monospace;font-size:0.74rem;font-weight:700;cursor:pointer;letter-spacing:0.08em;transition:all 0.2s;width:100%;text-align:center;}
+.run-btn:hover{background:#2a5fc8;}
+.slide-counter{position:fixed;bottom:1.5rem;left:2rem;font-size:0.62rem;color:var(--muted);letter-spacing:0.1em;z-index:100;font-family:'Barlow Condensed',sans-serif;}
+.slide-nav{position:fixed;bottom:1.5rem;right:2rem;display:flex;gap:0.5rem;z-index:100;}
+.nav-btn{background:var(--surface);border:1px solid var(--border);color:var(--text);padding:0.55rem 1.2rem;font-family:'Courier Prime',monospace;font-size:0.7rem;cursor:pointer;transition:all 0.2s;}
+.nav-btn:hover{border-color:var(--blue);color:var(--blue);}
+.nav-btn.primary{background:var(--blue);border-color:var(--blue);color:white;}
+.nav-btn.primary:hover{background:#2a5fc8;}
+.animate-in{opacity:0;animation:fadeUp 0.45s ease-out forwards;}
+.slide.active .animate-in:nth-child(1){animation-delay:0.05s;}
+.slide.active .animate-in:nth-child(2){animation-delay:0.15s;}
+.slide.active .animate-in:nth-child(3){animation-delay:0.25s;}
+.slide.active .animate-in:nth-child(4){animation-delay:0.35s;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+</style>
+</head>
+<body>
+<nav>
+  <div class="nav-brand">HR · Offboarding & Exit Process</div>
+  <div class="nav-dots" id="navDots"></div>
+  <div class="timer" id="timerBadge">⏱ 00:00</div>
+</nav>
+
+<!-- SLIDE 1 -->
+<section class="slide active" id="slide-0">
+  <div class="hero-bg"></div><div class="scan-lines"></div>
+  <div class="slide-inner">
+    <div class="animate-in"><div class="eyebrow">n8n AI Automation · HR Department</div></div>
+    <div class="animate-in"><h1 class="hero-title">Controlled,<br>Compliant<br><em>Offboarding</em></h1></div>
+    <div class="animate-in"><p class="hero-desc">When an employee leaves — voluntary or not — every access must be revoked, every document collected, every handover completed. One missed step is a security risk. Automation makes it impossible to miss one.</p></div>
+    <div class="animate-in">
+      <div class="kpi-row">
+        <div class="kpi"><div class="kpi-val">0</div><div class="kpi-lbl">Security Gaps</div></div>
+        <div class="kpi"><div class="kpi-val">100%</div><div class="kpi-lbl">Access Revoked</div></div>
+        <div class="kpi"><div class="kpi-val">&lt;1hr</div><div class="kpi-lbl">Full Offboard</div></div>
+        <div class="kpi"><div class="kpi-val">Auto</div><div class="kpi-lbl">Exit Surveys</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 2: PROBLEM -->
+<section class="slide" id="slide-1">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-eyebrow">01 — The Risk</div><div class="sec-title">Offboarding Done Wrong<br><em>Is a Liability</em></div><p class="sec-desc">Most companies have no formal offboarding process. The result: security breaches, unhappy exits, and expensive compliance failures.</p></div>
+    <div class="animate-in two-col" style="margin-bottom:1.5rem">
+      <div class="card"><div class="card-icon">🔓</div><div class="card-title">Security Breach Risk</div><div class="card-desc">Ex-employees with active Google, Slack, or CRM access. 63% of data breaches involve former employees whose accounts were never deactivated.</div></div>
+      <div class="card"><div class="card-icon">📋</div><div class="card-title">Knowledge Loss</div><div class="card-desc">Critical process knowledge walks out the door. No handover document, no knowledge base article, no team brief. Projects stall for weeks.</div></div>
+      <div class="card"><div class="card-icon">💼</div><div class="card-title">Equipment Not Returned</div><div class="card-desc">Laptops, phones, and access cards disappear. No tracking, no reminder system, no consequence. Thousands of pounds in unrecovered assets.</div></div>
+      <div class="card"><div class="card-icon">📊</div><div class="card-title">No Exit Intelligence</div><div class="card-desc">Why are people leaving? Nobody knows because exit surveys are manual, inconsistently done, and the data is never aggregated. AI changes this.</div></div>
+    </div>
+    <div class="animate-in"><div class="info-blue">✅ n8n triggers a complete offboarding protocol the moment resignation is logged — access revoked, surveys sent, handover assigned. All in under one hour.</div></div>
+  </div>
+</section>
+
+<!-- SLIDE 3: WORKFLOW -->
+<section class="slide" id="slide-2">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-eyebrow">02 — The Blueprint</div><div class="sec-title">n8n Offboarding<br><em>Workflow</em></div><p class="sec-desc">Triggered on resignation confirmation. Runs until final last day. Covers security, compliance, knowledge, and sentiment in one pipeline.</p></div>
+    <div class="animate-in wf-canvas">
+      <div class="wf-scan"></div><div class="wf-grid"></div><div class="wf-label">n8n canvas — offboarding pipeline</div>
+      <div class="wf-nodes">
+        <div class="wf-stage"><div class="wf-slbl">Trigger</div>
+          <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a0a0a,#7f1d1d);color:#fca5a5;border-color:#991b1b;">🚪</div><div class="wf-nlbl">Resignation<br>Logged</div><div class="tti">HR marks employee as "Resigned" in HRMS or Sheets. n8n triggers immediately — sets last day, calculates notice period, begins countdown.</div></div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-stage"><div class="wf-slbl">Immediate</div>
+          <div style="display:flex;flex-direction:column;gap:0.3rem">
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a1a0a,#78350f);color:#fde68a;border-color:#78350f;">📧</div><div class="wf-nlbl">Manager<br>Alert</div><div class="tti">Manager and HR director notified immediately via Slack + email with offboarding checklist and last day date.</div></div>
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#0a1a2a,#1d4ed8);color:#93c5fd;border-color:#1d4ed8;">📋</div><div class="wf-nlbl">Handover<br>Assign</div><div class="tti">n8n assigns handover document template to employee. Sets deadline T-5 days from last day. Manager reminded weekly until complete.</div></div>
+          </div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-stage"><div class="wf-slbl">Last Day</div>
+          <div style="display:flex;flex-direction:column;gap:0.3rem">
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a0a1a,#7c3aed);color:#d8b4fe;border-color:#7c3aed;">🔑</div><div class="wf-nlbl">Access<br>Revoke</div><div class="tti">On last day at 5pm: Google Workspace suspended, Slack deactivated, CRM access removed, VPN revoked. All in one automated n8n sequence.</div></div>
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#0a1a0a,#065f46);color:#6ee7b7;border-color:#065f46;">💻</div><div class="wf-nlbl">Equipment<br>Return</div><div class="tti">IT ticket created for equipment collection. If not returned within 14 days, automated escalation to HR and finance with asset list.</div></div>
+          </div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-stage"><div class="wf-slbl">Exit Intel</div>
+          <div style="display:flex;flex-direction:column;gap:0.3rem">
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a1a0a,#3d3200);color:#fbbf24;border-color:#92400e;">📊</div><div class="wf-nlbl">Exit<br>Survey</div><div class="tti">Exit survey sent T-3 days before last day. GPT-4o analyses responses for sentiment, themes, retention insights. Results dashboarded.</div></div>
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#0a0a1a,#1e3a5f);color:#93c5fd;border-color:#1e3a5f;">🧠</div><div class="wf-nlbl">Insight<br>Report</div><div class="tti">GPT-4o generates monthly exit trend report: top departure reasons, department patterns, suggested retention actions for HR leadership.</div></div>
+          </div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-stage"><div class="wf-slbl">Compliance</div>
+          <div style="display:flex;flex-direction:column;gap:0.3rem">
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#0a1a1a,#065f46);color:#a3d9a5;border-color:#065f46;">📄</div><div class="wf-nlbl">Final<br>Docs</div><div class="tti">P45, reference letter, final payslip generated and sent automatically on last day via DocuSign.</div></div>
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#2a1a0a,#92400e);color:#fcd34d;border-color:#92400e;">🗂️</div><div class="wf-nlbl">Archive<br>Record</div><div class="tti">Full employee record archived in Google Drive with 7-year retention tag per GDPR. Access restricted to HR admin only.</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 4: SIM 1 — ACCESS REVOKE -->
+<section class="slide" id="slide-3">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-eyebrow">03 — Simulation 1</div><div class="sec-title">Live: Instant<br><em>Access Revocation</em></div><p class="sec-desc">It's 5:00pm on Adewale's last day. Watch n8n systematically revoke every system access in under 60 seconds — zero manual IT work.</p></div>
+    <div class="animate-in lr">
+      <div style="display:flex;flex-direction:column;gap:1rem">
+        <div class="panel">
+          <h3>Revocation Pipeline</h3>
+          <ul class="ps-list" id="revokeSteps">
+            <li id="rv1" style="opacity:0.3"><div class="ps-num">1</div><div>Last day timer fires at 17:00 — offboard sequence starts</div></li>
+            <li id="rv2" style="opacity:0.3"><div class="ps-num">2</div><div>Google Workspace account suspended</div></li>
+            <li id="rv3" style="opacity:0.3"><div class="ps-num">3</div><div>Slack account deactivated</div></li>
+            <li id="rv4" style="opacity:0.3"><div class="ps-num">4</div><div>Salesforce CRM access removed</div></li>
+            <li id="rv5" style="opacity:0.3"><div class="ps-num">5</div><div>VPN credentials invalidated</div></li>
+            <li id="rv6" style="opacity:0.3"><div class="ps-num">6</div><div>GitHub access revoked</div></li>
+            <li id="rv7" style="opacity:0.3"><div class="ps-num">7</div><div>Audit log completed — all revocations confirmed ✅</div></li>
+          </ul>
+        </div>
+        <button class="run-btn" id="revokeBtn" onclick="runRevokeSim()">▶ EXECUTE OFFBOARD SEQUENCE</button>
+      </div>
+      <div>
+        <div style="margin-bottom:0.5rem;font-size:0.6rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--muted);font-family:'Barlow Condensed',sans-serif">System Access Status — Adewale Ogundimu</div>
+        <div class="access-grid" id="accessGrid">
+          <div class="access-item" id="ac1"><div class="access-icon">📧</div><div class="access-name">Google Workspace</div><span class="access-status as-active" id="as1">● ACTIVE</span></div>
+          <div class="access-item" id="ac2"><div class="access-icon">💬</div><div class="access-name">Slack</div><span class="access-status as-active" id="as2">● ACTIVE</span></div>
+          <div class="access-item" id="ac3"><div class="access-icon">🤝</div><div class="access-name">Salesforce CRM</div><span class="access-status as-active" id="as3">● ACTIVE</span></div>
+          <div class="access-item" id="ac4"><div class="access-icon">🔐</div><div class="access-name">VPN</div><span class="access-status as-active" id="as4">● ACTIVE</span></div>
+          <div class="access-item" id="ac5"><div class="access-icon">💻</div><div class="access-name">GitHub</div><span class="access-status as-active" id="as5">● ACTIVE</span></div>
+          <div class="access-item" id="ac6"><div class="access-icon">📊</div><div class="access-name">Notion</div><span class="access-status as-active" id="as6">● ACTIVE</span></div>
+        </div>
+        <div id="revokeResult" style="display:none;margin-top:0.75rem;padding:0.7rem 1rem;background:rgba(46,204,113,0.08);border:1px solid rgba(46,204,113,0.2);font-family:'Barlow Condensed',sans-serif;font-size:0.76rem;font-weight:300;color:var(--green)">
+          ✅ All 6 systems revoked in 43 seconds. Audit log generated and filed. IT notified for equipment collection.
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 5: SIM 2 — EXIT SURVEY -->
+<section class="slide" id="slide-4">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-eyebrow">04 — Simulation 2</div><div class="sec-title">Exit Survey &<br><em>AI Insights</em></div><p class="sec-desc">GPT-4o analyses exit survey responses to surface themes, flag systemic issues, and generate a monthly retention intelligence report for HR leadership.</p></div>
+    <div class="animate-in lr-rev">
+      <div style="display:flex;flex-direction:column;gap:1rem">
+        <div class="panel">
+          <h3>GPT-4o Exit Analysis — This Month</h3>
+          <div style="font-size:0.74rem;line-height:1.7;font-family:'Barlow Condensed',sans-serif;font-weight:300;letter-spacing:0.02em">
+            <strong style="color:var(--ice)">Departures analysed:</strong> 6 exits<br>
+            <strong style="color:var(--ice)">Top departure reason:</strong> "Limited career progression" (4/6)<br>
+            <strong style="color:var(--ice)">Avg satisfaction score:</strong> 6.4 / 10<br>
+            <strong style="color:var(--ice)">Risk department:</strong> Engineering team<br><br>
+            <span style="color:var(--amber)">⚠️ Pattern Detected:</span> 3 of 6 exits cited the same manager. Recommend HR investigation.<br><br>
+            <span style="color:var(--silver)">Suggested Actions:</span><br>
+            1. Introduce quarterly promotion review cycle<br>
+            2. Engineering manager 360-feedback review<br>
+            3. Career pathing framework needed for mid-level roles
+          </div>
+        </div>
+        <div class="info-blue">💡 This report is auto-generated monthly from all exit survey data. No analyst needed — GPT-4o identifies patterns humans miss.</div>
+      </div>
+      <div class="ei-form" id="exitForm">
+        <div class="ei-header">📋 Exit Survey — Auto-Sent T-3 Days</div>
+        <div class="ei-body">
+          <div><div class="ei-q">Why are you leaving? (Primary reason)</div><div class="ei-a" id="eq1"></div></div>
+          <div><div class="ei-q">How would you rate your experience? (1–10)</div><div class="ei-a" id="eq2"></div></div>
+          <div><div class="ei-q">Would you recommend us as an employer?</div><div class="ei-a" id="eq3"></div></div>
+          <div><div class="ei-q">What could we have done differently?</div><div class="ei-a" id="eq4"></div></div>
+          <div class="run-btn" id="exitBtn" onclick="runExitSim()" style="margin-top:0.5rem">▶ SIMULATE EXIT SURVEY ANALYSIS</div>
+          <div id="exitResult" style="display:none;padding:0.75rem;background:rgba(58,111,216,0.06);border:1px solid rgba(58,111,216,0.2);font-family:'Barlow Condensed',sans-serif;font-size:0.75rem;font-weight:300;color:var(--silver)">
+            🧠 GPT-4o Analysis complete. Sentiment: <span style="color:var(--amber)">Mixed (6.2/10)</span>. Key theme: career progression. Logged to exit intelligence dashboard. Report updated.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 6: TRACKER -->
+<section class="slide" id="slide-5">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-eyebrow">05 — Offboard Tracker</div><div class="sec-title">Central Offboarding<br><em>Dashboard</em></div><p class="sec-desc">HR has complete visibility over every departure in progress — all tasks tracked, compliance confirmed, no gaps.</p></div>
+    <div class="animate-in" style="margin-bottom:1.5rem">
+      <div class="sheet-table">
+        <div class="sheet-head"><div>#</div><div>Employee</div><div>Dept</div><div>Last Day</div><div>Access</div><div>Status</div></div>
+        <div class="sheet-row"><div style="color:var(--muted)">001</div><div>Adewale Ogundimu</div><div>Engineering</div><div>Apr 11</div><div><span style="color:var(--green);font-size:0.65rem">Revoked ✓</span></div><div><span class="s-badge sb-comp">Complete</span></div></div>
+        <div class="sheet-row"><div style="color:var(--muted)">002</div><div>Ngozi Uchenna</div><div>Sales</div><div>Apr 18</div><div><span style="color:var(--amber);font-size:0.65rem">Scheduled</span></div><div><span class="s-badge sb-pend">In Progress</span></div></div>
+        <div class="sheet-row"><div style="color:var(--muted)">003</div><div>Tunde Fashola</div><div>Marketing</div><div>Apr 25</div><div><span style="color:var(--muted);font-size:0.65rem">Pending</span></div><div><span class="s-badge sb-pend">Not Started</span></div></div>
+        <div class="sheet-row"><div style="color:var(--muted)">004</div><div>Amara Osei</div><div>Finance</div><div>Mar 28</div><div><span style="color:var(--red);font-size:0.65rem">Overdue ⚠️</span></div><div><span class="s-badge sb-esc">Escalated</span></div></div>
+      </div>
+    </div>
+    <div class="animate-in three-col">
+      <div class="card" style="text-align:center"><div style="font-family:'Libre Baskerville',serif;font-size:2rem;font-weight:700;color:var(--green)">1</div><div style="font-size:0.62rem;color:var(--muted);margin-top:0.2rem;font-family:'Barlow Condensed',sans-serif;letter-spacing:0.1em;text-transform:uppercase">Completed</div></div>
+      <div class="card" style="text-align:center"><div style="font-family:'Libre Baskerville',serif;font-size:2rem;font-weight:700;color:var(--amber)">2</div><div style="font-size:0.62rem;color:var(--muted);margin-top:0.2rem;font-family:'Barlow Condensed',sans-serif;letter-spacing:0.1em;text-transform:uppercase">In Progress</div></div>
+      <div class="card" style="text-align:center"><div style="font-family:'Libre Baskerville',serif;font-size:2rem;font-weight:700;color:var(--red)">1</div><div style="font-size:0.62rem;color:var(--muted);margin-top:0.2rem;font-family:'Barlow Condensed',sans-serif;letter-spacing:0.1em;text-transform:uppercase">Escalated</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 7: BEFORE/AFTER -->
+<section class="slide" id="slide-6">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-eyebrow">06 — Business Impact</div><div class="sec-title">Security, Compliance,<br><em>Intelligence</em></div></div>
+    <div class="animate-in two-col" style="margin-bottom:1.5rem">
+      <div>
+        <div style="font-size:0.6rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--red);margin-bottom:0.75rem;font-weight:600;font-family:'Barlow Condensed',sans-serif">❌ BEFORE</div>
+        <div style="display:flex;flex-direction:column;gap:0.5rem">
+          <div class="ba-bad">Ex-employees retaining system access for weeks after departure</div>
+          <div class="ba-bad">Laptops and equipment untracked — regular asset loss</div>
+          <div class="ba-bad">No exit surveys — departure reasons unknown</div>
+          <div class="ba-bad">Knowledge walks out the door with the employee</div>
+          <div class="ba-bad">Compliance risk — GDPR violations from poor record-keeping</div>
+        </div>
+      </div>
+      <div>
+        <div style="font-size:0.6rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--green);margin-bottom:0.75rem;font-weight:600;font-family:'Barlow Condensed',sans-serif">✅ AFTER</div>
+        <div style="display:flex;flex-direction:column;gap:0.5rem">
+          <div class="ba-good">All access revoked in under 60 seconds on last day — zero gaps</div>
+          <div class="ba-good">Equipment tracked and escalated automatically if not returned</div>
+          <div class="ba-good">100% exit survey completion — AI identifies retention patterns</div>
+          <div class="ba-good">Handover documents assigned and chased automatically</div>
+          <div class="ba-good">GDPR-compliant record archive — audit-ready at all times</div>
+        </div>
+      </div>
+    </div>
+    <div class="animate-in">
+      <div class="quote-block">
+        <div class="quote-text">"Offboarding is the last impression a company makes on an employee — and a security checkpoint. This workflow makes it respectful, complete, and risk-free. Every time."</div>
+        <div style="font-size:0.6rem;color:var(--muted);letter-spacing:0.1em;font-family:'Barlow Condensed',sans-serif">STACK: n8n · GPT-4o · Google Workspace API · Slack API · Salesforce API · DocuSign · Google Sheets · Jira</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="slide-counter" id="slideCounter">Slide 1 of 7</div>
+<div class="slide-nav">
+  <button class="nav-btn" onclick="prevSlide()">← Prev</button>
+  <button class="nav-btn primary" onclick="nextSlide()">Next →</button>
+</div>
+
+<script>
+const slides=document.querySelectorAll('.slide'),total=slides.length;let cur=0;
+const dots=document.getElementById('navDots');
+for(let i=0;i<total;i++){const d=document.createElement('div');d.className='nav-dot'+(i===0?' active':'');d.onclick=()=>goTo(i);dots.appendChild(d);}
+function goTo(n){slides[cur].classList.remove('active');dots.children[cur].classList.remove('active');if(cur<n)dots.children[cur].classList.add('done');cur=n;slides[cur].classList.add('active');dots.children[cur].classList.add('active');document.getElementById('slideCounter').textContent=`Slide ${cur+1} of ${total}`;}
+function nextSlide(){if(cur<total-1)goTo(cur+1);}function prevSlide(){if(cur>0)goTo(cur-1);}
+document.addEventListener('keydown',e=>{if(e.key==='ArrowRight'||e.key==='ArrowDown')nextSlide();if(e.key==='ArrowLeft'||e.key==='ArrowUp')prevSlide();});
+let secs=0;setInterval(()=>{secs++;const m=String(Math.floor(secs/60)).padStart(2,'0'),s=String(secs%60).padStart(2,'0');document.getElementById('timerBadge').textContent=`⏱ ${m}:${s}`;if(secs>=840)document.getElementById('timerBadge').style.color='#e74c3c';},1000);
+function delay(ms){return new Promise(r=>setTimeout(r,ms));}
+let revokeRunning=false;
+async function runRevokeSim(){
+  if(revokeRunning)return;revokeRunning=true;
+  const btn=document.getElementById('revokeBtn');btn.textContent='REVOKING...';
+  const accessIds=['ac1','ac2','ac3','ac4','ac5','ac6'];
+  const statusIds=['as1','as2','as3','as4','as5','as6'];
+  const stepIds=['rv1','rv2','rv3','rv4','rv5','rv6','rv7'];
+  accessIds.forEach(id=>{const el=document.getElementById(id);if(el)el.className='access-item';});
+  statusIds.forEach(id=>{const el=document.getElementById(id);if(el){el.className='access-status as-active';el.textContent='● ACTIVE';}});
+  stepIds.forEach(id=>{const el=document.getElementById(id);if(el){el.style.opacity='0.3';el.querySelector('.ps-num').style.background='var(--muted)';}});
+  const light=(idx)=>{stepIds.forEach(s=>{const el=document.getElementById(s);if(el){el.style.opacity='0.3';el.querySelector('.ps-num').style.background='var(--muted)';}});const el=document.getElementById(stepIds[idx]);if(el){el.style.opacity='1';el.style.color='var(--blue)';el.querySelector('.ps-num').style.background='var(--blue)';}};
+  light(0);await delay(700);
+  for(let i=0;i<accessIds.length;i++){
+    light(i+1);
+    const ac=document.getElementById(accessIds[i]);
+    const as=document.getElementById(statusIds[i]);
+    if(ac&&as){ac.className='access-item revoking';as.className='access-status as-revoking';as.textContent='⟳ REVOKING';}
+    await delay(500);
+    if(ac&&as){ac.className='access-item revoked';as.className='access-status as-revoked';as.textContent='✕ REVOKED';}
+  }
+  light(6);
+  document.getElementById('revokeResult').style.display='block';
+  btn.textContent='↺ Reset & Run Again';revokeRunning=false;
+}
+let exitRunning=false;
+async function runExitSim(){
+  if(exitRunning)return;exitRunning=true;
+  const fields=[
+    ['eq1','Limited career progression opportunities'],
+    ['eq2','6.2 / 10'],
+    ['eq3','Probably not in current state — culture needs work'],
+    ['eq4','More structured career paths, better manager communication'],
+  ];
+  for(const[id,val]of fields){
+    const el=document.getElementById(id);if(!el)continue;
+    el.style.borderColor='var(--blue)';let i=0;
+    await new Promise(r=>{const iv=setInterval(()=>{el.textContent=val.slice(0,++i);if(i>=val.length){clearInterval(iv);el.style.borderColor='var(--green)';r();}},22);});
+    await delay(200);
+  }
+  const btn=document.getElementById('exitBtn');btn.textContent='Analysing with GPT-4o...';btn.style.opacity='0.7';
+  await delay(1200);
+  document.getElementById('exitResult').style.display='block';
+  btn.textContent='↺ Reset & Run Again';btn.style.opacity='1';exitRunning=false;
+}
+</script>
+</body>
+</html>
