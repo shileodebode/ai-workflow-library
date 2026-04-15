@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Operations — Procurement & Approvals Automation</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;0,9..144,700;1,9..144,300;1,9..144,400&family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f6f5ff;--surface:#ffffff;--surface2:#edeaff;--border:#d8d4f5;
+  --ink:#0e0a2a;--indigo:#3730a3;--indigo2:#4338ca;--violet:#5b21b6;
+  --blue:#2563eb;--lavender:#ede9fe;--green:#166534;--red:#991b1b;
+  --amber:#92400e;--text:#1a1640;--muted:#6b65a0;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-serif;overflow-x:hidden;}
+.top-stripe{position:fixed;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,var(--indigo),var(--indigo2),var(--violet));z-index:200;}
+nav{position:fixed;top:4px;left:0;right:0;z-index:100;background:rgba(246,245,255,0.97);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 2.5rem;height:54px;}
+.nav-brand{font-family:'IBM Plex Mono',monospace;font-size:0.7rem;color:var(--indigo);letter-spacing:0.06em;}
+.nav-dots{display:flex;gap:0.3rem;}
+.nav-dot{width:7px;height:7px;border-radius:50%;background:var(--border);cursor:pointer;transition:all 0.2s;}
+.nav-dot.active{background:var(--indigo2);transform:scale(1.5);}
+.nav-dot.done{background:var(--green);}
+.timer{font-size:0.67rem;color:var(--indigo);background:rgba(55,48,163,0.07);border:1px solid rgba(55,48,163,0.18);padding:0.2rem 0.75rem;border-radius:20px;font-family:'IBM Plex Mono',monospace;}
+.slide{min-height:100vh;padding:78px 0 50px;display:none;flex-direction:column;align-items:center;justify-content:center;position:relative;overflow:hidden;}
+.slide.active{display:flex;}
+.slide-inner{width:100%;max-width:1140px;padding:0 2.5rem;position:relative;z-index:2;}
+.hero-geo{position:absolute;top:0;right:0;bottom:0;width:42%;background:linear-gradient(135deg,var(--lavender) 0%,rgba(237,233,254,0.2) 100%);clip-path:polygon(18% 0%,100% 0%,100% 100%,0% 100%);pointer-events:none;}
+.hero-badge{display:inline-flex;align-items:center;gap:0.5rem;background:var(--lavender);border:1px solid rgba(55,48,163,0.2);color:var(--indigo);font-size:0.67rem;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;padding:0.28rem 0.9rem;border-radius:8px;margin-bottom:1.5rem;font-family:'IBM Plex Mono',monospace;}
+h1.hero-title{font-family:'Fraunces',serif;font-size:clamp(2.8rem,5.2vw,4.6rem);font-weight:700;line-height:1.05;letter-spacing:-0.01em;color:var(--ink);margin-bottom:1.5rem;}
+h1.hero-title em{font-style:italic;color:var(--indigo2);}
+.hero-desc{font-size:0.97rem;color:var(--muted);max-width:510px;line-height:1.78;margin-bottom:2.5rem;font-weight:300;}
+.kpi-strip{display:flex;gap:1px;background:var(--border);border-radius:10px;overflow:hidden;max-width:620px;box-shadow:0 2px 12px rgba(55,48,163,0.08);}
+.kpi{background:white;padding:1.1rem 1.4rem;flex:1;}
+.kpi-val{font-family:'Fraunces',serif;font-size:1.9rem;font-weight:700;color:var(--indigo2);line-height:1;}
+.kpi-lbl{font-size:0.59rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);margin-top:0.2rem;font-family:'IBM Plex Mono',monospace;}
+.sec-tag{font-size:0.61rem;letter-spacing:0.22em;text-transform:uppercase;color:var(--indigo2);margin-bottom:0.4rem;font-weight:500;font-family:'IBM Plex Mono',monospace;}
+.sec-title{font-family:'Fraunces',serif;font-size:clamp(1.9rem,3.6vw,2.9rem);font-weight:700;line-height:1.08;margin-bottom:0.5rem;color:var(--ink);}
+.sec-title em{font-style:italic;color:var(--indigo2);}
+.sec-desc{font-size:0.87rem;color:var(--muted);margin-bottom:1.85rem;max-width:540px;line-height:1.78;font-weight:300;}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;}
+.three-col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;}
+.lr{display:grid;grid-template-columns:1.1fr 1fr;gap:2rem;align-items:start;}
+.lr-rev{display:grid;grid-template-columns:1fr 1.15fr;gap:2rem;align-items:start;}
+.card{background:white;border:1px solid var(--border);border-radius:10px;padding:1.25rem;transition:all 0.2s;box-shadow:0 1px 6px rgba(55,48,163,0.05);}
+.card:hover{border-color:var(--indigo2);transform:translateY(-2px);box-shadow:0 6px 20px rgba(55,48,163,0.1);}
+.card-icon{font-size:1.4rem;margin-bottom:0.5rem;}
+.card-title{font-family:'Fraunces',serif;font-size:1rem;font-weight:700;margin-bottom:0.3rem;color:var(--ink);}
+.card-desc{font-size:0.72rem;color:var(--muted);line-height:1.65;}
+.panel{background:white;border:1px solid var(--border);border-radius:10px;padding:1.4rem;}
+.panel h3{font-family:'Fraunces',serif;font-size:0.95rem;font-weight:700;color:var(--indigo);margin-bottom:0.9rem;display:flex;align-items:center;gap:0.5rem;font-style:italic;}
+.steps{list-style:none;}
+.steps li{display:flex;gap:0.75rem;padding:0.45rem 0;border-bottom:1px solid var(--border);font-size:0.76rem;line-height:1.6;}
+.steps li:last-child{border-bottom:none;}
+.step-n{width:22px;height:22px;border-radius:6px;background:var(--indigo2);color:white;font-size:0.62rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:'IBM Plex Mono',monospace;}
+/* Workflow */
+.wf-canvas{background:var(--ink);border-radius:14px;padding:2rem;position:relative;overflow:hidden;}
+.wf-geo{position:absolute;inset:0;background:linear-gradient(135deg,rgba(55,48,163,0.1) 0%,transparent 50%),linear-gradient(315deg,rgba(91,33,182,0.08) 0%,transparent 50%);}
+.wf-dots{position:absolute;inset:0;background-image:radial-gradient(circle,rgba(79,70,229,0.18) 1px,transparent 1px);background-size:28px 28px;opacity:0.5;}
+.wf-label{position:absolute;top:0.75rem;left:1rem;font-size:0.57rem;letter-spacing:0.18em;text-transform:uppercase;color:rgba(255,255,255,0.3);display:flex;align-items:center;gap:0.4rem;z-index:3;font-family:'IBM Plex Mono',monospace;}
+.wf-label::before{content:'';width:7px;height:7px;border-radius:50%;background:var(--indigo2);box-shadow:0 0 8px var(--indigo2);animation:ipulse 2s infinite;}
+@keyframes ipulse{0%,100%{opacity:1}50%{opacity:0.2}}
+.wf-nodes{display:flex;align-items:flex-start;gap:0;padding-top:1.5rem;position:relative;z-index:2;flex-wrap:wrap;}
+.wf-stage{display:flex;flex-direction:column;align-items:center;}
+.wf-slbl{font-size:0.51rem;letter-spacing:0.14em;text-transform:uppercase;color:rgba(255,255,255,0.28);margin-bottom:0.3rem;font-family:'IBM Plex Mono',monospace;}
+.wf-node{display:flex;flex-direction:column;align-items:center;gap:0.3rem;cursor:pointer;position:relative;}
+.wf-box{width:58px;height:58px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.25rem;border:2px solid transparent;transition:all 0.3s;}
+.wf-node:hover .wf-box{transform:scale(1.1);box-shadow:0 0 20px rgba(79,70,229,0.4);}
+.wf-nlbl{font-size:0.52rem;text-align:center;color:rgba(255,255,255,0.42);max-width:66px;line-height:1.3;font-family:'IBM Plex Mono',monospace;}
+.wf-arr{color:rgba(255,255,255,0.18);padding:0 0.2rem;font-size:0.85rem;align-self:flex-start;margin-top:19px;flex-shrink:0;}
+.ttw{position:relative;}
+.tti{position:absolute;bottom:calc(100%+8px);left:50%;transform:translateX(-50%);background:white;border:1px solid var(--border);border-radius:8px;padding:0.6rem 0.9rem;font-size:0.67rem;opacity:0;pointer-events:none;transition:opacity 0.2s;z-index:50;color:var(--ink);line-height:1.5;max-width:200px;white-space:normal;text-align:left;box-shadow:0 4px 16px rgba(0,0,0,0.1);}
+.ttw:hover .tti{opacity:1;}
+/* PR form */
+.pr-form{background:white;border:1px solid var(--border);border-radius:10px;overflow:hidden;}
+.pf-header{background:linear-gradient(135deg,var(--indigo),var(--violet));color:white;padding:0.85rem 1.1rem;}
+.pf-title{font-family:'Fraunces',serif;font-size:0.92rem;font-weight:700;font-style:italic;}
+.pf-body{padding:1rem;}
+.pf-field label{font-size:0.6rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:0.18rem;font-family:'IBM Plex Mono',monospace;}
+.pf-input{background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:0.4rem 0.65rem;font-size:0.72rem;color:var(--text);font-family:'IBM Plex Sans',sans-serif;width:100%;min-height:26px;margin-bottom:0.5rem;transition:border-color 0.3s;}
+.pf-row{display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;}
+/* Approval chain */
+.approval-chain{background:white;border:1px solid var(--border);border-radius:10px;padding:1.1rem;display:flex;flex-direction:column;gap:0.5rem;}
+.ac-step{display:flex;align-items:center;gap:0.75rem;padding:0.55rem 0.75rem;border-radius:8px;font-size:0.73rem;transition:all 0.3s;}
+.ac-step.ac-done{background:rgba(22,101,52,0.06);border:1px solid rgba(22,101,52,0.2);}
+.ac-step.ac-active{background:rgba(55,48,163,0.06);border:1px solid rgba(55,48,163,0.2);}
+.ac-step.ac-waiting{background:var(--surface2);border:1px solid var(--border);opacity:0.5;}
+.ac-icon{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.85rem;flex-shrink:0;}
+.ac-ai-done{background:rgba(22,101,52,0.1);color:var(--green);}
+.ac-ai-active{background:rgba(55,48,163,0.1);color:var(--indigo2);}
+.ac-ai-wait{background:var(--border);color:var(--muted);}
+.ac-label{font-weight:600;color:var(--ink);}
+.ac-sub{font-size:0.63rem;color:var(--muted);}
+.ac-status{margin-left:auto;font-size:0.6rem;padding:0.1rem 0.42rem;border-radius:20px;font-weight:600;font-family:'IBM Plex Mono',monospace;}
+.acs-done{background:rgba(22,101,52,0.1);color:var(--green);border:1px solid rgba(22,101,52,0.2);}
+.acs-active{background:rgba(55,48,163,0.1);color:var(--indigo2);border:1px solid rgba(55,48,163,0.2);}
+.acs-wait{background:rgba(107,101,160,0.1);color:var(--muted);border:1px solid rgba(107,101,160,0.15);}
+/* PO table */
+.po-table{background:white;border:1px solid var(--border);border-radius:10px;overflow:hidden;font-size:0.7rem;}
+.po-head{background:var(--surface2);border-bottom:1px solid var(--border);display:grid;grid-template-columns:60px 120px 100px 80px 80px 90px;padding:0.55rem 0.85rem;gap:0.4rem;font-size:0.59rem;letter-spacing:0.08em;color:var(--indigo);font-weight:600;text-transform:uppercase;font-family:'IBM Plex Mono',monospace;}
+.po-row{display:grid;grid-template-columns:60px 120px 100px 80px 80px 90px;padding:0.5rem 0.85rem;gap:0.4rem;border-bottom:1px solid rgba(216,212,245,0.4);align-items:center;transition:background 0.15s;}
+.po-row:hover{background:var(--surface2);}
+.po-row:last-child{border-bottom:none;}
+.pb{display:inline-block;padding:0.1rem 0.42rem;border-radius:20px;font-size:0.58rem;font-weight:600;font-family:'IBM Plex Mono',monospace;}
+.pb-app{background:rgba(22,101,52,0.1);color:var(--green);border:1px solid rgba(22,101,52,0.2);}
+.pb-pend{background:rgba(55,48,163,0.1);color:var(--indigo2);border:1px solid rgba(55,48,163,0.2);}
+.pb-sent{background:rgba(37,99,235,0.1);color:var(--blue);border:1px solid rgba(37,99,235,0.2);}
+/* PS list */
+.ps-list{list-style:none;}
+.ps-list li{display:flex;gap:0.75rem;padding:0.45rem 0;border-bottom:1px solid var(--border);font-size:0.74rem;line-height:1.5;transition:all 0.3s;}
+.ps-list li:last-child{border-bottom:none;}
+.ps-num{width:20px;height:20px;border-radius:6px;background:var(--border);color:white;font-size:0.6rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;transition:background 0.3s;font-family:'IBM Plex Mono',monospace;}
+/* Info */
+.info-indigo{padding:0.75rem 1rem;border-radius:8px;font-size:0.77rem;line-height:1.6;background:rgba(55,48,163,0.06);border:1px solid rgba(55,48,163,0.15);color:var(--indigo);}
+.info-green{padding:0.75rem 1rem;border-radius:8px;font-size:0.77rem;line-height:1.6;background:rgba(22,101,52,0.06);border:1px solid rgba(22,101,52,0.15);color:var(--green);}
+.ba-bad{padding:0.6rem 0.9rem;border-radius:8px;font-size:0.76rem;line-height:1.5;background:rgba(153,27,27,0.04);border:1px solid rgba(153,27,27,0.12);}
+.ba-good{padding:0.6rem 0.9rem;border-radius:8px;font-size:0.76rem;line-height:1.5;background:rgba(22,101,52,0.05);border:1px solid rgba(22,101,52,0.14);}
+.quote-block{background:var(--ink);border-radius:12px;padding:1.75rem 2rem;color:white;}
+.quote-text{font-family:'Fraunces',serif;font-style:italic;font-size:1.1rem;line-height:1.75;margin-bottom:0.75rem;font-weight:300;}
+.quote-text strong{color:#a5b4fc;font-style:normal;}
+.slide-counter{position:fixed;bottom:1.5rem;left:2rem;font-size:0.62rem;color:var(--muted);z-index:100;font-family:'IBM Plex Mono',monospace;}
+.slide-nav{position:fixed;bottom:1.5rem;right:2rem;display:flex;gap:0.5rem;z-index:100;}
+.nav-btn{background:white;border:1px solid var(--border);color:var(--text);padding:0.55rem 1.2rem;border-radius:8px;font-family:'IBM Plex Mono',monospace;font-size:0.7rem;cursor:pointer;transition:all 0.2s;}
+.nav-btn:hover{border-color:var(--indigo2);color:var(--indigo2);}
+.nav-btn.primary{background:var(--indigo2);border-color:var(--indigo2);color:white;}
+.nav-btn.primary:hover{background:var(--indigo);}
+.run-btn{background:var(--indigo2);color:white;border:none;border-radius:8px;padding:0.7rem 1.5rem;font-family:'IBM Plex Mono',monospace;font-size:0.72rem;cursor:pointer;transition:all 0.2s;width:100%;text-align:center;}
+.run-btn:hover{background:var(--indigo);}
+.animate-in{opacity:0;animation:fadeUp 0.5s ease-out forwards;}
+.slide.active .animate-in:nth-child(1){animation-delay:0.05s;}
+.slide.active .animate-in:nth-child(2){animation-delay:0.15s;}
+.slide.active .animate-in:nth-child(3){animation-delay:0.25s;}
+.slide.active .animate-in:nth-child(4){animation-delay:0.35s;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+</style>
+</head>
+<body>
+<div class="top-stripe"></div>
+<nav>
+  <div class="nav-brand">OPS · Procurement & Approvals</div>
+  <div class="nav-dots" id="navDots"></div>
+  <div class="timer" id="timerBadge">⏱ 00:00</div>
+</nav>
+
+<!-- SLIDE 1: HERO -->
+<section class="slide active" id="slide-0">
+  <div class="hero-geo"></div>
+  <div class="slide-inner">
+    <div class="animate-in"><div class="hero-badge">n8n AI Automation · Operations</div></div>
+    <div class="animate-in"><h1 class="hero-title">Purchase Requests<br><em>Approved Fast.</em><br>Spent Wisely.</h1></div>
+    <div class="animate-in"><p class="hero-desc">Every purchase request automatically policy-checked, routed through the right approval chain, and converted to a PO — with a complete audit trail and zero unauthorised spending.</p></div>
+    <div class="animate-in">
+      <div class="kpi-strip">
+        <div class="kpi"><div class="kpi-val">24hr</div><div class="kpi-lbl">Avg Approval Time</div></div>
+        <div class="kpi"><div class="kpi-val">100%</div><div class="kpi-lbl">Policy Enforced</div></div>
+        <div class="kpi"><div class="kpi-val">Auto</div><div class="kpi-lbl">PO Generation</div></div>
+        <div class="kpi"><div class="kpi-val">0</div><div class="kpi-lbl">Rogue Spend</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 2: PROBLEM -->
+<section class="slide" id="slide-1">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">01 — The Problem</div><div class="sec-title">Procurement That<br><em>Nobody Controls</em></div><p class="sec-desc">Without a proper procurement system, spending is reactive, inconsistent, and invisible until it shows up on a credit card statement. Approval processes that live in email are no processes at all.</p></div>
+    <div class="animate-in two-col" style="margin-bottom:1.5rem">
+      <div class="card"><div class="card-icon">🎭</div><div class="card-title">Shadow Purchasing</div><div class="card-desc">Staff buy what they need and submit expenses later. No pre-approval, no budget check, no vendor validation. Operations discovers it spent ₦2M on software nobody knew was being purchased.</div></div>
+      <div class="card"><div class="card-icon">📧</div><div class="card-title">Approval by Email Chain</div><div class="card-desc">Purchase request emailed to manager. Manager cc's finance. Finance replies asking for justification. Another email. Three days later, someone approves verbally on a call. No audit trail, no consistency.</div></div>
+      <div class="card"><div class="card-icon">💸</div><div class="card-title">No Budget Visibility</div><div class="card-desc">Department heads approve purchases without knowing their remaining budget. Finance only finds out about overruns at month-end. By then, the money is already spent.</div></div>
+      <div class="card"><div class="card-icon">📄</div><div class="card-title">Manual PO Creation</div><div class="card-desc">After approval, someone manually creates a purchase order in the accounting system. Copy-paste errors, wrong codes, missing fields. Takes 30 minutes per PO. Completely unnecessary with automation.</div></div>
+    </div>
+    <div class="animate-in"><div class="info-indigo">✅ n8n enforces procurement policy on every request, routes through the right approval chain, checks budget in real time, and auto-generates the PO on approval — with a full audit trail.</div></div>
+  </div>
+</section>
+
+<!-- SLIDE 3: WORKFLOW -->
+<section class="slide" id="slide-2">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">02 — The Blueprint</div><div class="sec-title">n8n Procurement<br><em>Approval Pipeline</em></div><p class="sec-desc">Purchase request submitted → policy checked → budget validated → approval chain triggered → PO auto-generated. Every step documented, every policy enforced.</p></div>
+    <div class="animate-in wf-canvas">
+      <div class="wf-geo"></div><div class="wf-dots"></div>
+      <div class="wf-label">n8n canvas — procurement approval pipeline</div>
+      <div class="wf-nodes">
+        <div class="wf-stage"><div class="wf-slbl">Request</div>
+          <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a1a0a,#78350f);color:#fde68a;border-color:#78350f;">📋</div><div class="wf-nlbl">PR<br>Submission</div><div class="tti">Staff submit purchase request via form: item, quantity, vendor, business justification, department, GL code. n8n webhook receives immediately.</div></div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-stage"><div class="wf-slbl">Validate</div>
+          <div style="display:flex;flex-direction:column;gap:0.35rem">
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a0a0a,#991b1b);color:#fca5a5;border-color:#991b1b;">🧠</div><div class="wf-nlbl">GPT-4o<br>Review</div><div class="tti">GPT-4o reviews justification for: business necessity, policy compliance, duplicate purchase check. Flags luxury items, personal-use risks, or insufficient justification.</div></div>
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#0a1a1a,#065f46);color:#6ee7b7;border-color:#065f46;">💰</div><div class="wf-nlbl">Budget<br>Check</div><div class="tti">Checks department budget in real time against Google Sheets/Xero. If spending this PR would exceed budget: flag for CFO override. Remaining budget shown to approver.</div></div>
+          </div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-stage"><div class="wf-slbl">Route</div>
+          <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#0a0a1a,#1e3a5f);color:#93c5fd;border-color:#1e3a5f;">🔀</div><div class="wf-nlbl">Approval<br>Chain</div><div class="tti">≤₦100k: dept manager only. ₦100k–500k: dept + finance. ₦500k+: dept + finance + CEO. Recurring subscriptions: always include IT head. All via Slack.</div></div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-stage"><div class="wf-slbl">Approve</div>
+          <div style="display:flex;flex-direction:column;gap:0.35rem">
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#0a1a2a,#0369a1);color:#7dd3fc;border-color:#0369a1;">💬</div><div class="wf-nlbl">Slack<br>Approve</div><div class="tti">Each approver gets Slack message: PR details, budget remaining, AI risk summary, Approve/Reject/Query. Sequential — each approver sees previous decisions.</div></div>
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a0a1a,#7c3aed);color:#d8b4fe;border-color:#7c3aed;">⏰</div><div class="wf-nlbl">SLA<br>Escalate</div><div class="tti">No response in 4 hours: reminder sent. No response in 8 hours: escalated to next approver level. Urgent PRs (P1) have 1-hour response SLA.</div></div>
+          </div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-stage"><div class="wf-slbl">Purchase</div>
+          <div style="display:flex;flex-direction:column;gap:0.35rem">
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#0a1a1a,#065f46);color:#6ee7b7;border-color:#065f46;">📄</div><div class="wf-nlbl">Auto<br>PO</div><div class="tti">On full approval: PO auto-generated in Xero with all GL codes, vendor details, and approval chain documented. Sent to vendor and filed in Google Drive.</div></div>
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a1a0a,#3d3200);color:#fbbf24;border-color:#78350f;">📊</div><div class="wf-nlbl">Budget<br>Update</div><div class="tti">Department budget committed balance updated immediately. No waiting for invoice. Finance sees real-time committed spend vs available budget at all times.</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 4: SIM 1 — PR APPROVAL -->
+<section class="slide" id="slide-3">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">03 — Simulation 1</div><div class="sec-title">Live: Purchase Request<br><em>Through Approval Chain</em></div><p class="sec-desc">Kemi submits a ₦380,000 software licence request. Watch it clear GPT-4o review, budget check, and two-level approval chain — PO generated on completion.</p></div>
+    <div class="animate-in lr">
+      <div style="display:flex;flex-direction:column;gap:1rem">
+        <div class="pr-form">
+          <div class="pf-header"><div class="pf-title">Purchase Request Form</div></div>
+          <div class="pf-body">
+            <div class="pf-row">
+              <div class="pf-field"><label>Requestor</label><div class="pf-input" id="pf-req"></div></div>
+              <div class="pf-field"><label>Department</label><div class="pf-input" id="pf-dept"></div></div>
+            </div>
+            <div class="pf-field"><label>Item/Service</label><div class="pf-input" id="pf-item"></div></div>
+            <div class="pf-row">
+              <div class="pf-field"><label>Amount (₦)</label><div class="pf-input" id="pf-amt"></div></div>
+              <div class="pf-field"><label>Vendor</label><div class="pf-input" id="pf-vendor"></div></div>
+            </div>
+            <div style="background:var(--indigo2);color:white;border-radius:6px;padding:0.5rem;font-size:0.74rem;font-weight:600;text-align:center;cursor:pointer;margin-top:0.25rem" id="pf-btn" onclick="runProcSim()">Submit Purchase Request →</div>
+            <div id="pf-done" style="display:none;background:rgba(22,101,52,0.08);border:1px solid rgba(22,101,52,0.2);border-radius:6px;padding:0.45rem;font-size:0.7rem;color:var(--green);text-align:center;margin-top:0.35rem">✅ Submitted · Routing through approval chain</div>
+          </div>
+        </div>
+        <div class="panel">
+          <h3>Pipeline Steps</h3>
+          <ul class="ps-list" id="procSteps">
+            <li id="pc1" style="opacity:0.3"><div class="ps-num">1</div><div>PR submitted — n8n webhook fires</div></li>
+            <li id="pc2" style="opacity:0.3"><div class="ps-num">2</div><div>GPT-4o reviews — business case valid ✓</div></li>
+            <li id="pc3" style="opacity:0.3"><div class="ps-num">3</div><div>Budget check — ₦620k remaining in dept ✓</div></li>
+            <li id="pc4" style="opacity:0.3"><div class="ps-num">4</div><div>Dept Head approves → Finance Director next</div></li>
+            <li id="pc5" style="opacity:0.3"><div class="ps-num">5</div><div>Finance approves → PO auto-generated</div></li>
+          </ul>
+        </div>
+        <button class="run-btn" id="procBtn" onclick="runProcSim()">▶ SUBMIT & APPROVE PR</button>
+      </div>
+      <div>
+        <div class="approval-chain" id="approvalChain">
+          <div style="font-size:0.61rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);font-family:'IBM Plex Mono',monospace;margin-bottom:0.25rem">Approval Chain — PR-2025-0052</div>
+          <div class="ac-step ac-waiting" id="ac1"><div class="ac-icon ac-ai-wait" id="aci1">🧠</div><div><div class="ac-label">GPT-4o Policy Review</div><div class="ac-sub">Auto-validation · Justification + compliance check</div></div><span class="ac-status acs-wait" id="acs1">Pending</span></div>
+          <div class="ac-step ac-waiting" id="ac2"><div class="ac-icon ac-ai-wait" id="aci2">💰</div><div><div class="ac-label">Budget Validation</div><div class="ac-sub">Operations dept · ₦380k vs remaining budget</div></div><span class="ac-status acs-wait" id="acs2">Pending</span></div>
+          <div class="ac-step ac-waiting" id="ac3"><div class="ac-icon ac-ai-wait" id="aci3">👤</div><div><div class="ac-label">Dept Head — Ngozi Eze</div><div class="ac-sub">Operations Director · Slack approval</div></div><span class="ac-status acs-wait" id="acs3">Pending</span></div>
+          <div class="ac-step ac-waiting" id="ac4"><div class="ac-icon ac-ai-wait" id="aci4">💼</div><div><div class="ac-label">Finance Director</div><div class="ac-sub">₦100k+ threshold · Slack approval</div></div><span class="ac-status acs-wait" id="acs4">Pending</span></div>
+          <div class="ac-step ac-waiting" id="ac5"><div class="ac-icon ac-ai-wait" id="aci5">📄</div><div><div class="ac-label">PO Auto-Generated</div><div class="ac-sub">Xero · Filed in Drive · Vendor notified</div></div><span class="ac-status acs-wait" id="acs5">Pending</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 5: SIM 2 — PO TABLE -->
+<section class="slide" id="slide-4">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">04 — Simulation 2</div><div class="sec-title">Procurement Dashboard<br><em>& PO Tracker</em></div><p class="sec-desc">Finance and Operations see every active purchase request, its approval status, and all generated POs — in real time, with full audit trail.</p></div>
+    <div class="animate-in" style="margin-bottom:1.25rem">
+      <div class="po-table">
+        <div class="po-head"><div>PR Ref</div><div>Item</div><div>Dept</div><div>Amount</div><div>Stage</div><div>Status</div></div>
+        <div class="po-row"><div style="font-family:'IBM Plex Mono',monospace">PR-0050</div><div>Office Chairs (10)</div><div>Admin</div><div>₦250,000</div><div style="font-size:0.65rem">Dept Head</div><div><span class="pb pb-app">Approved ✓</span></div></div>
+        <div class="po-row"><div style="font-family:'IBM Plex Mono',monospace">PR-0051</div><div>Cloud Storage Upgrade</div><div>IT</div><div>₦180,000</div><div style="font-size:0.65rem">Finance</div><div><span class="pb pb-pend">Pending</span></div></div>
+        <div class="po-row"><div style="font-family:'IBM Plex Mono',monospace">PR-0052</div><div>Design Software Licence</div><div>Operations</div><div>₦380,000</div><div style="font-size:0.65rem">2/2 Done</div><div><span class="pb pb-sent">PO Sent ✓</span></div></div>
+        <div class="po-row"><div style="font-family:'IBM Plex Mono',monospace">PR-0053</div><div>Generator Fuel — May</div><div>Facilities</div><div>₦95,000</div><div style="font-size:0.65rem">Dept Head</div><div><span class="pb pb-app">Approved ✓</span></div></div>
+      </div>
+    </div>
+    <div class="animate-in two-col">
+      <div class="panel">
+        <h3>Procurement Controls</h3>
+        <ul class="steps">
+          <li><div class="step-n">1</div><div><strong>Budget gate:</strong> No PR proceeds if dept budget exceeded</div></li>
+          <li><div class="step-n">2</div><div><strong>Duplicate check:</strong> GPT-4o flags similar recent purchases</div></li>
+          <li><div class="step-n">3</div><div><strong>Vendor check:</strong> Only approved vendors on master list</div></li>
+          <li><div class="step-n">4</div><div><strong>Audit trail:</strong> Every decision timestamped and logged</div></li>
+        </ul>
+      </div>
+      <div class="info-green">✅ Finance Director can see every active PR, who has approved, who is pending, and the real-time committed spend vs department budgets — without asking anyone a single question.</div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 6: BEFORE/AFTER -->
+<section class="slide" id="slide-5">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">05 — Business Impact</div><div class="sec-title">Procurement That<br><em>Respects the Budget</em></div></div>
+    <div class="animate-in two-col" style="margin-bottom:1.5rem">
+      <div>
+        <div style="font-size:0.62rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--red);margin-bottom:0.75rem;font-weight:500;font-family:'IBM Plex Mono',monospace">❌ BEFORE</div>
+        <div style="display:flex;flex-direction:column;gap:0.5rem">
+          <div class="ba-bad">Staff buy items and submit expenses — no pre-approval</div>
+          <div class="ba-bad">Email approval chains with no audit trail or consistency</div>
+          <div class="ba-bad">Dept heads approve without seeing remaining budget</div>
+          <div class="ba-bad">Manual PO creation — 30 mins per PO, copy-paste errors</div>
+          <div class="ba-bad">Finance discovers budget overruns at month-end</div>
+        </div>
+      </div>
+      <div>
+        <div style="font-size:0.62rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--green);margin-bottom:0.75rem;font-weight:500;font-family:'IBM Plex Mono',monospace">✅ AFTER</div>
+        <div style="display:flex;flex-direction:column;gap:0.5rem">
+          <div class="ba-good">Every purchase pre-approved with business justification required</div>
+          <div class="ba-good">Structured approval chain with full Slack audit trail</div>
+          <div class="ba-good">Real-time budget check before every approval decision</div>
+          <div class="ba-good">PO auto-generated on approval — zero manual data entry</div>
+          <div class="ba-good">Live committed spend dashboard — overruns impossible</div>
+        </div>
+      </div>
+    </div>
+    <div class="animate-in">
+      <div class="quote-block">
+        <div class="quote-text">"Procurement control isn't about bureaucracy — it's about <strong>making sure every pound spent delivers value</strong>. This automation enforces that discipline without slowing down the business."</div>
+        <div style="font-size:0.62rem;color:rgba(255,255,255,0.3);font-family:'IBM Plex Mono',monospace">STACK: n8n · GPT-4o · Slack · Xero/QuickBooks · Google Sheets · Google Drive · Gmail</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="slide-counter" id="slideCounter">Slide 1 of 6</div>
+<div class="slide-nav">
+  <button class="nav-btn" onclick="prevSlide()">← Prev</button>
+  <button class="nav-btn primary" onclick="nextSlide()">Next →</button>
+</div>
+<script>
+const slides=document.querySelectorAll('.slide'),total=slides.length;let cur=0;
+const dots=document.getElementById('navDots');
+for(let i=0;i<total;i++){const d=document.createElement('div');d.className='nav-dot'+(i===0?' active':'');d.onclick=()=>goTo(i);dots.appendChild(d);}
+function goTo(n){slides[cur].classList.remove('active');dots.children[cur].classList.remove('active');if(cur<n)dots.children[cur].classList.add('done');cur=n;slides[cur].classList.add('active');dots.children[cur].classList.add('active');document.getElementById('slideCounter').textContent=`Slide ${cur+1} of ${total}`;}
+function nextSlide(){if(cur<total-1)goTo(cur+1);}function prevSlide(){if(cur>0)goTo(cur-1);}
+document.addEventListener('keydown',e=>{if(e.key==='ArrowRight'||e.key==='ArrowDown')nextSlide();if(e.key==='ArrowLeft'||e.key==='ArrowUp')prevSlide();});
+let secs=0;setInterval(()=>{secs++;const m=String(Math.floor(secs/60)).padStart(2,'0'),s=String(secs%60).padStart(2,'0');document.getElementById('timerBadge').textContent=`⏱ ${m}:${s}`;if(secs>=840)document.getElementById('timerBadge').style.color='#991b1b';},1000);
+function delay(ms){return new Promise(r=>setTimeout(r,ms));}
+let procRunning=false;
+async function runProcSim(){
+  if(procRunning)return;procRunning=true;
+  document.getElementById('pf-done').style.display='none';
+  document.getElementById('pf-btn').style.display='block';
+  const fields=[['pf-req','Kemi Adeyemi · Operations'],['pf-dept','Operations'],['pf-item','Figma Professional Licence (annual)'],['pf-amt','₦380,000'],['pf-vendor','Figma Inc.']];
+  for(const[id,val]of fields){const el=document.getElementById(id);if(!el)continue;let i=0;await new Promise(r=>{const iv=setInterval(()=>{el.textContent=val.slice(0,++i);if(i>=val.length){clearInterval(iv);r();}},22);});await delay(80);}
+  document.getElementById('pf-btn').style.display='none';
+  document.getElementById('pf-done').style.display='block';
+  const steps=['pc1','pc2','pc3','pc4','pc5'];
+  steps.forEach(id=>{const el=document.getElementById(id);if(el){el.style.opacity='0.3';el.querySelector('.ps-num').style.background='var(--border)';}});
+  const chainData=[
+    {id:'ac1',icon:'aci1',status:'acs1',cls:'ac-done',iconCls:'ac-ai-done',statusTxt:'Passed ✓',statusCls:'acs-done'},
+    {id:'ac2',icon:'aci2',status:'acs2',cls:'ac-done',iconCls:'ac-ai-done',statusTxt:'Budget OK ✓',statusCls:'acs-done'},
+    {id:'ac3',icon:'aci3',status:'acs3',cls:'ac-done',iconCls:'ac-ai-done',statusTxt:'Approved ✓',statusCls:'acs-done'},
+    {id:'ac4',icon:'aci4',status:'acs4',cls:'ac-done',iconCls:'ac-ai-done',statusTxt:'Approved ✓',statusCls:'acs-done'},
+    {id:'ac5',icon:'aci5',status:'acs5',cls:'ac-done',iconCls:'ac-ai-done',statusTxt:'PO Sent ✓',statusCls:'acs-done'},
+  ];
+  const light=(i)=>{steps.forEach(id=>{const el=document.getElementById(id);if(el){el.style.opacity='0.3';el.querySelector('.ps-num').style.background='var(--border)';}});const el=document.getElementById(steps[i]);if(el){el.style.opacity='1';el.style.color='var(--indigo2)';el.querySelector('.ps-num').style.background='var(--indigo2)';}};
+  for(let i=0;i<chainData.length;i++){
+    await delay(650);
+    light(i);
+    const d=chainData[i];
+    const step=document.getElementById(d.id);const ico=document.getElementById(d.icon);const st=document.getElementById(d.status);
+    if(step)step.className=`ac-step ${d.cls}`;if(ico)ico.className=`ac-icon ${d.iconCls}`;
+    if(st){st.className=`ac-status ${d.statusCls}`;st.textContent=d.statusTxt;}
+  }
+  document.getElementById('procBtn').textContent='↺ Reset & Run Again';procRunning=false;
+}
+</script>
+</body>
+</html>
