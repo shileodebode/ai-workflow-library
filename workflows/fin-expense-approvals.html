@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Finance & Operations — Expense Approvals Automation</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f5f7fa;--surface:#ffffff;--surface2:#edf0f5;--border:#dde2ec;
+  --ink:#0a0f1e;--navy:#1a2a5c;--navy2:#111d48;--slate:#3a4a7a;
+  --blue:#2a52c8;--sky:#e8eeff;--green:#0a7a40;--red:#c82020;
+  --amber:#c47a10;--text:#141c38;--muted:#6070a8;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;overflow-x:hidden;}
+.top-bar{position:fixed;top:0;left:0;right:0;height:3px;background:var(--navy);z-index:200;}
+.top-bar::after{content:'';position:absolute;left:0;top:0;width:80px;height:100%;background:var(--blue);}
+nav{position:fixed;top:3px;left:0;right:0;z-index:100;background:rgba(245,247,250,0.97);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 2.5rem;height:54px;}
+.nav-brand{font-family:'JetBrains Mono',monospace;font-size:0.7rem;color:var(--navy2);letter-spacing:0.06em;}
+.nav-dots{display:flex;gap:0.3rem;}
+.nav-dot{width:7px;height:7px;border-radius:2px;background:var(--border);cursor:pointer;transition:all 0.2s;}
+.nav-dot.active{background:var(--navy);transform:scale(1.4);}
+.nav-dot.done{background:var(--green);}
+.timer{font-size:0.67rem;color:var(--navy);background:rgba(26,42,92,0.07);border:1px solid rgba(26,42,92,0.18);padding:0.2rem 0.75rem;border-radius:4px;font-family:'JetBrains Mono',monospace;}
+.slide{min-height:100vh;padding:78px 0 50px;display:none;flex-direction:column;align-items:center;justify-content:center;position:relative;overflow:hidden;}
+.slide.active{display:flex;}
+.slide-inner{width:100%;max-width:1140px;padding:0 2.5rem;position:relative;z-index:2;}
+.hero-lines{position:absolute;inset:0;background-image:repeating-linear-gradient(0deg,transparent,transparent 60px,rgba(26,42,92,0.025) 60px,rgba(26,42,92,0.025) 61px);pointer-events:none;}
+.hero-badge{display:inline-flex;align-items:center;gap:0.5rem;background:var(--sky);border:1px solid rgba(26,42,92,0.18);color:var(--navy2);font-size:0.67rem;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;padding:0.28rem 0.9rem;border-radius:4px;margin-bottom:1.5rem;font-family:'JetBrains Mono',monospace;}
+h1.hero-title{font-family:'Inter',sans-serif;font-size:clamp(2.8rem,5.5vw,4.6rem);font-weight:800;line-height:1.0;letter-spacing:-0.03em;color:var(--ink);margin-bottom:1.5rem;}
+h1.hero-title span{color:var(--blue);}
+.hero-desc{font-size:0.97rem;color:var(--muted);max-width:510px;line-height:1.78;margin-bottom:2.5rem;font-weight:300;}
+.kpi-strip{display:flex;gap:1px;background:var(--border);border:1px solid var(--border);border-radius:8px;overflow:hidden;max-width:640px;box-shadow:0 2px 10px rgba(26,42,92,0.07);}
+.kpi{background:white;padding:1.1rem 1.4rem;flex:1;}
+.kpi-val{font-family:'Inter',sans-serif;font-size:1.85rem;font-weight:800;color:var(--navy);line-height:1;}
+.kpi-lbl{font-size:0.59rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);margin-top:0.2rem;font-family:'JetBrains Mono',monospace;}
+.sec-tag{font-size:0.61rem;letter-spacing:0.22em;text-transform:uppercase;color:var(--blue);margin-bottom:0.4rem;font-weight:600;font-family:'JetBrains Mono',monospace;display:flex;align-items:center;gap:0.4rem;}
+.sec-tag::before{content:'';width:16px;height:2px;background:var(--blue);}
+.sec-title{font-family:'Inter',sans-serif;font-size:clamp(1.9rem,3.8vw,3rem);font-weight:800;line-height:1.05;margin-bottom:0.5rem;color:var(--ink);letter-spacing:-0.02em;}
+.sec-title span{color:var(--navy);}
+.sec-desc{font-size:0.87rem;color:var(--muted);margin-bottom:1.85rem;max-width:540px;line-height:1.78;font-weight:300;}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;}
+.three-col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;}
+.lr{display:grid;grid-template-columns:1.1fr 1fr;gap:2rem;align-items:start;}
+.lr-rev{display:grid;grid-template-columns:1fr 1.15fr;gap:2rem;align-items:start;}
+.card{background:white;border:1px solid var(--border);border-radius:8px;padding:1.25rem;transition:all 0.2s;box-shadow:0 1px 4px rgba(0,0,0,0.04);}
+.card:hover{border-color:var(--navy);transform:translateY(-2px);box-shadow:0 6px 18px rgba(26,42,92,0.09);}
+.card-icon{font-size:1.4rem;margin-bottom:0.5rem;}
+.card-title{font-family:'Inter',sans-serif;font-size:0.95rem;font-weight:700;margin-bottom:0.3rem;color:var(--ink);}
+.card-desc{font-size:0.72rem;color:var(--muted);line-height:1.65;}
+.panel{background:white;border:1px solid var(--border);border-radius:8px;padding:1.4rem;}
+.panel h3{font-family:'Inter',sans-serif;font-size:0.88rem;font-weight:700;color:var(--navy2);margin-bottom:0.9rem;display:flex;align-items:center;gap:0.5rem;}
+.panel h3::before{content:'';width:12px;height:2px;background:var(--blue);}
+.steps{list-style:none;}
+.steps li{display:flex;gap:0.75rem;padding:0.45rem 0;border-bottom:1px solid var(--border);font-size:0.76rem;line-height:1.6;}
+.steps li:last-child{border-bottom:none;}
+.step-n{width:22px;height:22px;border-radius:4px;background:var(--navy);color:white;font-size:0.62rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:'JetBrains Mono',monospace;}
+/* Workflow */
+.wf-canvas{background:var(--ink);border-radius:10px;padding:2rem;position:relative;overflow:hidden;}
+.wf-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(42,82,200,0.08) 1px,transparent 1px),linear-gradient(90deg,rgba(42,82,200,0.08) 1px,transparent 1px);background-size:32px 32px;}
+.wf-label{position:absolute;top:0.75rem;left:1rem;font-size:0.57rem;letter-spacing:0.18em;text-transform:uppercase;color:rgba(255,255,255,0.3);display:flex;align-items:center;gap:0.4rem;z-index:3;font-family:'JetBrains Mono',monospace;}
+.wf-label::before{content:'';width:7px;height:7px;border-radius:2px;background:var(--blue);box-shadow:0 0 8px var(--blue);animation:bpulse 2s infinite;}
+@keyframes bpulse{0%,100%{opacity:1}50%{opacity:0.2}}
+.wf-nodes{display:flex;align-items:flex-start;gap:0;padding-top:1.5rem;position:relative;z-index:2;flex-wrap:wrap;}
+.wf-stage{display:flex;flex-direction:column;align-items:center;}
+.wf-slbl{font-size:0.51rem;letter-spacing:0.14em;text-transform:uppercase;color:rgba(255,255,255,0.28);margin-bottom:0.3rem;font-family:'JetBrains Mono',monospace;}
+.wf-node{display:flex;flex-direction:column;align-items:center;gap:0.3rem;cursor:pointer;position:relative;}
+.wf-box{width:58px;height:58px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.25rem;border:2px solid transparent;transition:all 0.3s;}
+.wf-node:hover .wf-box{transform:scale(1.1);box-shadow:0 0 20px rgba(42,82,200,0.4);}
+.wf-nlbl{font-size:0.52rem;text-align:center;color:rgba(255,255,255,0.42);max-width:66px;line-height:1.3;font-family:'JetBrains Mono',monospace;}
+.wf-arr{color:rgba(255,255,255,0.18);padding:0 0.2rem;font-size:0.85rem;align-self:flex-start;margin-top:19px;flex-shrink:0;}
+.ttw{position:relative;}
+.tti{position:absolute;bottom:calc(100%+8px);left:50%;transform:translateX(-50%);background:white;border:1px solid var(--border);border-radius:6px;padding:0.6rem 0.9rem;font-size:0.67rem;opacity:0;pointer-events:none;transition:opacity 0.2s;z-index:50;color:var(--ink);line-height:1.5;max-width:200px;white-space:normal;text-align:left;box-shadow:0 4px 12px rgba(0,0,0,0.1);}
+.ttw:hover .tti{opacity:1;}
+/* Expense form */
+.exp-form{background:white;border:1px solid var(--border);border-radius:8px;overflow:hidden;}
+.ef-header{background:var(--navy);color:white;padding:0.85rem 1.1rem;display:flex;align-items:center;justify-content:space-between;}
+.ef-title{font-family:'Inter',sans-serif;font-size:0.88rem;font-weight:700;}
+.ef-body{padding:1rem;}
+.ef-field label{font-size:0.6rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:0.18rem;font-family:'JetBrains Mono',monospace;}
+.ef-input{background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:0.4rem 0.65rem;font-size:0.72rem;color:var(--text);font-family:'Inter',sans-serif;width:100%;min-height:26px;margin-bottom:0.5rem;transition:border-color 0.3s;}
+.ef-row{display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;}
+/* Approval card */
+.approval-card{background:white;border:1px solid var(--border);border-radius:8px;padding:0.85rem 1rem;margin-bottom:0.5rem;display:flex;gap:0.75rem;align-items:flex-start;transition:all 0.3s;}
+.approval-card.pending-ap{border-color:var(--amber);background:rgba(196,122,16,0.03);}
+.approval-card.approved-ap{border-color:var(--green);background:rgba(10,122,64,0.03);}
+.approval-card.rejected-ap{border-color:var(--red);background:rgba(200,32,32,0.03);}
+.ap-amount{font-family:'Inter',sans-serif;font-weight:800;font-size:1rem;color:var(--navy);flex-shrink:0;min-width:60px;}
+.ap-desc{font-weight:600;font-size:0.77rem;color:var(--ink);margin-bottom:0.1rem;}
+.ap-meta{font-size:0.63rem;color:var(--muted);}
+.ap-badge{margin-left:auto;font-size:0.59rem;padding:0.1rem 0.45rem;border-radius:4px;font-weight:600;font-family:'JetBrains Mono',monospace;white-space:nowrap;}
+.apb-pend{background:rgba(196,122,16,0.1);color:var(--amber);border:1px solid rgba(196,122,16,0.2);}
+.apb-app{background:rgba(10,122,64,0.1);color:var(--green);border:1px solid rgba(10,122,64,0.2);}
+.apb-rej{background:rgba(200,32,32,0.1);color:var(--red);border:1px solid rgba(200,32,32,0.15);}
+.apb-rev{background:rgba(42,82,200,0.1);color:var(--blue);border:1px solid rgba(42,82,200,0.2);}
+/* Spend table */
+.spend-table{background:white;border:1px solid var(--border);border-radius:8px;overflow:hidden;font-size:0.7rem;}
+.st-head{background:var(--surface2);border-bottom:1px solid var(--border);display:grid;grid-template-columns:40px 120px 100px 80px 80px 70px 80px;padding:0.55rem 0.85rem;gap:0.4rem;font-size:0.59rem;letter-spacing:0.08em;color:var(--navy2);font-weight:600;text-transform:uppercase;font-family:'JetBrains Mono',monospace;}
+.st-row{display:grid;grid-template-columns:40px 120px 100px 80px 80px 70px 80px;padding:0.52rem 0.85rem;gap:0.4rem;border-bottom:1px solid rgba(221,226,236,0.5);align-items:center;transition:background 0.15s;}
+.st-row:hover{background:var(--surface2);}
+.st-row:last-child{border-bottom:none;}
+.sb-exp{display:inline-block;padding:0.1rem 0.42rem;border-radius:4px;font-size:0.58rem;font-weight:600;font-family:'JetBrains Mono',monospace;}
+.sb-app{background:rgba(10,122,64,0.1);color:var(--green);border:1px solid rgba(10,122,64,0.2);}
+.sb-rej{background:rgba(200,32,32,0.08);color:var(--red);border:1px solid rgba(200,32,32,0.15);}
+.sb-pend{background:rgba(196,122,16,0.1);color:var(--amber);border:1px solid rgba(196,122,16,0.2);}
+/* PS list */
+.ps-list{list-style:none;}
+.ps-list li{display:flex;gap:0.75rem;padding:0.45rem 0;border-bottom:1px solid var(--border);font-size:0.74rem;line-height:1.5;transition:all 0.3s;}
+.ps-list li:last-child{border-bottom:none;}
+.ps-num{width:20px;height:20px;border-radius:4px;background:var(--border);color:white;font-size:0.6rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;transition:background 0.3s;font-family:'JetBrains Mono',monospace;}
+/* Info */
+.info-navy{padding:0.75rem 1rem;border-radius:6px;font-size:0.77rem;line-height:1.6;background:rgba(26,42,92,0.06);border:1px solid rgba(26,42,92,0.15);color:var(--navy2);}
+.info-green{padding:0.75rem 1rem;border-radius:6px;font-size:0.77rem;line-height:1.6;background:rgba(10,122,64,0.06);border:1px solid rgba(10,122,64,0.15);color:var(--green);}
+.ba-bad{padding:0.6rem 0.9rem;border-radius:6px;font-size:0.76rem;line-height:1.5;background:rgba(200,32,32,0.04);border:1px solid rgba(200,32,32,0.12);}
+.ba-good{padding:0.6rem 0.9rem;border-radius:6px;font-size:0.76rem;line-height:1.5;background:rgba(10,122,64,0.05);border:1px solid rgba(10,122,64,0.14);}
+.quote-block{background:var(--ink);border-radius:10px;padding:1.75rem 2rem;color:white;border-left:4px solid var(--blue);}
+.quote-text{font-size:1.05rem;line-height:1.78;margin-bottom:0.75rem;font-weight:300;}
+.quote-text strong{color:#7dd3fc;}
+.slide-counter{position:fixed;bottom:1.5rem;left:2rem;font-size:0.62rem;color:var(--muted);z-index:100;font-family:'JetBrains Mono',monospace;}
+.slide-nav{position:fixed;bottom:1.5rem;right:2rem;display:flex;gap:0.5rem;z-index:100;}
+.nav-btn{background:white;border:1px solid var(--border);color:var(--text);padding:0.55rem 1.2rem;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:0.7rem;cursor:pointer;transition:all 0.2s;}
+.nav-btn:hover{border-color:var(--navy);color:var(--navy);}
+.nav-btn.primary{background:var(--navy);border-color:var(--navy);color:white;}
+.nav-btn.primary:hover{background:var(--navy2);}
+.run-btn{background:var(--navy);color:white;border:none;border-radius:6px;padding:0.7rem 1.5rem;font-family:'JetBrains Mono',monospace;font-size:0.72rem;cursor:pointer;transition:all 0.2s;width:100%;text-align:center;}
+.run-btn:hover{background:var(--navy2);}
+.animate-in{opacity:0;animation:fadeUp 0.5s ease-out forwards;}
+.slide.active .animate-in:nth-child(1){animation-delay:0.05s;}
+.slide.active .animate-in:nth-child(2){animation-delay:0.15s;}
+.slide.active .animate-in:nth-child(3){animation-delay:0.25s;}
+.slide.active .animate-in:nth-child(4){animation-delay:0.35s;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+</style>
+</head>
+<body>
+<div class="top-bar"></div>
+<nav>
+  <div class="nav-brand">FIN · Expense Approvals</div>
+  <div class="nav-dots" id="navDots"></div>
+  <div class="timer" id="timerBadge">⏱ 00:00</div>
+</nav>
+
+<!-- SLIDE 1: HERO -->
+<section class="slide active" id="slide-0">
+  <div class="hero-lines"></div>
+  <div class="slide-inner">
+    <div class="animate-in"><div class="hero-badge">n8n AI Automation · Finance & Operations</div></div>
+    <div class="animate-in"><h1 class="hero-title">Expense Approvals<br>in <span>Minutes,</span><br>Not Days.</h1></div>
+    <div class="animate-in"><p class="hero-desc">Every expense claim submitted, policy-checked, routed to the right approver, and processed automatically — with a full audit trail and zero paper forms.</p></div>
+    <div class="animate-in">
+      <div class="kpi-strip">
+        <div class="kpi"><div class="kpi-val">15min</div><div class="kpi-lbl">Avg Approval Time</div></div>
+        <div class="kpi"><div class="kpi-val">100%</div><div class="kpi-lbl">Policy Enforced</div></div>
+        <div class="kpi"><div class="kpi-val">AI</div><div class="kpi-lbl">Anomaly Detection</div></div>
+        <div class="kpi"><div class="kpi-val">0</div><div class="kpi-lbl">Paper Forms</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 2: PROBLEM -->
+<section class="slide" id="slide-1">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">01 — The Problem</div><div class="sec-title">Expense Approvals<br><span>Are Broken</span></div><p class="sec-desc">Expense management is one of the most paper-heavy, policy-inconsistent, and fraud-prone processes in any organisation. Manual approval chains are slow, opaque, and easily circumvented.</p></div>
+    <div class="animate-in two-col" style="margin-bottom:1.5rem">
+      <div class="card"><div class="card-icon">📨</div><div class="card-title">Email Chains & Lost Claims</div><div class="card-desc">Staff submit expenses via email. Finance chases managers. Managers reply when they remember. Average approval time: 5–7 days. Claims get lost. Staff stop submitting. Finance loses visibility.</div></div>
+      <div class="card"><div class="card-icon">📋</div><div class="card-title">Policy Blindspot</div><div class="card-desc">Does a ₦85,000 dinner require director sign-off? Is this mileage claim within policy? Manual approvers often don't check — they just click approve. Policy enforcement is inconsistent at best.</div></div>
+      <div class="card"><div class="card-icon">🔍</div><div class="card-title">No Fraud Detection</div><div class="card-desc">Duplicate receipts, inflated claims, personal expenses coded as business — all invisible to manual reviewers. The average organisation loses 5–7% of expense spend to fraud or abuse annually.</div></div>
+      <div class="card"><div class="card-icon">📊</div><div class="card-title">Zero Spend Visibility</div><div class="card-desc">Finance can't see departmental spend in real time. Month-end reports are 2 weeks late and built from email chains. Budget holders have no idea where they stand until it's too late.</div></div>
+    </div>
+    <div class="animate-in"><div class="info-navy">✅ n8n automates submission, policy checks, smart routing, approval notifications, and reimbursement — with GPT-4o flagging anomalies and a live spend dashboard.</div></div>
+  </div>
+</section>
+
+<!-- SLIDE 3: WORKFLOW -->
+<section class="slide" id="slide-2">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">02 — The Blueprint</div><div class="sec-title">n8n Expense Approval<br><span>Workflow</span></div><p class="sec-desc">From submission to reimbursement — every step automated, every policy enforced, every approver notified at exactly the right moment.</p></div>
+    <div class="animate-in wf-canvas">
+      <div class="wf-grid"></div>
+      <div class="wf-label">n8n canvas — expense approval pipeline</div>
+      <div class="wf-nodes">
+        <div class="wf-stage"><div class="wf-slbl">Submit</div>
+          <div style="display:flex;flex-direction:column;gap:0.35rem">
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#0a1a2a,#1d4ed8);color:#93c5fd;border-color:#1d4ed8;">📱</div><div class="wf-nlbl">Mobile<br>Form</div><div class="tti">Staff submit via mobile form (Typeform/custom): amount, category, date, description, receipt photo. GPS location optionally captured for travel claims.</div></div>
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a3a1a,#166534);color:#4ade80;border-color:#166534;">📧</div><div class="wf-nlbl">Email<br>Submit</div><div class="tti">Staff can also email receipts to expenses@company.com — n8n parses the email body and attachments automatically using GPT-4o.</div></div>
+          </div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-stage"><div class="wf-slbl">Validate</div>
+          <div style="display:flex;flex-direction:column;gap:0.35rem">
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a0a0a,#991b1b);color:#fca5a5;border-color:#991b1b;">🧠</div><div class="wf-nlbl">GPT-4o<br>OCR+Check</div><div class="tti">GPT-4o reads receipt image: extracts amount, date, vendor, VAT. Cross-checks against submitted form data. Flags mismatches.</div></div>
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a1a0a,#78350f);color:#fde68a;border-color:#78350f;">📋</div><div class="wf-nlbl">Policy<br>Check</div><div class="tti">Checks claim against policy rules: daily meal limits, hotel rate caps, mileage rates, category restrictions. Auto-rejects clear violations with explanation.</div></div>
+          </div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-stage"><div class="wf-slbl">Route</div>
+          <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#0a1a1a,#065f46);color:#6ee7b7;border-color:#065f46;">🔀</div><div class="wf-nlbl">Smart<br>Router</div><div class="tti">Routes by amount: ≤₦50k = line manager. ₦50k–250k = department head. >₦250k = Finance Director. Overseas travel = always CFO. Routes based on claimant's org chart.</div></div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-stage"><div class="wf-slbl">Approve</div>
+          <div style="display:flex;flex-direction:column;gap:0.35rem">
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#0a0a1a,#1e3a5f);color:#93c5fd;border-color:#1e3a5f;">💬</div><div class="wf-nlbl">Slack<br>Approve</div><div class="tti">Approver gets Slack message with full claim details, receipt thumbnail, and Approve/Reject/Query buttons. One click — no login to finance system needed.</div></div>
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a0a1a,#7c3aed);color:#d8b4fe;border-color:#7c3aed;">⏰</div><div class="wf-nlbl">Reminder<br>Escalate</div><div class="tti">No response in 24 hours: reminder sent. No response in 48 hours: claim escalated to next approver level. SLA clock always running.</div></div>
+          </div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-stage"><div class="wf-slbl">Reimburse</div>
+          <div style="display:flex;flex-direction:column;gap:0.35rem">
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a3a1a,#166534);color:#4ade80;border-color:#166534;">💰</div><div class="wf-nlbl">Payroll<br>Queue</div><div class="tti">Approved claims queued for next payroll run or same-day bank transfer for amounts >₦100k. Claimant notified of expected payment date.</div></div>
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a1a0a,#3d3200);color:#fbbf24;border-color:#78350f;">📊</div><div class="wf-nlbl">Spend<br>Dashboard</div><div class="tti">All approved expenses logged in real-time Google Sheets dashboard: by department, category, claimant, date. Budget utilisation visible instantly.</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 4: SIM 1 — EXPENSE FORM -->
+<section class="slide" id="slide-3">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">03 — Simulation 1</div><div class="sec-title">Live: Expense Submitted<br><span>& Routed in 60s</span></div><p class="sec-desc">Tunde just submitted a ₦180,000 client entertainment claim. Watch n8n validate the receipt, check policy, determine the right approver, and send the approval request — in 60 seconds.</p></div>
+    <div class="animate-in lr">
+      <div style="display:flex;flex-direction:column;gap:1rem">
+        <div class="panel">
+          <h3>Approval Pipeline</h3>
+          <ul class="ps-list" id="expSteps">
+            <li id="ex1" style="opacity:0.3"><div class="ps-num">1</div><div>Expense form submitted — webhook fires</div></li>
+            <li id="ex2" style="opacity:0.3"><div class="ps-num">2</div><div>GPT-4o reads receipt — ₦180,000 verified</div></li>
+            <li id="ex3" style="opacity:0.3"><div class="ps-num">3</div><div>Policy check — client entertainment, ₦180k within policy</div></li>
+            <li id="ex4" style="opacity:0.3"><div class="ps-num">4</div><div>Amount >₦50k → routed to Dept. Head (Ngozi Eze)</div></li>
+            <li id="ex5" style="opacity:0.3"><div class="ps-num">5</div><div>Slack approval request sent to Ngozi with receipt</div></li>
+            <li id="ex6" style="opacity:0.3"><div class="ps-num">6</div><div>Ngozi approves → queued for payroll + logged ✅</div></li>
+          </ul>
+        </div>
+        <button class="run-btn" id="expBtn" onclick="runExpSim()">▶ SUBMIT & ROUTE EXPENSE</button>
+      </div>
+      <div>
+        <div class="exp-form">
+          <div class="ef-header"><div class="ef-title">💳 Expense Claim</div><span style="font-family:'JetBrains Mono',monospace;font-size:0.6rem;opacity:0.7">Auto-validated by n8n</span></div>
+          <div class="ef-body">
+            <div class="ef-row">
+              <div class="ef-field"><label>Employee</label><div class="ef-input" id="ef-emp"></div></div>
+              <div class="ef-field"><label>Category</label><div class="ef-input" id="ef-cat"></div></div>
+            </div>
+            <div class="ef-row">
+              <div class="ef-field"><label>Amount (₦)</label><div class="ef-input" id="ef-amt"></div></div>
+              <div class="ef-field"><label>Date</label><div class="ef-input" id="ef-date"></div></div>
+            </div>
+            <div class="ef-field"><label>Description</label><div class="ef-input" id="ef-desc" style="min-height:36px"></div></div>
+            <div style="background:var(--surface2);border:1px dashed var(--border);border-radius:4px;padding:0.5rem;text-align:center;font-size:0.65rem;color:var(--muted);margin-bottom:0.5rem;font-family:'JetBrains Mono',monospace" id="ef-receipt">📎 Receipt: [attach photo]</div>
+            <div style="background:var(--navy);color:white;border-radius:4px;padding:0.55rem;font-size:0.74rem;font-weight:600;text-align:center;cursor:pointer" id="ef-submit" onclick="runExpSim()">Submit Expense →</div>
+            <div id="ef-success" style="display:none;text-align:center;font-size:0.72rem;color:var(--green);padding:0.4rem;background:rgba(10,122,64,0.07);border:1px solid rgba(10,122,64,0.2);border-radius:4px;margin-top:0.35rem">✅ Submitted · Routing to Dept. Head for approval</div>
+          </div>
+        </div>
+        <!-- Approval message -->
+        <div id="slackApproval" style="display:none;margin-top:0.85rem;background:var(--ink);border-radius:8px;padding:1.1rem;color:white;font-size:0.73rem;line-height:1.7">
+          <div style="font-family:'JetBrains Mono',monospace;font-size:0.6rem;color:#7dd3fc;margin-bottom:0.5rem">💬 Slack → Ngozi Eze (Dept. Head)</div>
+          💳 <strong style="color:#7dd3fc">Expense Approval Required</strong><br>
+          👤 Tunde Fashola · Sales Team<br>
+          💰 ₦180,000 · Client Entertainment<br>
+          📅 April 9, 2025 · Eko Hotel, Lagos<br>
+          🧾 Receipt verified by GPT-4o ✓<br>
+          📋 Policy: Within limits ✓<br><br>
+          <span style="color:rgba(255,255,255,0.4);font-size:0.62rem">→ [Approve] [Reject] [Query] — SLA: 24hrs</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 5: SIM 2 — APPROVAL BOARD -->
+<section class="slide" id="slide-4">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">04 — Simulation 2</div><div class="sec-title">Live Approval Board<br><span>& Spend Tracker</span></div><p class="sec-desc">Six claims across the organisation processed simultaneously. Finance Director sees every claim, its status, and real-time departmental spend — no chasing required.</p></div>
+    <div class="animate-in" style="margin-bottom:1.25rem">
+      <div class="spend-table">
+        <div class="st-head"><div>#</div><div>Employee</div><div>Category</div><div>Amount</div><div>Approver</div><div>SLA</div><div>Status</div></div>
+        <div class="st-row"><div style="font-family:'JetBrains Mono',monospace;color:var(--muted)">001</div><div>Tunde Fashola</div><div>Client Entertainment</div><div style="font-weight:700">₦180,000</div><div style="font-size:0.65rem">Dept. Head</div><div style="font-size:0.65rem;color:var(--green)">4hr left</div><div><span class="sb-exp sb-pend">Pending</span></div></div>
+        <div class="st-row"><div style="font-family:'JetBrains Mono',monospace;color:var(--muted)">002</div><div>Amaka Obi</div><div>Travel — Abuja</div><div style="font-weight:700">₦42,000</div><div style="font-size:0.65rem">Line Mgr</div><div style="font-size:0.65rem;color:var(--green)">18hr left</div><div><span class="sb-exp sb-app">Approved ✓</span></div></div>
+        <div class="st-row"><div style="font-family:'JetBrains Mono',monospace;color:var(--muted)">003</div><div>Kemi Adeyemi</div><div>Software Licence</div><div style="font-weight:700">₦310,000</div><div style="font-size:0.65rem">Finance Dir.</div><div style="font-size:0.65rem;color:var(--amber)">2hr left</div><div><span class="sb-exp sb-pend">Pending</span></div></div>
+        <div class="st-row"><div style="font-family:'JetBrains Mono',monospace;color:var(--muted)">004</div><div>Seun Babatunde</div><div>Meals — Over Limit</div><div style="font-weight:700;color:var(--red)">₦28,000</div><div style="font-size:0.65rem">Auto</div><div style="font-size:0.65rem">—</div><div><span class="sb-exp sb-rej">Rejected ✗</span></div></div>
+        <div class="st-row"><div style="font-family:'JetBrains Mono',monospace;color:var(--muted)">005</div><div>Ngozi Eze</div><div>Training Course</div><div style="font-weight:700">₦95,000</div><div style="font-size:0.65rem">Dept. Head</div><div style="font-size:0.65rem;color:var(--green)">20hr left</div><div><span class="sb-exp sb-app">Approved ✓</span></div></div>
+        <div class="st-row"><div style="font-family:'JetBrains Mono',monospace;color:var(--muted)">006</div><div>Babatunde I.</div><div>International Travel</div><div style="font-weight:700">₦890,000</div><div style="font-size:0.65rem">CFO</div><div style="font-size:0.65rem;color:var(--amber)">1hr left</div><div><span class="sb-exp sb-pend">CFO Review</span></div></div>
+      </div>
+    </div>
+    <div class="animate-in three-col">
+      <div class="card" style="text-align:center"><div style="font-family:'Inter',sans-serif;font-size:1.8rem;font-weight:800;color:var(--green)">₦137k</div><div style="font-size:0.6rem;color:var(--muted);margin-top:0.2rem;font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:0.1em">Approved Today</div></div>
+      <div class="card" style="text-align:center"><div style="font-family:'Inter',sans-serif;font-size:1.8rem;font-weight:800;color:var(--amber)">₦1.07M</div><div style="font-size:0.6rem;color:var(--muted);margin-top:0.2rem;font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:0.1em">Pending Approval</div></div>
+      <div class="card" style="text-align:center"><div style="font-family:'Inter',sans-serif;font-size:1.8rem;font-weight:800;color:var(--red)">₦28k</div><div style="font-size:0.6rem;color:var(--muted);margin-top:0.2rem;font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:0.1em">Auto-Rejected</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 6: BEFORE/AFTER -->
+<section class="slide" id="slide-5">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">05 — Business Impact</div><div class="sec-title">Finance Control<br><span>Without the Chaos</span></div></div>
+    <div class="animate-in two-col" style="margin-bottom:1.5rem">
+      <div>
+        <div style="font-size:0.62rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--red);margin-bottom:0.75rem;font-weight:600;font-family:'JetBrains Mono',monospace">❌ BEFORE</div>
+        <div style="display:flex;flex-direction:column;gap:0.5rem">
+          <div class="ba-bad">Expense claims emailed — average 5–7 days to approve</div>
+          <div class="ba-bad">Policy inconsistently applied — approvers skip checks</div>
+          <div class="ba-bad">Duplicate/inflated claims slip through manual review</div>
+          <div class="ba-bad">No real-time spend visibility — budget overruns discovered at month-end</div>
+          <div class="ba-bad">Reimbursement timing unpredictable — staff frustration</div>
+        </div>
+      </div>
+      <div>
+        <div style="font-size:0.62rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--green);margin-bottom:0.75rem;font-weight:600;font-family:'JetBrains Mono',monospace">✅ AFTER</div>
+        <div style="display:flex;flex-direction:column;gap:0.5rem">
+          <div class="ba-good">Approval in 15 minutes via Slack — one click, zero login</div>
+          <div class="ba-good">Every claim policy-checked automatically — consistent enforcement</div>
+          <div class="ba-good">GPT-4o OCR detects receipt mismatches and duplicate claims</div>
+          <div class="ba-good">Live spend dashboard by department, category, and employee</div>
+          <div class="ba-good">Reimbursement queued on approval — predictable payment dates</div>
+        </div>
+      </div>
+    </div>
+    <div class="animate-in">
+      <div class="quote-block">
+        <div class="quote-text">"Expense management is where <strong>financial control either holds or breaks down</strong>. This automation enforces policy on every single claim, gives Finance real-time visibility, and removes the 5-day approval bottleneck entirely."</div>
+        <div style="font-size:0.62rem;color:rgba(255,255,255,0.3);font-family:'JetBrains Mono',monospace">STACK: n8n · GPT-4o · Slack · Google Sheets · Typeform · Gmail · Xero/QuickBooks · Paystack</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="slide-counter" id="slideCounter">Slide 1 of 6</div>
+<div class="slide-nav">
+  <button class="nav-btn" onclick="prevSlide()">← Prev</button>
+  <button class="nav-btn primary" onclick="nextSlide()">Next →</button>
+</div>
+<script>
+const slides=document.querySelectorAll('.slide'),total=slides.length;let cur=0;
+const dots=document.getElementById('navDots');
+for(let i=0;i<total;i++){const d=document.createElement('div');d.className='nav-dot'+(i===0?' active':'');d.onclick=()=>goTo(i);dots.appendChild(d);}
+function goTo(n){slides[cur].classList.remove('active');dots.children[cur].classList.remove('active');if(cur<n)dots.children[cur].classList.add('done');cur=n;slides[cur].classList.add('active');dots.children[cur].classList.add('active');document.getElementById('slideCounter').textContent=`Slide ${cur+1} of ${total}`;}
+function nextSlide(){if(cur<total-1)goTo(cur+1);}function prevSlide(){if(cur>0)goTo(cur-1);}
+document.addEventListener('keydown',e=>{if(e.key==='ArrowRight'||e.key==='ArrowDown')nextSlide();if(e.key==='ArrowLeft'||e.key==='ArrowUp')prevSlide();});
+let secs=0;setInterval(()=>{secs++;const m=String(Math.floor(secs/60)).padStart(2,'0'),s=String(secs%60).padStart(2,'0');document.getElementById('timerBadge').textContent=`⏱ ${m}:${s}`;if(secs>=840)document.getElementById('timerBadge').style.color='#c82020';},1000);
+function delay(ms){return new Promise(r=>setTimeout(r,ms));}
+let expRunning=false;
+async function runExpSim(){
+  if(expRunning)return;expRunning=true;
+  document.getElementById('ef-success').style.display='none';
+  document.getElementById('slackApproval').style.display='none';
+  document.getElementById('ef-submit').style.display='block';
+  const fields=[['ef-emp','Tunde Fashola · Sales'],['ef-cat','Client Entertainment'],['ef-amt','₦180,000'],['ef-date','09 Apr 2025'],['ef-desc','Client dinner — Eko Hotel, Lagos (4 guests + Tunde)']];
+  for(const[id,val]of fields){const el=document.getElementById(id);if(!el)continue;let i=0;await new Promise(r=>{const iv=setInterval(()=>{el.textContent=val.slice(0,++i);if(i>=val.length){clearInterval(iv);r();}},22);});await delay(80);}
+  document.getElementById('ef-receipt').textContent='📎 Receipt: eko_hotel_apr09.jpg ✓';
+  document.getElementById('ef-receipt').style.color='var(--green)';
+  document.getElementById('ef-submit').style.display='none';
+  document.getElementById('ef-success').style.display='block';
+  const steps=['ex1','ex2','ex3','ex4','ex5','ex6'];
+  steps.forEach(id=>{const el=document.getElementById(id);if(el){el.style.opacity='0.3';el.querySelector('.ps-num').style.background='var(--border)';}});
+  for(let i=0;i<steps.length;i++){
+    await delay(500);
+    steps.forEach(id=>{const el=document.getElementById(id);if(el){el.style.opacity='0.3';el.querySelector('.ps-num').style.background='var(--border)';}});
+    const el=document.getElementById(steps[i]);
+    if(el){el.style.opacity='1';el.style.color='var(--blue)';el.querySelector('.ps-num').style.background='var(--navy)';}
+    if(i===4)document.getElementById('slackApproval').style.display='block';
+  }
+  document.getElementById('expBtn').textContent='↺ Reset & Run Again';expRunning=false;
+}
+</script>
+</body>
+</html>
