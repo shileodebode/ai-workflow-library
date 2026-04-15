@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Banking — Regulatory Compliance Reporting Automation</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;0,9..144,700;1,9..144,300;1,9..144,400&family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#faf6f0;--surface:#fff;--surface2:#f5ede4;--border:#e8ddd0;
+  --ink:#140a04;--char:#2a1808;--gold:#9a6c28;--gold2:#7a5018;
+  --warm:#d4900a;--cream:#fff8ec;--green:#1a6030;--red:#c02020;
+  --blue:#1a2878;--text:#201008;--muted:#7a6040;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-serif;overflow-x:hidden;}
+.corner{position:fixed;top:0;right:0;width:0;height:0;border-left:60px solid transparent;border-top:60px solid var(--char);z-index:200;}
+nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(250,246,240,0.97);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 2.5rem;height:54px;}
+.nav-brand{font-family:'IBM Plex Mono',monospace;font-size:0.7rem;color:var(--gold2);letter-spacing:0.06em;}
+.nav-dots{display:flex;gap:0.3rem;}
+.nav-dot{width:7px;height:7px;border-radius:50%;background:var(--border);cursor:pointer;transition:all 0.2s;}
+.nav-dot.active{background:var(--gold);transform:scale(1.5);}
+.nav-dot.done{background:var(--green);}
+.timer{font-size:0.67rem;color:var(--gold2);background:rgba(154,108,40,0.07);border:1px solid rgba(154,108,40,0.2);padding:0.2rem 0.75rem;border-radius:4px;font-family:'IBM Plex Mono',monospace;}
+.slide{min-height:100vh;padding:78px 0 50px;display:none;flex-direction:column;align-items:center;justify-content:center;position:relative;overflow:hidden;}
+.slide.active{display:flex;}
+.slide-inner{width:100%;max-width:1140px;padding:0 2.5rem;position:relative;z-index:2;}
+.hero-pattern{position:absolute;inset:0;background-image:repeating-linear-gradient(0deg,transparent,transparent 60px,rgba(154,108,40,0.025) 60px,rgba(154,108,40,0.025) 61px);pointer-events:none;}
+.hero-badge{display:inline-flex;align-items:center;gap:0.5rem;background:var(--cream);border:1px solid rgba(154,108,40,0.25);color:var(--gold2);font-size:0.67rem;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;padding:0.28rem 0.9rem;border-radius:4px;margin-bottom:1.5rem;font-family:'IBM Plex Mono',monospace;}
+h1.hero-title{font-family:'Fraunces',serif;font-size:clamp(2.8rem,5.2vw,4.6rem);font-weight:700;line-height:1.05;letter-spacing:-0.01em;color:var(--ink);margin-bottom:1.5rem;}
+h1.hero-title em{font-style:italic;color:var(--gold);}
+.hero-desc{font-size:0.97rem;color:var(--muted);max-width:510px;line-height:1.78;margin-bottom:2.5rem;font-weight:300;}
+.kpi-strip{display:flex;gap:1px;background:var(--border);border-radius:6px;overflow:hidden;max-width:640px;box-shadow:0 2px 10px rgba(154,108,40,0.07);}
+.kpi{background:white;padding:1.1rem 1.4rem;flex:1;}
+.kpi-val{font-family:'Fraunces',serif;font-size:2rem;font-weight:700;color:var(--gold);line-height:1;}
+.kpi-lbl{font-size:0.59rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);margin-top:0.2rem;font-family:'IBM Plex Mono',monospace;}
+.sec-tag{font-size:0.61rem;letter-spacing:0.22em;text-transform:uppercase;color:var(--gold);margin-bottom:0.4rem;font-weight:600;font-family:'IBM Plex Mono',monospace;}
+.sec-title{font-family:'Fraunces',serif;font-size:clamp(1.9rem,3.6vw,2.9rem);font-weight:700;line-height:1.08;margin-bottom:0.5rem;color:var(--ink);}
+.sec-title em{font-style:italic;color:var(--gold);}
+.sec-desc{font-size:0.87rem;color:var(--muted);margin-bottom:1.85rem;max-width:540px;line-height:1.78;font-weight:300;}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;}
+.three-col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;}
+.lr{display:grid;grid-template-columns:1.1fr 1fr;gap:2rem;align-items:start;}
+.card{background:white;border:1px solid var(--border);border-radius:8px;padding:1.25rem;transition:all 0.2s;box-shadow:0 1px 4px rgba(0,0,0,0.04);}
+.card:hover{border-color:var(--gold);transform:translateY(-2px);box-shadow:0 6px 18px rgba(154,108,40,0.09);}
+.card-icon{font-size:1.4rem;margin-bottom:0.5rem;}
+.card-title{font-family:'Fraunces',serif;font-size:1rem;font-weight:600;margin-bottom:0.3rem;color:var(--ink);}
+.card-desc{font-size:0.72rem;color:var(--muted);line-height:1.65;}
+.panel{background:white;border:1px solid var(--border);border-radius:8px;padding:1.4rem;}
+.panel h3{font-family:'Fraunces',serif;font-size:0.95rem;font-weight:700;color:var(--char);margin-bottom:0.9rem;font-style:italic;}
+.wf-canvas{background:var(--ink);border-radius:10px;padding:2rem;position:relative;overflow:hidden;}
+.wf-lines{position:absolute;inset:0;background-image:repeating-linear-gradient(90deg,transparent,transparent 40px,rgba(154,108,40,0.06) 40px,rgba(154,108,40,0.06) 41px);}
+.wf-label{position:absolute;top:0.75rem;left:1rem;font-size:0.57rem;letter-spacing:0.18em;text-transform:uppercase;color:rgba(255,255,255,0.3);display:flex;align-items:center;gap:0.4rem;z-index:3;font-family:'IBM Plex Mono',monospace;}
+.wf-label::before{content:'';width:7px;height:7px;border-radius:50%;background:var(--warm);box-shadow:0 0 8px var(--warm);animation:wpulse 2s infinite;}
+@keyframes wpulse{0%,100%{opacity:1}50%{opacity:0.2}}
+.wf-nodes{display:flex;align-items:flex-start;gap:0;padding-top:1.5rem;position:relative;z-index:2;flex-wrap:wrap;}
+.wf-stage{display:flex;flex-direction:column;align-items:center;}
+.wf-slbl{font-size:0.51rem;letter-spacing:0.14em;text-transform:uppercase;color:rgba(255,255,255,0.28);margin-bottom:0.3rem;font-family:'IBM Plex Mono',monospace;}
+.wf-node{display:flex;flex-direction:column;align-items:center;gap:0.3rem;cursor:pointer;position:relative;}
+.wf-box{width:58px;height:58px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.25rem;border:2px solid transparent;transition:all 0.3s;}
+.wf-node:hover .wf-box{transform:scale(1.1);box-shadow:0 0 20px rgba(154,108,40,0.4);}
+.wf-nlbl{font-size:0.52rem;text-align:center;color:rgba(255,255,255,0.42);max-width:66px;line-height:1.3;font-family:'IBM Plex Mono',monospace;}
+.wf-arr{color:rgba(255,255,255,0.18);padding:0 0.2rem;font-size:0.85rem;align-self:flex-start;margin-top:19px;flex-shrink:0;}
+.ttw{position:relative;}
+.tti{position:absolute;bottom:calc(100%+8px);left:50%;transform:translateX(-50%);background:white;border:1px solid var(--border);border-radius:6px;padding:0.6rem 0.9rem;font-size:0.67rem;opacity:0;pointer-events:none;transition:opacity 0.2s;z-index:50;color:var(--ink);line-height:1.5;max-width:200px;white-space:normal;text-align:left;box-shadow:0 4px 12px rgba(0,0,0,0.1);}
+.ttw:hover .tti{opacity:1;}
+/* Report tracker */
+.report-row{background:white;border:1px solid var(--border);border-radius:8px;padding:0.7rem 1rem;margin-bottom:0.4rem;display:flex;gap:0.75rem;align-items:flex-start;transition:all 0.3s;font-size:0.72rem;}
+.report-row.submitted-r{border-color:var(--green);background:rgba(26,96,48,0.03);}
+.report-row.due-soon-r{border-color:var(--gold);background:rgba(154,108,40,0.03);}
+.report-row.overdue-r{border-color:var(--red);background:rgba(192,32,32,0.03);}
+.rr-icon{font-size:1rem;flex-shrink:0;}
+.rr-title{font-weight:600;color:var(--ink);}
+.rr-detail{font-size:0.63rem;color:var(--muted);margin-top:0.1rem;}
+.rr-badge{margin-left:auto;font-size:0.58rem;padding:0.1rem 0.42rem;border-radius:4px;font-weight:600;font-family:'IBM Plex Mono',monospace;white-space:nowrap;}
+.rrb-sub{background:rgba(26,96,48,0.1);color:var(--green);border:1px solid rgba(26,96,48,0.2);}
+.rrb-due{background:rgba(154,108,40,0.1);color:var(--gold2);border:1px solid rgba(154,108,40,0.2);}
+.rrb-over{background:rgba(192,32,32,0.1);color:var(--red);border:1px solid rgba(192,32,32,0.2);}
+.rrb-new{background:rgba(122,96,64,0.1);color:var(--muted);border:1px solid rgba(122,96,64,0.18);}
+.ps-list{list-style:none;}
+.ps-list li{display:flex;gap:0.75rem;padding:0.45rem 0;border-bottom:1px solid var(--border);font-size:0.74rem;line-height:1.5;transition:all 0.3s;}
+.ps-list li:last-child{border-bottom:none;}
+.ps-num{width:20px;height:20px;border-radius:50%;background:var(--border);color:white;font-size:0.6rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;transition:background 0.3s;font-family:'IBM Plex Mono',monospace;}
+.info-gold{padding:0.75rem 1rem;border-radius:6px;font-size:0.77rem;line-height:1.6;background:rgba(154,108,40,0.06);border:1px solid rgba(154,108,40,0.18);color:var(--gold2);}
+.ba-bad{padding:0.6rem 0.9rem;border-radius:6px;font-size:0.76rem;line-height:1.5;background:rgba(192,32,32,0.04);border:1px solid rgba(192,32,32,0.12);}
+.ba-good{padding:0.6rem 0.9rem;border-radius:6px;font-size:0.76rem;line-height:1.5;background:rgba(26,96,48,0.05);border:1px solid rgba(26,96,48,0.14);}
+.quote-block{background:var(--ink);border-radius:10px;padding:1.75rem 2rem;color:white;border-top:3px solid var(--gold);}
+.quote-text{font-family:'Fraunces',serif;font-style:italic;font-size:1.1rem;line-height:1.75;margin-bottom:0.75rem;}
+.quote-text strong{color:var(--warm);font-style:normal;}
+.slide-counter{position:fixed;bottom:1.5rem;left:2rem;font-size:0.62rem;color:var(--muted);z-index:100;font-family:'IBM Plex Mono',monospace;}
+.slide-nav{position:fixed;bottom:1.5rem;right:2rem;display:flex;gap:0.5rem;z-index:100;}
+.nav-btn{background:white;border:1px solid var(--border);color:var(--text);padding:0.55rem 1.2rem;border-radius:6px;font-family:'IBM Plex Mono',monospace;font-size:0.7rem;cursor:pointer;transition:all 0.2s;}
+.nav-btn:hover{border-color:var(--gold);color:var(--gold2);}
+.nav-btn.primary{background:var(--char);border-color:var(--char);color:white;}
+.nav-btn.primary:hover{background:var(--ink);}
+.run-btn{background:var(--char);color:white;border:none;border-radius:6px;padding:0.7rem 1.5rem;font-family:'IBM Plex Mono',monospace;font-size:0.72rem;cursor:pointer;transition:all 0.2s;width:100%;text-align:center;border-left:3px solid var(--gold);}
+.run-btn:hover{background:var(--ink);}
+.animate-in{opacity:0;animation:fadeUp 0.5s ease-out forwards;}
+.slide.active .animate-in:nth-child(1){animation-delay:0.05s;}
+.slide.active .animate-in:nth-child(2){animation-delay:0.15s;}
+.slide.active .animate-in:nth-child(3){animation-delay:0.25s;}
+.slide.active .animate-in:nth-child(4){animation-delay:0.35s;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+</style>
+</head>
+<body>
+<div class="corner"></div>
+<nav>
+  <div class="nav-brand">BANKING · Regulatory Compliance</div>
+  <div class="nav-dots" id="navDots"></div>
+  <div class="timer" id="timerBadge">⏱ 00:00</div>
+</nav>
+
+<section class="slide active" id="slide-0">
+  <div class="hero-pattern"></div>
+  <div class="slide-inner">
+    <div class="animate-in"><div class="hero-badge">🏦 n8n AI Automation · Banking & Financial Services</div></div>
+    <div class="animate-in"><h1 class="hero-title">Every Report Filed.<br><em>On Time.</em><br>Every Time.</h1></div>
+    <div class="animate-in"><p class="hero-desc">CBN, NFIU, SEC, and PENCOM reporting automated — data pulled, formatted to regulatory templates, validated, and submitted. Compliance deadlines never missed. Fines never incurred.</p></div>
+    <div class="animate-in">
+      <div class="kpi-strip">
+        <div class="kpi"><div class="kpi-val">100%</div><div class="kpi-lbl">On-Time Filing</div></div>
+        <div class="kpi"><div class="kpi-val">0</div><div class="kpi-lbl">Regulatory Fines</div></div>
+        <div class="kpi"><div class="kpi-val">Auto</div><div class="kpi-lbl">STR Generation</div></div>
+        <div class="kpi"><div class="kpi-val">Live</div><div class="kpi-lbl">Compliance Dashboard</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="slide-1">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">01 — The Problem</div><div class="sec-title">Compliance That<br><em>Consumes Your Team</em></div><p class="sec-desc">Nigerian financial institutions face a heavy regulatory reporting burden: CBN returns, NFIU suspicious transaction reports, PENCOM pension remittances, SEC filings. All with rigid deadlines and severe fines for non-compliance.</p></div>
+    <div class="animate-in two-col" style="margin-bottom:1.5rem">
+      <div class="card"><div class="card-icon">📅</div><div class="card-title">Deadline Pressure</div><div class="card-desc">CBN monthly returns due by the 10th. NFIU STRs due within 24 hours of suspicious transaction detection. PENCOM remittance every month. One missed deadline = fine. Multiple missed = licence risk.</div></div>
+      <div class="card"><div class="card-icon">👩‍💼</div><div class="card-title">Manual Report Building</div><div class="card-desc">Compliance officer pulls data from core banking system, formats it into regulatory templates in Excel, validates figures, gets sign-off, submits via regulatory portal. 40+ hours per month for a mid-size institution.</div></div>
+      <div class="card"><div class="card-icon">🚨</div><div class="card-title">STR Detection Gaps</div><div class="card-desc">Suspicious Transaction Reports legally required within 24 hours of detection. Manual monitoring means STRs prepared reactively, often late. NFIU penalties for late filing are significant.</div></div>
+      <div class="card"><div class="card-icon">📊</div><div class="card-title">No Compliance Dashboard</div><div class="card-desc">Board and management have no real-time view of regulatory obligation status. Are all returns filed? Any overdue? Any STR obligations pending? Without visibility, governance fails silently.</div></div>
+    </div>
+    <div class="animate-in"><div class="info-gold">✅ n8n automates data extraction, report generation, STR detection and filing, and regulatory submission — with a live compliance calendar showing every obligation, every deadline, every status.</div></div>
+  </div>
+</section>
+
+<section class="slide" id="slide-2">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">02 — The Blueprint</div><div class="sec-title">n8n Regulatory<br><em>Compliance Pipeline</em></div><p class="sec-desc">Data flows from core banking → compliance pipeline → regulatory template → validation → submission. All automatic. Compliance officer reviews and approves, not builds.</p></div>
+    <div class="animate-in wf-canvas">
+      <div class="wf-lines"></div>
+      <div class="wf-label">n8n canvas — regulatory compliance pipeline</div>
+      <div class="wf-nodes">
+        <div class="wf-stage"><div class="wf-slbl">Monitor</div>
+          <div style="display:flex;flex-direction:column;gap:0.35rem">
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a1a0a,#78350f);color:#fde68a;border-color:#78350f;">📅</div><div class="wf-nlbl">Compliance<br>Calendar</div><div class="tti">n8n maintains a regulatory calendar with all CBN/NFIU/SEC/PENCOM deadlines. Alerts Compliance Officer 14 days, 7 days, and 3 days before each deadline. Nothing forgotten.</div></div>
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a0a0a,#7f1d1d);color:#fca5a5;border-color:#7f1d1d;">🔍</div><div class="wf-nlbl">STR<br>Detection</div><div class="tti">Continuous monitoring of transactions for STR triggers: cash above ₦5M threshold, structuring patterns, PEP transactions. Automatic STR draft generated within 1 hour of detection.</div></div>
+          </div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-stage"><div class="wf-slbl">Extract</div>
+          <div style="display:flex;flex-direction:column;gap:0.35rem">
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#0a1a2a,#1d4ed8);color:#93c5fd;border-color:#1d4ed8;">🏦</div><div class="wf-nlbl">Core Banking<br>API Pull</div><div class="tti">Automated data extraction from core banking system: deposits, withdrawals, loan portfolio, customer counts, transaction volumes — all formatted for specific return type.</div></div>
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a0a0a,#991b1b);color:#fca5a5;border-color:#991b1b;">🧠</div><div class="wf-nlbl">GPT-4o<br>Narratives</div><div class="tti">GPT-4o writes narrative sections required in some regulatory reports: management commentary, risk assessment narrative, STR detail narrative. Reduces compliance officer writing time by 80%.</div></div>
+          </div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-stage"><div class="wf-slbl">Build</div>
+          <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#0a1a1a,#065f46);color:#6ee7b7;border-color:#065f46;">📄</div><div class="wf-nlbl">Report<br>Template</div><div class="tti">n8n populates the exact regulatory template required: CBN forms, NFIU STR format, PENCOM remittance schedule. Figures validated against cross-checks before routing for review.</div></div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-stage"><div class="wf-slbl">Approve</div>
+          <div style="display:flex;flex-direction:column;gap:0.35rem">
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a0a1a,#7c3aed);color:#d8b4fe;border-color:#7c3aed;">✅</div><div class="wf-nlbl">Compliance<br>Review</div><div class="tti">Compliance Officer receives draft report for review. One-click approve or request changes. Full version history maintained. Approval logged with timestamp for audit trail.</div></div>
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a3a1a,#166534);color:#4ade80;border-color:#166534;">🚀</div><div class="wf-nlbl">Auto<br>Submit</div><div class="tti">On approval: report submitted via regulatory portal API or email. Submission receipt captured and stored. Dashboard updated. Next deadline cycle begins.</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="slide-3">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">03 — Simulation</div><div class="sec-title">Regulatory Calendar —<br><em>April 2025</em></div><p class="sec-desc">Live compliance dashboard showing all regulatory obligations for the month — submitted, due, and one overdue item that auto-escalated to the MD this morning.</p></div>
+    <div class="animate-in" style="display:flex;flex-direction:column;gap:0.4rem;margin-bottom:1.25rem">
+      <div class="report-row submitted-r"><div class="rr-icon">📊</div><div><div class="rr-title">CBN Monthly Return — March 2025</div><div class="rr-detail">Submitted: 8 Apr · Reference: CBN/2025/03/4521 · On time ✓</div></div><span class="rr-badge rrb-sub">Filed ✓</span></div>
+      <div class="report-row submitted-r"><div class="rr-icon">💸</div><div><div class="rr-title">PENCOM Remittance — March 2025</div><div class="rr-detail">Submitted: 5 Apr · ₦18.4M remitted · On time ✓</div></div><span class="rr-badge rrb-sub">Filed ✓</span></div>
+      <div class="report-row due-soon-r"><div class="rr-icon">🔍</div><div><div class="rr-title">NFIU STR — SHP-TX-004821</div><div class="rr-detail">Suspicious transaction detected 9 Apr · STR draft ready · Due: 10 Apr</div></div><span class="rr-badge rrb-due">Due Tomorrow</span></div>
+      <div class="report-row due-soon-r"><div class="rr-icon">📈</div><div><div class="rr-title">SEC Quarterly Report — Q1 2025</div><div class="rr-detail">Due: 15 Apr · Data extraction in progress</div></div><span class="rr-badge rrb-due">Due in 6 days</span></div>
+      <div class="report-row overdue-r"><div class="rr-icon">🚨</div><div><div class="rr-title">CBN Insider Abuse Report — Q1 2025</div><div class="rr-detail">Was due 5 Apr · 4 days overdue · MD alerted this morning</div></div><span class="rr-badge rrb-over">4 days overdue!</span></div>
+    </div>
+    <div class="animate-in two-col">
+      <div class="info-gold">⚠️ The overdue CBN Insider Abuse Report was auto-escalated to the MD at 8am this morning. Compliance Officer has been assigned with a same-day deadline. n8n tracks resolution in real time.</div>
+      <div class="panel"><h3>Compliance Score</h3>
+        <div style="font-size:0.73rem;line-height:1.8">
+          <div style="display:flex;justify-content:space-between;padding:0.2rem 0;border-bottom:1px solid var(--border)"><span>Filed on time</span><span style="font-weight:700;color:var(--green)">4/5 (80%)</span></div>
+          <div style="display:flex;justify-content:space-between;padding:0.2rem 0;border-bottom:1px solid var(--border)"><span>STRs pending</span><span style="font-weight:700;color:var(--gold2)">1 (due tomorrow)</span></div>
+          <div style="display:flex;justify-content:space-between;padding:0.2rem 0"><span>Overdue items</span><span style="font-weight:700;color:var(--red)">1 — escalated</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="slide-4">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">04 — Impact</div><div class="sec-title">Compliance Is<br><em>Not Optional</em></div></div>
+    <div class="animate-in two-col" style="margin-bottom:1.5rem">
+      <div>
+        <div style="font-size:0.62rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--red);margin-bottom:0.75rem;font-weight:600;font-family:'IBM Plex Mono',monospace">❌ BEFORE</div>
+        <div style="display:flex;flex-direction:column;gap:0.5rem">
+          <div class="ba-bad">40+ hours/month manual report building — compliance team overwhelmed</div>
+          <div class="ba-bad">Deadlines missed — fines incurred, licence risk</div>
+          <div class="ba-bad">STRs filed late — NFIU penalties, reputational risk</div>
+          <div class="ba-bad">No compliance dashboard — board has no real-time visibility</div>
+          <div class="ba-bad">Excel-based — formula errors, version confusion, audit trail weak</div>
+        </div>
+      </div>
+      <div>
+        <div style="font-size:0.62rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--green);margin-bottom:0.75rem;font-weight:600;font-family:'IBM Plex Mono',monospace">✅ AFTER</div>
+        <div style="display:flex;flex-direction:column;gap:0.5rem">
+          <div class="ba-good">Reports built automatically — Compliance Officer reviews, not builds</div>
+          <div class="ba-good">30-day advance alerts — deadlines never missed</div>
+          <div class="ba-good">STR auto-drafted within 1 hour of detection — always filed on time</div>
+          <div class="ba-good">Live compliance dashboard for Board and MD</div>
+          <div class="ba-good">Full audit trail — every submission timestamped and retrievable</div>
+        </div>
+      </div>
+    </div>
+    <div class="animate-in">
+      <div class="quote-block">
+        <div class="quote-text">"Regulatory fines are the most expensive and avoidable costs a financial institution faces. <strong>Automated compliance reporting eliminates the risk entirely</strong> — and frees your compliance team to do strategic work."</div>
+        <div style="font-size:0.62rem;color:rgba(255,255,255,0.35);font-family:'IBM Plex Mono',monospace">STACK: n8n · GPT-4o · Core Banking API · CBN Portal · NFIU Portal · PENCOM API · Google Sheets · Slack</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="slide-counter" id="slideCounter">Slide 1 of 5</div>
+<div class="slide-nav">
+  <button class="nav-btn" onclick="prevSlide()">← Prev</button>
+  <button class="nav-btn primary" onclick="nextSlide()">Next →</button>
+</div>
+<script>
+const slides=document.querySelectorAll('.slide'),total=slides.length;let cur=0;
+const dots=document.getElementById('navDots');
+for(let i=0;i<total;i++){const d=document.createElement('div');d.className='nav-dot'+(i===0?' active':'');d.onclick=()=>goTo(i);dots.appendChild(d);}
+function goTo(n){slides[cur].classList.remove('active');dots.children[cur].classList.remove('active');if(cur<n)dots.children[cur].classList.add('done');cur=n;slides[cur].classList.add('active');dots.children[cur].classList.add('active');document.getElementById('slideCounter').textContent=`Slide ${cur+1} of ${total}`;}
+function nextSlide(){if(cur<total-1)goTo(cur+1);}function prevSlide(){if(cur>0)goTo(cur-1);}
+document.addEventListener('keydown',e=>{if(e.key==='ArrowRight'||e.key==='ArrowDown')nextSlide();if(e.key==='ArrowLeft'||e.key==='ArrowUp')prevSlide();});
+let secs=0;setInterval(()=>{secs++;const m=String(Math.floor(secs/60)).padStart(2,'0'),s=String(secs%60).padStart(2,'0');document.getElementById('timerBadge').textContent=`⏱ ${m}:${s}`;if(secs>=840)document.getElementById('timerBadge').style.color='#c02020';},1000);
+</script>
+</body>
+</html>
