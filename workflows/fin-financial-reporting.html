@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Finance & Operations — Financial Reporting Automation</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,700;1,400;1,500&family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#faf7f5;--surface:#ffffff;--surface2:#f5eeeb;--border:#e5dcd8;
+  --ink:#180808;--wine:#7a1828;--wine2:#5a0f1c;--rose:#a82838;
+  --burgundy:#8a1a28;--blush:#fdf0ec;--green:#1a6838;--amber:#c47a10;
+  --blue:#1a3a6a;--red:#c82020;--text:#281010;--muted:#8a6060;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-serif;overflow-x:hidden;}
+.top-ornament{position:fixed;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,var(--wine),var(--rose),var(--wine));z-index:200;}
+nav{position:fixed;top:4px;left:0;right:0;z-index:100;background:rgba(250,247,245,0.97);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 2.5rem;height:54px;}
+.nav-brand{font-family:'IBM Plex Mono',monospace;font-size:0.7rem;color:var(--wine2);letter-spacing:0.06em;}
+.nav-dots{display:flex;gap:0.3rem;}
+.nav-dot{width:7px;height:7px;border-radius:50%;background:var(--border);cursor:pointer;transition:all 0.2s;}
+.nav-dot.active{background:var(--wine);transform:scale(1.5);}
+.nav-dot.done{background:var(--green);}
+.timer{font-size:0.67rem;color:var(--wine);background:rgba(122,24,40,0.07);border:1px solid rgba(122,24,40,0.18);padding:0.2rem 0.75rem;border-radius:4px;font-family:'IBM Plex Mono',monospace;}
+.slide{min-height:100vh;padding:78px 0 50px;display:none;flex-direction:column;align-items:center;justify-content:center;position:relative;overflow:hidden;}
+.slide.active{display:flex;}
+.slide-inner{width:100%;max-width:1140px;padding:0 2.5rem;position:relative;z-index:2;}
+.hero-bg{position:absolute;inset:0;background:radial-gradient(ellipse at 80% 30%,rgba(122,24,40,0.04) 0%,transparent 60%);pointer-events:none;}
+.hero-badge{display:inline-flex;align-items:center;gap:0.5rem;background:var(--blush);border:1px solid rgba(122,24,40,0.2);color:var(--wine2);font-size:0.67rem;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;padding:0.28rem 0.9rem;border-radius:4px;margin-bottom:1.5rem;font-family:'IBM Plex Mono',monospace;}
+h1.hero-title{font-family:'Playfair Display',serif;font-size:clamp(2.8rem,5.2vw,4.6rem);font-weight:700;line-height:1.05;letter-spacing:-0.01em;color:var(--ink);margin-bottom:1.5rem;}
+h1.hero-title em{font-style:italic;color:var(--wine);}
+.hero-desc{font-size:0.97rem;color:var(--muted);max-width:510px;line-height:1.78;margin-bottom:2.5rem;font-weight:300;}
+.kpi-strip{display:flex;gap:1px;background:var(--border);border-radius:8px;overflow:hidden;max-width:620px;box-shadow:0 2px 10px rgba(122,24,40,0.07);}
+.kpi{background:white;padding:1.1rem 1.4rem;flex:1;}
+.kpi-val{font-family:'Playfair Display',serif;font-size:2rem;font-weight:700;color:var(--wine);line-height:1;}
+.kpi-lbl{font-size:0.59rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);margin-top:0.2rem;font-family:'IBM Plex Mono',monospace;}
+.sec-tag{font-size:0.61rem;letter-spacing:0.22em;text-transform:uppercase;color:var(--wine);margin-bottom:0.4rem;font-weight:500;font-family:'IBM Plex Mono',monospace;}
+.sec-title{font-family:'Playfair Display',serif;font-size:clamp(1.9rem,3.6vw,2.9rem);font-weight:700;line-height:1.08;margin-bottom:0.5rem;color:var(--ink);}
+.sec-title em{font-style:italic;color:var(--wine);}
+.sec-desc{font-size:0.87rem;color:var(--muted);margin-bottom:1.85rem;max-width:540px;line-height:1.78;font-weight:300;}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;}
+.three-col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;}
+.lr{display:grid;grid-template-columns:1.1fr 1fr;gap:2rem;align-items:start;}
+.lr-rev{display:grid;grid-template-columns:1fr 1.15fr;gap:2rem;align-items:start;}
+.card{background:white;border:1px solid var(--border);border-radius:8px;padding:1.25rem;transition:all 0.2s;box-shadow:0 1px 4px rgba(0,0,0,0.04);}
+.card:hover{border-color:var(--wine);transform:translateY(-2px);box-shadow:0 6px 18px rgba(122,24,40,0.09);}
+.card-icon{font-size:1.4rem;margin-bottom:0.5rem;}
+.card-title{font-family:'Playfair Display',serif;font-size:1rem;font-weight:700;margin-bottom:0.3rem;color:var(--ink);}
+.card-desc{font-size:0.72rem;color:var(--muted);line-height:1.65;}
+.panel{background:white;border:1px solid var(--border);border-radius:8px;padding:1.4rem;}
+.panel h3{font-family:'Playfair Display',serif;font-size:0.95rem;font-weight:700;color:var(--wine2);margin-bottom:0.9rem;display:flex;align-items:center;gap:0.5rem;font-style:italic;}
+.steps{list-style:none;}
+.steps li{display:flex;gap:0.75rem;padding:0.45rem 0;border-bottom:1px solid var(--border);font-size:0.76rem;line-height:1.6;}
+.steps li:last-child{border-bottom:none;}
+.step-n{width:22px;height:22px;border-radius:4px;background:var(--wine);color:white;font-size:0.62rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:'IBM Plex Mono',monospace;}
+/* Workflow */
+.wf-canvas{background:var(--ink);border-radius:10px;padding:2rem;position:relative;overflow:hidden;}
+.wf-texture{position:absolute;inset:0;background-image:repeating-linear-gradient(45deg,transparent,transparent 20px,rgba(122,24,40,0.05) 20px,rgba(122,24,40,0.05) 21px);}
+.wf-label{position:absolute;top:0.75rem;left:1rem;font-size:0.57rem;letter-spacing:0.18em;text-transform:uppercase;color:rgba(255,255,255,0.3);display:flex;align-items:center;gap:0.4rem;z-index:3;font-family:'IBM Plex Mono',monospace;}
+.wf-label::before{content:'';width:7px;height:7px;border-radius:50%;background:var(--rose);box-shadow:0 0 8px var(--rose);animation:rpulse 2s infinite;}
+@keyframes rpulse{0%,100%{opacity:1}50%{opacity:0.2}}
+.wf-nodes{display:flex;align-items:flex-start;gap:0;padding-top:1.5rem;position:relative;z-index:2;flex-wrap:wrap;}
+.wf-stage{display:flex;flex-direction:column;align-items:center;}
+.wf-slbl{font-size:0.51rem;letter-spacing:0.14em;text-transform:uppercase;color:rgba(255,255,255,0.28);margin-bottom:0.3rem;font-family:'IBM Plex Mono',monospace;}
+.wf-node{display:flex;flex-direction:column;align-items:center;gap:0.3rem;cursor:pointer;position:relative;}
+.wf-box{width:58px;height:58px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.25rem;border:2px solid transparent;transition:all 0.3s;}
+.wf-node:hover .wf-box{transform:scale(1.1);box-shadow:0 0 20px rgba(168,40,56,0.4);}
+.wf-nlbl{font-size:0.52rem;text-align:center;color:rgba(255,255,255,0.42);max-width:66px;line-height:1.3;font-family:'IBM Plex Mono',monospace;}
+.wf-arr{color:rgba(255,255,255,0.18);padding:0 0.2rem;font-size:0.85rem;align-self:flex-start;margin-top:19px;flex-shrink:0;}
+.ttw{position:relative;}
+.tti{position:absolute;bottom:calc(100%+8px);left:50%;transform:translateX(-50%);background:white;border:1px solid var(--border);border-radius:6px;padding:0.6rem 0.9rem;font-size:0.67rem;opacity:0;pointer-events:none;transition:opacity 0.2s;z-index:50;color:var(--ink);line-height:1.5;max-width:200px;white-space:normal;text-align:left;box-shadow:0 4px 12px rgba(0,0,0,0.1);}
+.ttw:hover .tti{opacity:1;}
+/* Financial statement */
+.fin-statement{background:white;border:1px solid var(--border);border-radius:8px;overflow:hidden;}
+.fs-header{background:linear-gradient(135deg,var(--wine),var(--burgundy));color:white;padding:0.9rem 1.1rem;}
+.fs-title{font-family:'Playfair Display',serif;font-size:0.95rem;font-weight:700;font-style:italic;}
+.fs-body{padding:0.85rem 1.1rem;}
+.fs-section{margin-bottom:0.75rem;}
+.fs-section-label{font-size:0.6rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--wine);font-weight:600;font-family:'IBM Plex Mono',monospace;margin-bottom:0.3rem;padding-bottom:0.2rem;border-bottom:1px solid var(--border);}
+.fs-line{display:flex;justify-content:space-between;align-items:center;padding:0.22rem 0;font-size:0.72rem;}
+.fs-line.total-line{font-weight:700;font-size:0.78rem;border-top:2px solid var(--ink);padding-top:0.35rem;margin-top:0.2rem;}
+.fs-amount-pos{font-family:'IBM Plex Mono',monospace;font-size:0.7rem;color:var(--green);}
+.fs-amount-neg{font-family:'IBM Plex Mono',monospace;font-size:0.7rem;color:var(--red);}
+.fs-amount-total{font-family:'IBM Plex Mono',monospace;font-size:0.78rem;font-weight:700;color:var(--wine);}
+/* Metric card */
+.metric-big{background:white;border:1px solid var(--border);border-radius:8px;padding:1rem 1.1rem;text-align:center;}
+.mb-val{font-family:'Playfair Display',serif;font-size:2rem;font-weight:700;color:var(--wine);line-height:1;}
+.mb-lbl{font-size:0.6rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin-top:0.2rem;font-family:'IBM Plex Mono',monospace;}
+.mb-trend{font-size:0.68rem;font-weight:600;margin-top:0.15rem;}
+/* PS list */
+.ps-list{list-style:none;}
+.ps-list li{display:flex;gap:0.75rem;padding:0.45rem 0;border-bottom:1px solid var(--border);font-size:0.74rem;line-height:1.5;transition:all 0.3s;}
+.ps-list li:last-child{border-bottom:none;}
+.ps-num{width:20px;height:20px;border-radius:4px;background:var(--border);color:white;font-size:0.6rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;transition:background 0.3s;font-family:'IBM Plex Mono',monospace;}
+/* Info */
+.info-wine{padding:0.75rem 1rem;border-radius:6px;font-size:0.77rem;line-height:1.6;background:rgba(122,24,40,0.06);border:1px solid rgba(122,24,40,0.15);color:var(--wine2);}
+.info-green{padding:0.75rem 1rem;border-radius:6px;font-size:0.77rem;line-height:1.6;background:rgba(26,104,56,0.06);border:1px solid rgba(26,104,56,0.15);color:var(--green);}
+.ba-bad{padding:0.6rem 0.9rem;border-radius:6px;font-size:0.76rem;line-height:1.5;background:rgba(200,32,32,0.04);border:1px solid rgba(200,32,32,0.12);}
+.ba-good{padding:0.6rem 0.9rem;border-radius:6px;font-size:0.76rem;line-height:1.5;background:rgba(26,104,56,0.05);border:1px solid rgba(26,104,56,0.14);}
+.quote-block{background:var(--ink);border-radius:10px;padding:1.75rem 2rem;color:white;border-top:3px solid var(--rose);}
+.quote-text{font-family:'Playfair Display',serif;font-style:italic;font-size:1.1rem;line-height:1.75;margin-bottom:0.75rem;font-weight:400;}
+.quote-text strong{color:#fca5a5;font-style:normal;}
+.slide-counter{position:fixed;bottom:1.5rem;left:2rem;font-size:0.62rem;color:var(--muted);z-index:100;font-family:'IBM Plex Mono',monospace;}
+.slide-nav{position:fixed;bottom:1.5rem;right:2rem;display:flex;gap:0.5rem;z-index:100;}
+.nav-btn{background:white;border:1px solid var(--border);color:var(--text);padding:0.55rem 1.2rem;border-radius:6px;font-family:'IBM Plex Mono',monospace;font-size:0.7rem;cursor:pointer;transition:all 0.2s;}
+.nav-btn:hover{border-color:var(--wine);color:var(--wine);}
+.nav-btn.primary{background:var(--wine);border-color:var(--wine);color:white;}
+.nav-btn.primary:hover{background:var(--wine2);}
+.run-btn{background:var(--wine);color:white;border:none;border-radius:6px;padding:0.7rem 1.5rem;font-family:'IBM Plex Mono',monospace;font-size:0.72rem;cursor:pointer;transition:all 0.2s;width:100%;text-align:center;}
+.run-btn:hover{background:var(--wine2);}
+.animate-in{opacity:0;animation:fadeUp 0.5s ease-out forwards;}
+.slide.active .animate-in:nth-child(1){animation-delay:0.05s;}
+.slide.active .animate-in:nth-child(2){animation-delay:0.15s;}
+.slide.active .animate-in:nth-child(3){animation-delay:0.25s;}
+.slide.active .animate-in:nth-child(4){animation-delay:0.35s;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+</style>
+</head>
+<body>
+<div class="top-ornament"></div>
+<nav>
+  <div class="nav-brand">FIN · Financial Reporting</div>
+  <div class="nav-dots" id="navDots"></div>
+  <div class="timer" id="timerBadge">⏱ 00:00</div>
+</nav>
+
+<!-- SLIDE 1: HERO -->
+<section class="slide active" id="slide-0">
+  <div class="hero-bg"></div>
+  <div class="slide-inner">
+    <div class="animate-in"><div class="hero-badge">n8n AI Automation · Finance & Operations</div></div>
+    <div class="animate-in"><h1 class="hero-title">Board-Ready Reports.<br><em>Automatically.</em><br>Every Month.</h1></div>
+    <div class="animate-in"><p class="hero-desc">P&L, cash flow, balance sheet, and executive commentary — pulled from your accounting system, compiled, analysed by AI, and delivered as a professional PDF. Zero manual finance work.</p></div>
+    <div class="animate-in">
+      <div class="kpi-strip">
+        <div class="kpi"><div class="kpi-val">0h</div><div class="kpi-lbl">Manual Reporting</div></div>
+        <div class="kpi"><div class="kpi-val">5th</div><div class="kpi-lbl">Delivered by Month</div></div>
+        <div class="kpi"><div class="kpi-val">AI</div><div class="kpi-lbl">Executive Commentary</div></div>
+        <div class="kpi"><div class="kpi-val">Live</div><div class="kpi-lbl">Finance Dashboard</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 2: PROBLEM -->
+<section class="slide" id="slide-1">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">01 — The Problem</div><div class="sec-title">Month-End Reporting<br><em>Costs a Week</em></div><p class="sec-desc">Financial reporting is critical for governance and decision-making. But most finance teams spend 40+ hours manually compiling reports that could be automated — generating stale, late data in the process.</p></div>
+    <div class="animate-in two-col" style="margin-bottom:1.5rem">
+      <div class="card"><div class="card-icon">⏳</div><div class="card-title">40-Hour Month-End</div><div class="card-desc">Pulling from Xero, reconciling entries, building P&L in Excel, formatting balance sheet, writing commentary, creating PDF. Finance teams spend the first week of every month on last month's numbers.</div></div>
+      <div class="card"><div class="card-icon">📉</div><div class="card-title">Stale Decisions</div><div class="card-desc">Board receives March financials on April 18th. Decisions made on 18-day-old data. A cash flow problem visible on March 5th is actioned on April 20th. The lag is a strategic liability.</div></div>
+      <div class="card"><div class="card-icon">📄</div><div class="card-title">Numbers Without Narrative</div><div class="card-desc">Spreadsheets of numbers with no interpretation. "Revenue was ₦12.4M" — compared to what? Why? What changed? Finance presents data; leadership doesn't know what to do with it.</div></div>
+      <div class="card"><div class="card-icon">🔒</div><div class="card-title">Single Point of Failure</div><div class="card-desc">One finance manager knows how to build the report. They're sick for a week in March. The board meeting is delayed. Automation removes the dependency on any single person.</div></div>
+    </div>
+    <div class="animate-in"><div class="info-wine">✅ n8n pulls financial data automatically on the 1st, GPT-4o writes the executive commentary, and a board-ready PDF is delivered by the 5th — every single month, no exceptions.</div></div>
+  </div>
+</section>
+
+<!-- SLIDE 3: WORKFLOW -->
+<section class="slide" id="slide-2">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">02 — The Blueprint</div><div class="sec-title">n8n Financial Reporting<br><em>Workflow</em></div><p class="sec-desc">First of the month triggers the full financial reporting pipeline — data extraction, reconciliation, AI analysis, PDF generation, and delivery — automatically.</p></div>
+    <div class="animate-in wf-canvas">
+      <div class="wf-texture"></div>
+      <div class="wf-label">n8n canvas — financial reporting pipeline</div>
+      <div class="wf-nodes">
+        <div class="wf-stage"><div class="wf-slbl">Extract</div>
+          <div style="display:flex;flex-direction:column;gap:0.35rem">
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#0a1a2a,#1d4ed8);color:#93c5fd;border-color:#1d4ed8;">📊</div><div class="wf-nlbl">Xero/<br>QuickBooks</div><div class="tti">Pulls P&L, balance sheet, cash flow statement via API. Previous month data plus 12-month comparison. Chart of accounts fully mapped.</div></div>
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a1a0a,#78350f);color:#fde68a;border-color:#78350f;">🏦</div><div class="wf-nlbl">Bank<br>Reconcile</div><div class="tti">Bank statement imported and auto-reconciled against accounting entries. Unreconciled items flagged for Finance Manager review before report finalisation.</div></div>
+          </div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-stage"><div class="wf-slbl">Calculate</div>
+          <div style="display:flex;flex-direction:column;gap:0.35rem">
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#0a1a1a,#065f46);color:#6ee7b7;border-color:#065f46;">🔢</div><div class="wf-nlbl">KPI<br>Engine</div><div class="tti">Calculates: gross margin, EBITDA, burn rate, runway (if startup), DSO, current ratio, debt-to-equity. All vs prior month, prior year, and budget.</div></div>
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a0a0a,#7f1d1d);color:#fca5a5;border-color:#7f1d1d;">⚠️</div><div class="wf-nlbl">Variance<br>Flag</div><div class="tti">Any line item >15% variance vs prior month or vs budget is automatically flagged for commentary. GPT-4o will explain each flagged item.</div></div>
+          </div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-stage"><div class="wf-slbl">Analyse</div>
+          <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a0a0a,#991b1b);color:#fca5a5;border-color:#991b1b;">🧠</div><div class="wf-nlbl">GPT-4o<br>Commentary</div><div class="tti">GPT-4o writes executive commentary: performance vs budget, key drivers of variance, cash flow narrative, 3 risks to watch, and 3 opportunities to act on.</div></div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-stage"><div class="wf-slbl">Build</div>
+          <div style="display:flex;flex-direction:column;gap:0.35rem">
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a0a1a,#7c3aed);color:#d8b4fe;border-color:#7c3aed;">📄</div><div class="wf-nlbl">PDF<br>Report</div><div class="tti">n8n generates branded PDF: executive summary, P&L with variance analysis, cash flow, balance sheet, KPI dashboard, and AI commentary. Board-ready.</div></div>
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a3a1a,#166534);color:#4ade80;border-color:#166534;">📊</div><div class="wf-nlbl">Live<br>Dashboard</div><div class="tti">Google Data Studio / Looker dashboard refreshed with monthly data. CFO and board can view real-time KPIs any time between formal reports.</div></div>
+          </div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-stage"><div class="wf-slbl">Deliver</div>
+          <div style="display:flex;flex-direction:column;gap:0.35rem">
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a3a1a,#166534);color:#4ade80;border-color:#166534;">📧</div><div class="wf-nlbl">Board<br>Email</div><div class="tti">PDF emailed to board members, CEO, and CFO by 5th of month. Email body contains 3 headline numbers so recipients can triage before opening.</div></div>
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#0a0a1a,#1e3a5f);color:#93c5fd;border-color:#1e3a5f;">💬</div><div class="wf-nlbl">Slack<br>Summary</div><div class="tti">#finance Slack channel gets a 3-bullet executive summary: revenue vs target, cash position, and the one thing that needs attention this month.</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 4: SIM 1 — REPORT BUILD -->
+<section class="slide" id="slide-3">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">03 — Simulation 1</div><div class="sec-title">Live: Monthly P&L<br><em>Being Generated</em></div><p class="sec-desc">It's the 1st of April. n8n pulls March financials from Xero, calculates variances, generates commentary, and builds the board report. Watch the pipeline complete.</p></div>
+    <div class="animate-in lr">
+      <div style="display:flex;flex-direction:column;gap:1rem">
+        <div class="panel">
+          <h3>Report Build Pipeline</h3>
+          <ul class="ps-list" id="finSteps">
+            <li id="fn1" style="opacity:0.3"><div class="ps-num">1</div><div>Month-end cron — 1st April, 6:00am</div></li>
+            <li id="fn2" style="opacity:0.3"><div class="ps-num">2</div><div>Xero API pull — P&L, balance sheet, cash flow</div></li>
+            <li id="fn3" style="opacity:0.3"><div class="ps-num">3</div><div>KPIs calculated — variances flagged</div></li>
+            <li id="fn4" style="opacity:0.3"><div class="ps-num">4</div><div>GPT-4o writes executive commentary</div></li>
+            <li id="fn5" style="opacity:0.3"><div class="ps-num">5</div><div>PDF report generated + stored in Drive</div></li>
+            <li id="fn6" style="opacity:0.3"><div class="ps-num">6</div><div>Board email sent + Slack digest posted ✅</div></li>
+          </ul>
+        </div>
+        <div class="three-col">
+          <div class="metric-big"><div class="mb-val" id="mb1">—</div><div class="mb-lbl">Revenue</div><div class="mb-trend" id="mb1t" style="color:var(--green)">—</div></div>
+          <div class="metric-big"><div class="mb-val" id="mb2">—</div><div class="mb-lbl">Gross Margin</div><div class="mb-trend" id="mb2t" style="color:var(--amber)">—</div></div>
+          <div class="metric-big"><div class="mb-val" id="mb3">—</div><div class="mb-lbl">Cash</div><div class="mb-trend" id="mb3t" style="color:var(--wine)">—</div></div>
+        </div>
+        <button class="run-btn" id="finBtn" onclick="runFinSim()">▶ GENERATE MARCH REPORT</button>
+      </div>
+      <div id="finReveal" style="display:none">
+        <div class="fin-statement">
+          <div class="fs-header"><div class="fs-title">March 2025 — P&L Summary</div><div style="font-size:0.6rem;opacity:0.7;font-family:'IBM Plex Mono',monospace">Auto-generated · n8n + GPT-4o</div></div>
+          <div class="fs-body">
+            <div class="fs-section">
+              <div class="fs-section-label">Revenue</div>
+              <div class="fs-line"><span>Product Sales</span><span class="fs-amount-pos">₦18,400,000</span></div>
+              <div class="fs-line"><span>Service Revenue</span><span class="fs-amount-pos">₦4,200,000</span></div>
+              <div class="fs-line total-line"><span>Total Revenue</span><span class="fs-amount-total">₦22,600,000</span></div>
+            </div>
+            <div class="fs-section">
+              <div class="fs-section-label">Operating Expenses</div>
+              <div class="fs-line"><span>Salaries & Benefits</span><span class="fs-amount-neg">₦8,200,000</span></div>
+              <div class="fs-line"><span>Operating Costs</span><span class="fs-amount-neg">₦3,100,000</span></div>
+              <div class="fs-line"><span>Marketing</span><span class="fs-amount-neg">₦1,800,000</span></div>
+              <div class="fs-line total-line"><span>Net Profit</span><span class="fs-amount-total">₦9,500,000</span></div>
+            </div>
+            <div style="background:rgba(122,24,40,0.05);border:1px solid rgba(122,24,40,0.1);border-radius:6px;padding:0.6rem 0.75rem;font-size:0.71rem;line-height:1.65;margin-top:0.5rem">
+              <strong style="color:var(--wine)">AI Commentary:</strong> Revenue up 12% vs Feb, driven by strong Q1 close. Gross margin slightly compressed (42% vs 45% target) — supply cost increase. Cash position healthy at ₦34.2M. Watch: Marketing CPA increased 18% — review allocation.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 5: BEFORE/AFTER -->
+<section class="slide" id="slide-4">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">04 — Business Impact</div><div class="sec-title">Governance Without<br><em>the Grind</em></div></div>
+    <div class="animate-in two-col" style="margin-bottom:1.5rem">
+      <div>
+        <div style="font-size:0.62rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--red);margin-bottom:0.75rem;font-weight:500;font-family:'IBM Plex Mono',monospace">❌ BEFORE</div>
+        <div style="display:flex;flex-direction:column;gap:0.5rem">
+          <div class="ba-bad">40+ hours building reports manually — first week of month lost</div>
+          <div class="ba-bad">Board receives financials 15–20 days after month-end</div>
+          <div class="ba-bad">Numbers without interpretation — no one knows what to action</div>
+          <div class="ba-bad">Single finance manager dependency — illness delays board meeting</div>
+          <div class="ba-bad">No real-time KPI visibility between monthly reports</div>
+        </div>
+      </div>
+      <div>
+        <div style="font-size:0.62rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--green);margin-bottom:0.75rem;font-weight:500;font-family:'IBM Plex Mono',monospace">✅ AFTER</div>
+        <div style="display:flex;flex-direction:column;gap:0.5rem">
+          <div class="ba-good">0 hours — full report generated automatically by the 5th</div>
+          <div class="ba-good">Board receives board-ready PDF 4 days after month-end</div>
+          <div class="ba-good">GPT-4o writes variance analysis, risks, and action items</div>
+          <div class="ba-good">Process runs even when finance manager is away</div>
+          <div class="ba-good">Live KPI dashboard accessible to board any time</div>
+        </div>
+      </div>
+    </div>
+    <div class="animate-in">
+      <div class="quote-block">
+        <div class="quote-text">"A board that receives financials on the <strong>5th of the month instead of the 20th</strong> makes faster, better decisions. This automation gives leadership the real-time visibility that separates organisations that anticipate problems from those that discover them."</div>
+        <div style="font-size:0.62rem;color:rgba(255,255,255,0.3);font-family:'IBM Plex Mono',monospace">STACK: n8n · GPT-4o · Xero/QuickBooks · Google Sheets · Looker Studio · Gmail · Slack · Drive</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="slide-counter" id="slideCounter">Slide 1 of 5</div>
+<div class="slide-nav">
+  <button class="nav-btn" onclick="prevSlide()">← Prev</button>
+  <button class="nav-btn primary" onclick="nextSlide()">Next →</button>
+</div>
+<script>
+const slides=document.querySelectorAll('.slide'),total=slides.length;let cur=0;
+const dots=document.getElementById('navDots');
+for(let i=0;i<total;i++){const d=document.createElement('div');d.className='nav-dot'+(i===0?' active':'');d.onclick=()=>goTo(i);dots.appendChild(d);}
+function goTo(n){slides[cur].classList.remove('active');dots.children[cur].classList.remove('active');if(cur<n)dots.children[cur].classList.add('done');cur=n;slides[cur].classList.add('active');dots.children[cur].classList.add('active');document.getElementById('slideCounter').textContent=`Slide ${cur+1} of ${total}`;}
+function nextSlide(){if(cur<total-1)goTo(cur+1);}function prevSlide(){if(cur>0)goTo(cur-1);}
+document.addEventListener('keydown',e=>{if(e.key==='ArrowRight'||e.key==='ArrowDown')nextSlide();if(e.key==='ArrowLeft'||e.key==='ArrowUp')prevSlide();});
+let secs=0;setInterval(()=>{secs++;const m=String(Math.floor(secs/60)).padStart(2,'0'),s=String(secs%60).padStart(2,'0');document.getElementById('timerBadge').textContent=`⏱ ${m}:${s}`;if(secs>=840)document.getElementById('timerBadge').style.color='#c82020';},1000);
+function delay(ms){return new Promise(r=>setTimeout(r,ms));}
+let finRunning=false;
+async function runFinSim(){
+  if(finRunning)return;finRunning=true;
+  const btn=document.getElementById('finBtn');btn.textContent='Generating...';
+  document.getElementById('finReveal').style.display='none';
+  ['mb1','mb2','mb3'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent='—';});
+  const steps=['fn1','fn2','fn3','fn4','fn5','fn6'];
+  steps.forEach(id=>{const el=document.getElementById(id);if(el){el.style.opacity='0.3';el.querySelector('.ps-num').style.background='var(--border)';}});
+  const light=(i)=>{steps.forEach(id=>{const el=document.getElementById(id);if(el){el.style.opacity='0.3';el.querySelector('.ps-num').style.background='var(--border)';}});const el=document.getElementById(steps[i]);if(el){el.style.opacity='1';el.style.color='var(--wine)';el.querySelector('.ps-num').style.background='var(--wine)';}};
+  for(let s=0;s<3;s++){light(s);await delay(600);}
+  document.getElementById('mb1').textContent='₦22.6M';document.getElementById('mb1t').textContent='▲ 12% vs Feb';
+  document.getElementById('mb2').textContent='42%';document.getElementById('mb2t').textContent='▼ vs 45% target';
+  document.getElementById('mb3').textContent='₦34.2M';document.getElementById('mb3t').textContent='▲ from ₦28.1M';
+  light(3);await delay(600);light(4);
+  document.getElementById('finReveal').style.display='block';
+  await delay(400);light(5);
+  btn.textContent='↺ Reset & Run Again';finRunning=false;
+}
+</script>
+</body>
+</html>
