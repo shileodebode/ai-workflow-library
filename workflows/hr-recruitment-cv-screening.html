@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HR Recruitment & CV Screening Automation</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,400;1,700&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#faf6ee;--surface:#ffffff;--surface2:#f5efe0;--border:#e0d4b8;--gold:#b8861e;--amber:#c9620a;--cream:#faf6ee;--rust:#a83e0e;--green:#2e7a4e;--red:#b02828;--text:#1a1508;--muted:#7a6a4a;}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{background:var(--bg);color:var(--text);font-family:'DM Mono',monospace;overflow-x:hidden;}
+.grain{position:fixed;inset:0;pointer-events:none;z-index:999;opacity:0.015;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");}
+nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(250,246,238,0.97);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 2.5rem;height:58px;}
+.nav-brand{font-family:'Playfair Display',serif;font-weight:900;font-size:1rem;color:var(--gold);letter-spacing:0.05em;}
+.nav-dots{display:flex;gap:0.3rem;}
+.nav-dot{width:7px;height:7px;border-radius:50%;background:var(--border);cursor:pointer;transition:all 0.2s;}
+.nav-dot.active{background:var(--gold);transform:scale(1.5);}
+.nav-dot.done{background:var(--green);}
+.timer{font-size:0.7rem;color:var(--amber);background:rgba(212,168,67,0.1);border:1px solid rgba(212,168,67,0.3);padding:0.2rem 0.75rem;border-radius:20px;}
+.slide{min-height:100vh;padding:78px 0 50px;display:none;flex-direction:column;align-items:center;justify-content:center;position:relative;overflow:hidden;}
+.slide.active{display:flex;}
+.slide-inner{width:100%;max-width:1140px;padding:0 2.5rem;position:relative;z-index:2;}
+.bg-decor{position:absolute;inset:0;background:radial-gradient(ellipse at 20% 60%,rgba(180,130,30,0.08) 0%,transparent 55%),radial-gradient(ellipse at 85% 20%,rgba(196,83,26,0.06) 0%,transparent 50%);}
+.stripe-bg{position:absolute;inset:0;background-image:repeating-linear-gradient(45deg,transparent,transparent 40px,rgba(212,168,67,0.015) 40px,rgba(212,168,67,0.015) 41px);}
+.hero-eyebrow{font-size:0.65rem;letter-spacing:0.3em;text-transform:uppercase;color:var(--amber);margin-bottom:1.5rem;display:flex;align-items:center;gap:0.75rem;}
+.hero-eyebrow::after{content:'';flex:1;max-width:80px;height:1px;background:var(--amber);}
+h1.main-title{font-family:'Playfair Display',serif;font-weight:900;font-size:clamp(2.5rem,5.5vw,4.5rem);line-height:1.05;margin-bottom:1.5rem;letter-spacing:-0.02em;}
+h1.main-title em{font-style:italic;color:var(--gold);}
+.hero-desc{font-family:'DM Sans',sans-serif;font-size:1rem;color:var(--muted);max-width:520px;line-height:1.75;margin-bottom:3rem;}
+.kpi-row{display:flex;gap:0;border:1px solid var(--border);border-radius:0;overflow:hidden;max-width:600px;}
+.kpi{background:var(--surface);padding:1.25rem 2rem;text-align:center;border-right:1px solid var(--border);flex:1;}
+.kpi:last-child{border-right:none;}
+.kpi-val{font-family:'Playfair Display',serif;font-size:2rem;font-weight:900;color:var(--gold);}
+.kpi-lbl{font-size:0.6rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--muted);margin-top:0.2rem;}
+.sec-eyebrow{font-size:0.62rem;letter-spacing:0.25em;text-transform:uppercase;color:var(--amber);margin-bottom:0.5rem;}
+.sec-title{font-family:'Playfair Display',serif;font-size:clamp(1.8rem,3.5vw,2.8rem);font-weight:900;line-height:1.1;margin-bottom:0.5rem;}
+.sec-desc{font-family:'DM Sans',sans-serif;font-size:0.85rem;color:var(--muted);margin-bottom:2rem;max-width:540px;line-height:1.7;}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:2rem;}
+.three-col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;}
+.lr{display:grid;grid-template-columns:1.15fr 1fr;gap:2rem;align-items:start;}
+.lr-rev{display:grid;grid-template-columns:1fr 1.15fr;gap:2rem;align-items:start;}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:1.25rem 1.5rem;transition:border-color 0.2s;}
+.card:hover{border-color:var(--gold);}
+.card-icon{font-size:1.4rem;margin-bottom:0.6rem;}
+.card-title{font-family:'Playfair Display',serif;font-size:1rem;font-weight:700;margin-bottom:0.3rem;}
+.card-desc{font-size:0.72rem;color:var(--muted);line-height:1.6;}
+.panel{background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:1.5rem;}
+.panel h3{font-family:'Playfair Display',serif;font-size:1.05rem;font-weight:700;color:var(--gold);margin-bottom:1rem;display:flex;align-items:center;gap:0.5rem;}
+.panel h3::before{content:'§';color:var(--border);font-size:0.9rem;}
+.steps{list-style:none;}
+.steps li{display:flex;gap:0.75rem;padding:0.5rem 0;border-bottom:1px solid rgba(61,50,24,0.5);font-size:0.76rem;line-height:1.6;}
+.steps li:last-child{border-bottom:none;}
+.step-n{width:22px;height:22px;border-radius:50%;background:var(--gold);color:var(--bg);font-size:0.65rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
+.workflow-canvas{background:#f0ebe0;border:1px solid var(--border);border-radius:4px;padding:2rem;position:relative;overflow:hidden;}
+.wf-grid{position:absolute;inset:0;background-image:radial-gradient(circle,rgba(61,50,24,0.35) 1px,transparent 1px);background-size:24px 24px;opacity:0.6;}
+.wf-label{position:absolute;top:0.75rem;left:1rem;font-size:0.6rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--muted);display:flex;align-items:center;gap:0.4rem;z-index:3;}
+.wf-label::before{content:'';width:7px;height:7px;border-radius:50%;background:var(--amber);box-shadow:0 0 8px var(--amber);animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
+.wf-nodes{display:flex;align-items:center;gap:0;padding-top:1.5rem;position:relative;z-index:2;flex-wrap:wrap;justify-content:flex-start;}
+.wf-stage{display:flex;flex-direction:column;align-items:center;gap:0.35rem;}
+.wf-stage-label{font-size:0.55rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);margin-bottom:0.2rem;}
+.wf-node{display:flex;flex-direction:column;align-items:center;gap:0.35rem;cursor:pointer;position:relative;}
+.wf-box{width:60px;height:60px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.3rem;border:2px solid transparent;transition:all 0.3s;}
+.wf-box::after{content:'';position:absolute;inset:0;border-radius:inherit;background:linear-gradient(135deg,rgba(255,255,255,0.06) 0%,transparent 50%);}
+.wf-node:hover .wf-box{transform:scale(1.1);box-shadow:0 0 20px currentColor;}
+.wf-node-lbl{font-size:0.56rem;text-align:center;color:var(--muted);max-width:68px;line-height:1.3;font-weight:500;}
+.wf-arrow{color:var(--muted);padding:0 0.2rem;font-size:0.85rem;align-self:flex-start;margin-top:20px;flex-shrink:0;}
+.tooltip-w{position:relative;}
+.tt{position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:0.6rem 0.9rem;font-size:0.68rem;opacity:0;pointer-events:none;transition:opacity 0.2s;z-index:50;color:var(--text);line-height:1.5;max-width:200px;white-space:normal;text-align:left;}
+.tooltip-w:hover .tt{opacity:1;}
+/* CV Sim */
+.cv-window{background:#f0ebe0;border:1px solid var(--border);border-radius:8px;overflow:hidden;font-size:0.73rem;}
+.cv-header{background:var(--surface2);padding:0.65rem 1rem;display:flex;align-items:center;gap:0.75rem;border-bottom:1px solid var(--border);}
+.cv-body{padding:1rem;}
+.cv-row{display:flex;align-items:center;gap:0.75rem;padding:0.55rem 0.75rem;border-radius:4px;margin-bottom:0.4rem;border:1px solid var(--border);background:var(--surface);transition:all 0.3s;}
+.cv-row.screening{border-color:var(--amber);background:rgba(232,137,26,0.05);}
+.cv-row.passed{border-color:var(--green);background:rgba(74,158,107,0.07);}
+.cv-row.rejected{border-color:var(--red);background:rgba(201,64,64,0.06);opacity:0.6;}
+.cv-score{font-family:'Playfair Display',serif;font-size:1rem;font-weight:700;width:36px;text-align:center;flex-shrink:0;}
+.cv-name{font-weight:500;flex:1;}
+.cv-role{font-size:0.64rem;color:var(--muted);}
+.cv-badge{font-size:0.6rem;padding:0.15rem 0.5rem;border-radius:20px;font-weight:600;}
+.badge-screen{background:rgba(232,137,26,0.15);color:var(--amber);border:1px solid rgba(232,137,26,0.3);}
+.badge-pass{background:rgba(74,158,107,0.15);color:var(--green);border:1px solid rgba(74,158,107,0.3);}
+.badge-fail{background:rgba(201,64,64,0.1);color:var(--red);border:1px solid rgba(201,64,64,0.2);}
+.badge-invite{background:rgba(212,168,67,0.15);color:var(--gold);border:1px solid rgba(212,168,67,0.3);}
+/* JD Form Sim */
+.jd-form{background:#f0ebe0;border:1px solid var(--border);border-radius:8px;overflow:hidden;}
+.jd-form-header{background:var(--surface2);padding:0.65rem 1rem;border-bottom:1px solid var(--border);font-family:'Playfair Display',serif;font-size:0.85rem;font-weight:700;}
+.jd-body{padding:1rem;display:flex;flex-direction:column;gap:0.6rem;}
+.jd-field label{font-size:0.62rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:0.25rem;}
+.jd-input{background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:0.45rem 0.7rem;font-size:0.72rem;color:var(--text);font-family:'DM Mono',monospace;width:100%;min-height:28px;transition:border-color 0.3s;}
+.jd-btn{background:var(--gold);color:var(--bg);border:none;border-radius:4px;padding:0.6rem 1rem;font-family:'DM Mono',monospace;font-size:0.72rem;font-weight:500;cursor:pointer;text-align:center;transition:all 0.2s;letter-spacing:0.05em;}
+/* Score meter */
+.score-bar{height:6px;border-radius:3px;background:var(--border);overflow:hidden;margin-top:0.3rem;}
+.score-fill{height:100%;border-radius:3px;transition:width 1s ease;background:linear-gradient(to right,var(--rust),var(--gold),var(--green));}
+/* Pipeline steps highlight */
+.ps-list{list-style:none;}
+.ps-list li{display:flex;gap:0.75rem;padding:0.45rem 0;border-bottom:1px solid rgba(61,50,24,0.4);font-size:0.73rem;line-height:1.5;transition:all 0.3s;}
+.ps-list li:last-child{border-bottom:none;}
+.ps-num{width:20px;height:20px;border-radius:50%;background:var(--muted);color:var(--bg);font-size:0.6rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;transition:background 0.3s;}
+/* Email preview */
+.email-preview{background:#f0ebe0;border:1px solid var(--border);border-radius:8px;overflow:hidden;font-size:0.72rem;}
+.email-header{background:var(--surface2);padding:0.6rem 1rem;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;}
+.email-body{padding:1rem;line-height:1.7;}
+/* Sheets */
+.sheet-table{background:#f0ebe0;border:1px solid var(--border);border-radius:8px;overflow:hidden;font-size:0.7rem;}
+.sheet-head{background:rgba(212,168,67,0.08);border-bottom:1px solid var(--border);display:grid;grid-template-columns:36px 110px 130px 110px 90px 90px 80px;padding:0.55rem 0.75rem;gap:0.4rem;font-size:0.62rem;letter-spacing:0.05em;color:var(--gold);font-weight:600;}
+.sheet-row{display:grid;grid-template-columns:36px 110px 130px 110px 90px 90px 80px;padding:0.5rem 0.75rem;gap:0.4rem;border-bottom:1px solid rgba(61,50,24,0.35);align-items:center;transition:background 0.15s;}
+.sheet-row:hover{background:rgba(212,168,67,0.03);}
+.sheet-row:last-child{border-bottom:none;}
+.s-badge{display:inline-block;padding:0.12rem 0.45rem;border-radius:20px;font-size:0.58rem;font-weight:600;}
+.sb-new{background:rgba(232,137,26,0.15);color:var(--amber);border:1px solid rgba(232,137,26,0.3);}
+.sb-pass{background:rgba(74,158,107,0.15);color:var(--green);border:1px solid rgba(74,158,107,0.3);}
+.sb-rej{background:rgba(201,64,64,0.1);color:var(--red);border:1px solid rgba(201,64,64,0.2);}
+.sb-inv{background:rgba(212,168,67,0.15);color:var(--gold);border:1px solid rgba(212,168,67,0.3);}
+/* Before/After */
+.ba-col{display:flex;flex-direction:column;gap:0.5rem;}
+.ba-item{padding:0.6rem 0.9rem;border-radius:4px;font-size:0.75rem;line-height:1.5;}
+.ba-bad{background:rgba(201,64,64,0.05);border:1px solid rgba(201,64,64,0.15);}
+.ba-good{background:rgba(74,158,107,0.05);border:1px solid rgba(74,158,107,0.15);}
+/* Quote */
+.quote-block{background:linear-gradient(135deg,rgba(212,168,67,0.06),rgba(196,83,26,0.04));border:1px solid rgba(212,168,67,0.2);border-radius:4px;padding:1.5rem 2rem;text-align:center;}
+.quote-text{font-family:'Playfair Display',serif;font-style:italic;font-size:1.15rem;line-height:1.65;margin-bottom:0.75rem;}
+/* NAV BTNS */
+.slide-counter{position:fixed;bottom:1.5rem;left:2rem;font-size:0.63rem;color:var(--muted);letter-spacing:0.1em;z-index:100;}
+.slide-nav{position:fixed;bottom:1.5rem;right:2rem;display:flex;gap:0.5rem;z-index:100;}
+.nav-btn{background:var(--surface);border:1px solid var(--border);color:var(--text);padding:0.55rem 1.2rem;border-radius:3px;font-family:'DM Mono',monospace;font-size:0.7rem;cursor:pointer;transition:all 0.2s;}
+.nav-btn:hover{border-color:var(--gold);color:var(--gold);}
+.nav-btn.primary{background:var(--gold);border-color:var(--gold);color:var(--bg);font-weight:500;}
+.nav-btn.primary:hover{background:var(--amber);}
+.animate-in{opacity:0;animation:fadeUp 0.5s ease-out forwards;}
+.slide.active .animate-in:nth-child(1){animation-delay:0.05s;}
+.slide.active .animate-in:nth-child(2){animation-delay:0.15s;}
+.slide.active .animate-in:nth-child(3){animation-delay:0.25s;}
+.slide.active .animate-in:nth-child(4){animation-delay:0.35s;}
+.slide.active .animate-in:nth-child(5){animation-delay:0.45s;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+.info-box{padding:0.7rem 1rem;border-radius:4px;font-size:0.75rem;line-height:1.6;}
+.info-green{background:rgba(74,158,107,0.07);border:1px solid rgba(74,158,107,0.2);color:var(--green);}
+.info-amber{background:rgba(212,168,67,0.07);border:1px solid rgba(212,168,67,0.2);color:var(--gold);}
+</style>
+</head>
+<body>
+<div class="grain"></div>
+<nav>
+  <div class="nav-brand">HR · Recruitment & CV Screening</div>
+  <div class="nav-dots" id="navDots"></div>
+  <div class="timer" id="timerBadge">⏱ 00:00</div>
+</nav>
+
+<!-- SLIDE 1: HERO -->
+<section class="slide active" id="slide-0">
+  <div class="bg-decor"></div><div class="stripe-bg"></div>
+  <div class="slide-inner">
+    <div class="animate-in"><div class="hero-eyebrow">n8n AI Automation · HR Department</div></div>
+    <div class="animate-in"><h1 class="main-title">Automating<br><em>Recruitment</em><br>& CV Screening</h1></div>
+    <div class="animate-in"><p class="hero-desc">From job posting to shortlisted candidates — fully automated. AI screens CVs, scores applicants, sends rejections, and books interviews without a single HR hour wasted.</p></div>
+    <div class="animate-in">
+      <div class="kpi-row">
+        <div class="kpi"><div class="kpi-val">200+</div><div class="kpi-lbl">CVs / Role</div></div>
+        <div class="kpi"><div class="kpi-val">92%</div><div class="kpi-lbl">Screening Time Saved</div></div>
+        <div class="kpi"><div class="kpi-val">&lt;2min</div><div class="kpi-lbl">AI Decision Time</div></div>
+        <div class="kpi"><div class="kpi-val">0</div><div class="kpi-lbl">Manual Emails</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 2: PROBLEM -->
+<section class="slide" id="slide-1">
+  <div class="bg-decor"></div>
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-eyebrow">01 — The Problem</div><div class="sec-title">Hiring is Broken<br>Without Automation</div><p class="sec-desc">Traditional recruitment drowns HR teams in paperwork, email, and repetitive screening — while great candidates get ignored for days.</p></div>
+    <div class="animate-in">
+      <div class="two-col" style="margin-bottom:1.5rem">
+        <div class="card"><div class="card-icon">📥</div><div class="card-title">CV Overload</div><div class="card-desc">A single role attracts 200+ applications. HR manually opens each CV, reads it, and decides — 3-5 mins per CV = 10+ hrs of screening per role.</div></div>
+        <div class="card"><div class="card-icon">⏳</div><div class="card-title">Slow Response Times</div><div class="card-desc">Top candidates accept competitor offers while waiting 2–3 weeks for acknowledgement. Speed of response is now a hiring differentiator.</div></div>
+        <div class="card"><div class="card-icon">🎯</div><div class="card-title">Inconsistent Scoring</div><div class="card-desc">Different HR reviewers apply different standards. Monday's tired reviewer scores differently than Friday's. AI applies the same rubric every time.</div></div>
+        <div class="card"><div class="card-icon">📊</div><div class="card-title">No Pipeline Visibility</div><div class="card-desc">Applications scattered across email inboxes. No central view of where each candidate stands. Pipeline data lives in someone's head.</div></div>
+      </div>
+    </div>
+    <div class="animate-in"><div class="info-green">✅ Our n8n + GPT-4o workflow solves all four — screening 200 CVs in the time it used to take to read 3.</div></div>
+  </div>
+</section>
+
+<!-- SLIDE 3: WORKFLOW -->
+<section class="slide" id="slide-2">
+  <div class="bg-decor"></div>
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-eyebrow">02 — The Blueprint</div><div class="sec-title">n8n Recruitment<br>Workflow</div><p class="sec-desc">Every application enters the pipeline at Stage 1. AI handles screening, scoring, and communication. HR only sees the shortlist.</p></div>
+    <div class="animate-in workflow-canvas">
+      <div class="wf-grid"></div>
+      <div class="wf-label">n8n canvas — recruitment pipeline</div>
+      <div class="wf-nodes">
+        <div class="wf-stage">
+          <div class="wf-stage-label">Capture</div>
+          <div style="display:flex;flex-direction:column;gap:0.35rem">
+            <div class="wf-node tooltip-w"><div class="wf-box" style="background:linear-gradient(135deg,#1a3a1a,#166534);color:#4ade80;border-color:#166534;">📧</div><div class="wf-node-lbl">Email<br>Applications</div><div class="tt">Gmail trigger watches for emails with subject containing "Application for" or attachments named CV/Resume.</div></div>
+            <div class="wf-node tooltip-w"><div class="wf-box" style="background:linear-gradient(135deg,#1a2a3a,#1d4ed8);color:#93c5fd;border-color:#1d4ed8;">🌐</div><div class="wf-node-lbl">Job Board<br>Webhook</div><div class="tt">Webhooks from LinkedIn, Indeed, company careers page — all funnelled into one n8n entry point.</div></div>
+          </div>
+        </div>
+        <div class="wf-arrow">→</div>
+        <div class="wf-stage">
+          <div class="wf-stage-label">Extract</div>
+          <div class="wf-node tooltip-w"><div class="wf-box" style="background:linear-gradient(135deg,#2a1a0a,#92400e);color:#fcd34d;border-color:#92400e;">📄</div><div class="wf-node-lbl">PDF/Doc<br>Parser</div><div class="tt">n8n extracts text from CV attachments (PDF/DOCX). Parses name, email, phone, experience, skills, education into structured JSON.</div></div>
+        </div>
+        <div class="wf-arrow">→</div>
+        <div class="wf-stage">
+          <div class="wf-stage-label">AI Screen</div>
+          <div style="display:flex;flex-direction:column;gap:0.35rem">
+            <div class="wf-node tooltip-w"><div class="wf-box" style="background:linear-gradient(135deg,#1a0a2e,#6d28d9);color:#c4b5fd;border-color:#6d28d9;">🧠</div><div class="wf-node-lbl">GPT-4o<br>Scorer</div><div class="tt">GPT-4o compares CV against job description. Returns score 0–100, matched skills, gaps, and recommendation: SHORTLIST / REJECT / HOLD.</div></div>
+            <div class="wf-node tooltip-w"><div class="wf-box" style="background:linear-gradient(135deg,#0a1a1a,#065f46);color:#6ee7b7;border-color:#065f46;">🔀</div><div class="wf-node-lbl">IF Router<br>(Score)</div><div class="tt">Routes: Score ≥70 → Shortlist. Score 50–69 → Hold. Score &lt;50 → Reject. Each path triggers different actions.</div></div>
+          </div>
+        </div>
+        <div class="wf-arrow">→</div>
+        <div class="wf-stage">
+          <div class="wf-stage-label">Act</div>
+          <div style="display:flex;flex-direction:column;gap:0.35rem">
+            <div class="wf-node tooltip-w"><div class="wf-box" style="background:linear-gradient(135deg,#1a2a1a,#14532d);color:#86efac;border-color:#14532d;">📊</div><div class="wf-node-lbl">Sheets<br>Log</div><div class="tt">All candidates logged to Google Sheets CRM: name, score, status, role, date, AI notes. Real-time pipeline for HR team.</div></div>
+            <div class="wf-node tooltip-w"><div class="wf-box" style="background:linear-gradient(135deg,#2a1a0a,#b45309);color:#fde68a;border-color:#b45309;">📅</div><div class="wf-node-lbl">Calendly<br>Interview</div><div class="tt">Shortlisted candidates receive personalised Calendly link for interview scheduling — no HR back-and-forth needed.</div></div>
+            <div class="wf-node tooltip-w"><div class="wf-box" style="background:linear-gradient(135deg,#2a0a0a,#991b1b);color:#fca5a5;border-color:#991b1b;">📧</div><div class="wf-node-lbl">Auto<br>Reject</div><div class="tt">Rejected candidates receive a warm, professional decline email within minutes of submission — not weeks of silence.</div></div>
+          </div>
+        </div>
+        <div class="wf-arrow">→</div>
+        <div class="wf-stage">
+          <div class="wf-stage-label">Notify</div>
+          <div style="display:flex;flex-direction:column;gap:0.35rem">
+            <div class="wf-node tooltip-w"><div class="wf-box" style="background:linear-gradient(135deg,#0a1a2a,#1e3a5f);color:#93c5fd;border-color:#1e3a5f;">💬</div><div class="wf-node-lbl">Slack<br>Shortlist</div><div class="tt">HR team receives Slack digest: "5 new shortlisted candidates for [Role]. Top scorer: Jane Smith (87/100). Click to view profiles."</div></div>
+            <div class="wf-node tooltip-w"><div class="wf-box" style="background:linear-gradient(135deg,#1a1a0a,#3d3200);color:#fbbf24;border-color:#92400e;">📋</div><div class="wf-node-lbl">HR<br>Dashboard</div><div class="tt">Google Sheets auto-generates a live dashboard showing pipeline health: total applicants, shortlisted %, time-to-shortlist average.</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 4: SIM — CV SCREENING -->
+<section class="slide" id="slide-3">
+  <div class="bg-decor"></div>
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-eyebrow">03 — Simulation 1</div><div class="sec-title">Live: AI CV Screening<br>in Real Time</div><p class="sec-desc">12 applications just arrived for a Senior Data Analyst role. Watch GPT-4o score and route every one in under 30 seconds.</p></div>
+    <div class="animate-in lr">
+      <div>
+        <div class="panel" style="margin-bottom:1rem">
+          <h3>Job Requirements (Injected into GPT-4o)</h3>
+          <div style="font-size:0.72rem;line-height:1.8;color:var(--muted)">
+            <strong style="color:var(--text)">Role:</strong> Senior Data Analyst<br>
+            <strong style="color:var(--text)">Must-have:</strong> Python, SQL, 3+ yrs experience, Power BI or Tableau<br>
+            <strong style="color:var(--text)">Nice-to-have:</strong> ML experience, stakeholder management<br>
+            <strong style="color:var(--text)">Reject if:</strong> &lt;2 yrs experience OR no SQL mentioned
+          </div>
+        </div>
+        <div class="panel">
+          <h3>Pipeline Steps</h3>
+          <ul class="ps-list" id="cvPipelineSteps">
+            <li id="cvp1" style="opacity:0.3"><div class="ps-num">1</div><div>Email trigger fires — 12 CVs detected</div></li>
+            <li id="cvp2" style="opacity:0.3"><div class="ps-num">2</div><div>PDF parser extracts structured data from each CV</div></li>
+            <li id="cvp3" style="opacity:0.3"><div class="ps-num">3</div><div>GPT-4o scores each CV against job criteria</div></li>
+            <li id="cvp4" style="opacity:0.3"><div class="ps-num">4</div><div>IF router distributes to shortlist / hold / reject</div></li>
+            <li id="cvp5" style="opacity:0.3"><div class="ps-num">5</div><div>Google Sheets updated with all 12 candidates</div></li>
+            <li id="cvp6" style="opacity:0.3"><div class="ps-num">6</div><div>Rejection emails sent to 7 candidates instantly</div></li>
+            <li id="cvp7" style="opacity:0.3"><div class="ps-num">7</div><div>Calendly links sent to 4 shortlisted candidates</div></li>
+            <li id="cvp8" style="opacity:0.3"><div class="ps-num">8</div><div>Slack digest sent to HR team ✅</div></li>
+          </ul>
+        </div>
+        <button onclick="runCVSim()" style="margin-top:1rem;background:var(--gold);color:var(--bg);border:none;border-radius:4px;padding:0.7rem 1.5rem;font-family:'DM Mono',monospace;font-size:0.76rem;font-weight:500;cursor:pointer;width:100%;letter-spacing:0.05em;transition:all 0.2s" id="cvBtn">▶ SCREEN 12 CVs NOW</button>
+      </div>
+      <div class="cv-window">
+        <div class="cv-header">
+          <span style="font-family:'Playfair Display',serif;font-weight:700;font-size:0.85rem">📥 Incoming Applications</span>
+          <span style="margin-left:auto;font-size:0.65rem;color:var(--muted)" id="cvCount">0 / 12 processed</span>
+        </div>
+        <div class="cv-body" id="cvBody" style="min-height:340px;max-height:340px;overflow-y:auto">
+          <div style="text-align:center;padding:3rem 1rem;color:var(--muted);font-size:0.72rem">Waiting for applications...</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 5: SIM — JD PUBLISHING -->
+<section class="slide" id="slide-4">
+  <div class="bg-decor"></div>
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-eyebrow">04 — Simulation 2</div><div class="sec-title">Job Description<br>Auto-Publishing</div><p class="sec-desc">HR submits one internal form. n8n auto-generates the full JD, posts to job boards, and creates the screening criteria — all in one click.</p></div>
+    <div class="animate-in lr-rev">
+      <div style="display:flex;flex-direction:column;gap:1rem">
+        <div class="panel">
+          <h3>What Happens After Submit</h3>
+          <ul class="steps">
+            <li><div class="step-n">1</div><div>n8n webhook receives form data as JSON payload</div></li>
+            <li><div class="step-n">2</div><div>GPT-4o generates full JD: responsibilities, requirements, benefits copy</div></li>
+            <li><div class="step-n">3</div><div>LinkedIn Jobs API → role posted automatically</div></li>
+            <li><div class="step-n">4</div><div>Company careers page updated via CMS webhook</div></li>
+            <li><div class="step-n">5</div><div>AI screening criteria saved as n8n variable for this role's applications</div></li>
+            <li><div class="step-n">6</div><div>Slack: "New role live: [Title] — tracking applications now"</div></li>
+          </ul>
+        </div>
+        <div id="jd-output" style="display:none" class="email-preview">
+          <div class="email-header"><span style="font-weight:600;font-family:'Playfair Display',serif">Generated Job Description</span><span style="font-size:0.62rem;color:var(--green)">Published in 4.1s</span></div>
+          <div class="email-body" style="font-size:0.71rem">
+            <strong>Senior Data Analyst — Remote / Lagos</strong><br><br>
+            We're looking for a data-driven problem solver to join our growing analytics team. You'll transform complex datasets into actionable insights that drive business decisions.<br><br>
+            <strong>Requirements:</strong> 3+ years experience · Python & SQL proficiency · Power BI / Tableau · Strong communication skills<br><br>
+            <strong>Nice to have:</strong> ML/AI experience · Stakeholder management · FinTech background<br><br>
+            <span style="color:var(--gold)">→ Posted to LinkedIn, Indeed & careers page ✅</span>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="jd-form">
+          <div class="jd-form-header">📋 New Role Request Form</div>
+          <div class="jd-body">
+            <div class="jd-field"><label>Job Title</label><div class="jd-input" id="jd-title"></div></div>
+            <div class="jd-field"><label>Department</label><div class="jd-input" id="jd-dept"></div></div>
+            <div class="jd-field"><label>Key Skills Required</label><div class="jd-input" id="jd-skills" style="min-height:44px"></div></div>
+            <div class="jd-field"><label>Experience Level</label><div class="jd-input" id="jd-exp"></div></div>
+            <div class="jd-field"><label>Posting Channels</label><div class="jd-input" id="jd-channels"></div></div>
+            <div class="jd-btn" id="jd-btn" onclick="runJDSim()">▶ Publish Role Automatically</div>
+            <div id="jd-success" style="display:none;text-align:center;font-size:0.72rem;color:var(--green);padding:0.5rem;background:rgba(74,158,107,0.07);border:1px solid rgba(74,158,107,0.2);border-radius:4px">✅ Role live on all platforms in 4.1 seconds</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 6: SIM — APPLICANT TRACKER -->
+<section class="slide" id="slide-5">
+  <div class="bg-decor"></div>
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-eyebrow">05 — Simulation 3</div><div class="sec-title">Applicant Tracking<br>Sheet — Auto-Populated</div><p class="sec-desc">Every application across every channel flows into this central tracker. Zero manual entry. The hiring manager sees a live, scored pipeline.</p></div>
+    <div class="animate-in" style="margin-bottom:1.25rem">
+      <div class="sheet-table">
+        <div class="sheet-head"><div>#</div><div>Candidate</div><div>Email</div><div>Role</div><div>Score</div><div>Channel</div><div>Status</div></div>
+        <div class="sheet-row"><div style="color:var(--muted)">001</div><div>Adaeze Okonkwo</div><div style="color:var(--muted);font-size:0.62rem"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="6b0a0f0a2b0c060a020745080406">[email&#160;protected]</a></div><div>Sr. Data Analyst</div><div><span style="color:var(--green);font-weight:700">87/100</span></div><div>LinkedIn</div><div><span class="s-badge sb-inv">Interview Sent</span></div></div>
+        <div class="sheet-row"><div style="color:var(--muted)">002</div><div>Babatunde Lawal</div><div style="color:var(--muted);font-size:0.62rem"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="6002010201201901080f0f4e030f0d">[email&#160;protected]</a></div><div>Sr. Data Analyst</div><div><span style="color:var(--amber);font-weight:700">62/100</span></div><div>Email</div><div><span class="s-badge sb-new">Hold</span></div></div>
+        <div class="sheet-row"><div style="color:var(--muted)">003</div><div>Chioma Eze</div><div style="color:var(--muted);font-size:0.62rem"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="a2c1cacbcdcfc3e2cdd7d6cecdcdc98cc1cdcf">[email&#160;protected]</a></div><div>Sr. Data Analyst</div><div><span style="color:var(--red);font-weight:700">34/100</span></div><div>Indeed</div><div><span class="s-badge sb-rej">Rejected</span></div></div>
+        <div class="sheet-row"><div style="color:var(--muted)">004</div><div>Emeka Nwankwo</div><div style="color:var(--muted);font-size:0.62rem"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="eb8e868e808aab8c868a8287c5888486">[email&#160;protected]</a></div><div>Sr. Data Analyst</div><div><span style="color:var(--green);font-weight:700">79/100</span></div><div>Careers Page</div><div><span class="s-badge sb-inv">Interview Sent</span></div></div>
+        <div class="sheet-row"><div style="color:var(--muted)">005</div><div>Funmilayo Adekunle</div><div style="color:var(--muted);font-size:0.62rem"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="e385968d8e8aa3848e828a8fcd808c8e">[email&#160;protected]</a></div><div>Sr. Data Analyst</div><div><span style="color:var(--red);font-weight:700">41/100</span></div><div>LinkedIn</div><div><span class="s-badge sb-rej">Rejected</span></div></div>
+        <div class="sheet-row"><div style="color:var(--muted)">006</div><div>Gbenga Adeyemi</div><div style="color:var(--muted);font-size:0.62rem"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="137471767d7472537b7c677e727a7f3d707c7e">[email&#160;protected]</a></div><div>Sr. Data Analyst</div><div><span style="color:var(--green);font-weight:700">91/100</span></div><div>LinkedIn</div><div><span class="s-badge sb-pass">Shortlisted</span></div></div>
+      </div>
+    </div>
+    <div class="animate-in three-col">
+      <div class="card" style="text-align:center"><div style="font-family:'Playfair Display',serif;font-size:2rem;font-weight:900;color:var(--gold)">12</div><div style="font-size:0.65rem;color:var(--muted);margin-top:0.2rem;text-transform:uppercase;letter-spacing:0.1em">Applications Received</div></div>
+      <div class="card" style="text-align:center"><div style="font-family:'Playfair Display',serif;font-size:2rem;font-weight:900;color:var(--green)">4</div><div style="font-size:0.65rem;color:var(--muted);margin-top:0.2rem;text-transform:uppercase;letter-spacing:0.1em">Shortlisted</div></div>
+      <div class="card" style="text-align:center"><div style="font-family:'Playfair Display',serif;font-size:2rem;font-weight:900;color:var(--amber)">28s</div><div style="font-size:0.65rem;color:var(--muted);margin-top:0.2rem;text-transform:uppercase;letter-spacing:0.1em">Total Processing Time</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 7: SIM — REJECTION EMAIL -->
+<section class="slide" id="slide-6">
+  <div class="bg-decor"></div>
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-eyebrow">06 — Simulation 4</div><div class="sec-title">Automated Rejection<br>& Shortlist Emails</div><p class="sec-desc">GPT-4o generates personalised, empathetic rejection emails for each candidate — referencing their specific background. No copy-paste templates.</p></div>
+    <div class="animate-in two-col">
+      <div class="email-preview">
+        <div class="email-header"><span style="font-weight:600;font-family:'Playfair Display',serif">📧 Rejection Email — Auto-Generated</span><span style="font-size:0.62rem;color:var(--amber)">Sent 47s after submission</span></div>
+        <div class="email-body">
+          <span style="color:var(--muted);font-size:0.65rem">To: <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="93f0fbfafcfef2d3fce6e7fffcfcf8bdf0fcfe">[email&#160;protected]</a> | Subject: Your Application — Senior Data Analyst</span><br><br>
+          Hi <strong>Chioma</strong>,<br><br>
+          Thank you for applying for the <strong>Senior Data Analyst</strong> role and for the time you invested in your application.<br><br>
+          After careful review, we've decided to move forward with candidates whose SQL and Python experience more closely aligns with our current needs. Your background in operations analytics is genuinely impressive — this wasn't an easy call.<br><br>
+          We'd encourage you to apply again as new roles open up — your profile is strong and we'd welcome seeing you for a different opportunity.<br><br>
+          Wishing you every success in your search.<br>
+          <span style="color:var(--muted)">— HR Team (via Ava AI · Powered by n8n + GPT-4o)</span>
+        </div>
+      </div>
+      <div class="email-preview">
+        <div class="email-header"><span style="font-weight:600;font-family:'Playfair Display',serif">📧 Interview Invite — Auto-Generated</span><span style="font-size:0.62rem;color:var(--green)">Sent 52s after submission</span></div>
+        <div class="email-body">
+          <span style="color:var(--muted);font-size:0.65rem">To: <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="4a2b2e2b0a2d272b232664292527">[email&#160;protected]</a> | Subject: 🎉 Interview Invitation — Senior Data Analyst</span><br><br>
+          Hi <strong>Adaeze</strong>,<br><br>
+          Congratulations! Your application for <strong>Senior Data Analyst</strong> has impressed our team — your Python and Power BI expertise align perfectly with what we're building.<br><br>
+          We'd love to schedule a <strong>30-minute interview</strong>. Please book a time that suits you:<br>
+          <span style="color:var(--gold)">→ calendly.com/company/interview-adaeze</span><br><br>
+          We look forward to meeting you! 🎯<br>
+          <span style="color:var(--muted)">— HR Team (via Ava AI · Powered by n8n + GPT-4o)</span>
+        </div>
+      </div>
+    </div>
+    <div class="animate-in" style="margin-top:1rem"><div class="info-amber">💡 Both emails generated by the same GPT-4o node — context-aware, candidate-specific, brand-aligned. HR never writes a single email.</div></div>
+  </div>
+</section>
+
+<!-- SLIDE 8: BEFORE/AFTER -->
+<section class="slide" id="slide-7">
+  <div class="bg-decor"></div>
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-eyebrow">07 — Business Impact</div><div class="sec-title">Before vs After:<br>The Numbers</div></div>
+    <div class="animate-in two-col" style="margin-bottom:1.5rem">
+      <div>
+        <div style="font-size:0.65rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--red);margin-bottom:0.75rem;font-weight:600">❌ Before Automation</div>
+        <div class="ba-col">
+          <div class="ba-item ba-bad">📋 HR reads 200 CVs manually — 10+ hours per role</div>
+          <div class="ba-item ba-bad">⏰ Candidates wait 2–3 weeks for any response</div>
+          <div class="ba-item ba-bad">📉 Top talent lost to faster-moving competitors</div>
+          <div class="ba-item ba-bad">🗂 Applications tracked in email threads & spreadsheets</div>
+          <div class="ba-item ba-bad">📧 Rejection emails never sent — candidate ghosting</div>
+        </div>
+      </div>
+      <div>
+        <div style="font-size:0.65rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--green);margin-bottom:0.75rem;font-weight:600">✅ After Automation</div>
+        <div class="ba-col">
+          <div class="ba-item ba-good">🤖 AI screens 200 CVs in 28 seconds with consistent scoring</div>
+          <div class="ba-item ba-good">⚡ Candidates receive response within 1 minute of applying</div>
+          <div class="ba-item ba-good">🏆 Shortlist delivered to HR — only top 20% need human review</div>
+          <div class="ba-item ba-good">📊 Live Sheets pipeline: full visibility at any moment</div>
+          <div class="ba-item ba-good">💌 Every candidate gets a personalised, respectful email</div>
+        </div>
+      </div>
+    </div>
+    <div class="animate-in">
+      <div class="quote-block">
+        <div class="quote-text">"This doesn't replace your HR team — it gives them their time back. Let humans do the human work: final interviews, culture conversations, offer negotiations. Let AI do the inbox."</div>
+        <div style="font-size:0.65rem;color:var(--muted);letter-spacing:0.1em">STACK: n8n · GPT-4o · Gmail API · Google Sheets · Calendly · LinkedIn API · Slack</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="slide-counter" id="slideCounter">Slide 1 of 8</div>
+<div class="slide-nav">
+  <button class="nav-btn" onclick="prevSlide()">← Prev</button>
+  <button class="nav-btn primary" onclick="nextSlide()">Next →</button>
+</div>
+
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+const slides=document.querySelectorAll('.slide'),total=slides.length;let cur=0;
+const dots=document.getElementById('navDots');
+for(let i=0;i<total;i++){const d=document.createElement('div');d.className='nav-dot'+(i===0?' active':'');d.onclick=()=>goTo(i);dots.appendChild(d);}
+function goTo(n){slides[cur].classList.remove('active');dots.children[cur].classList.remove('active');if(cur<n)dots.children[cur].classList.add('done');cur=n;slides[cur].classList.add('active');dots.children[cur].classList.add('active');document.getElementById('slideCounter').textContent=`Slide ${cur+1} of ${total}`;}
+function nextSlide(){if(cur<total-1)goTo(cur+1);}
+function prevSlide(){if(cur>0)goTo(cur-1);}
+document.addEventListener('keydown',e=>{if(e.key==='ArrowRight'||e.key==='ArrowDown')nextSlide();if(e.key==='ArrowLeft'||e.key==='ArrowUp')prevSlide();});
+let secs=0;setInterval(()=>{secs++;const m=String(Math.floor(secs/60)).padStart(2,'0'),s=String(secs%60).padStart(2,'0');document.getElementById('timerBadge').textContent=`⏱ ${m}:${s}`;if(secs>=840)document.getElementById('timerBadge').style.color='#c94040';else if(secs>=660)document.getElementById('timerBadge').style.color='#e8891a';},1000);
+
+// CV Sim
+const cvCandidates=[
+  {name:'Adaeze Okonkwo',role:'Sr. Data Analyst',score:87,status:'SHORTLIST'},
+  {name:'Babatunde Lawal',role:'Product Manager',score:62,status:'HOLD'},
+  {name:'Chioma Eze',role:'Operations Analyst',score:34,status:'REJECT'},
+  {name:'Emeka Nwankwo',role:'Data Scientist',score:79,status:'SHORTLIST'},
+  {name:'Funmilayo Adekunle',role:'Business Analyst',score:41,status:'REJECT'},
+  {name:'Gbenga Adeyemi',role:'Sr. Data Analyst',score:91,status:'SHORTLIST'},
+  {name:'Halima Musa',role:'Analyst',score:55,status:'HOLD'},
+  {name:'Ifeanyi Obi',role:'Data Engineer',score:73,status:'SHORTLIST'},
+  {name:'Jumoke Adesanya',role:'Jr. Analyst',score:28,status:'REJECT'},
+  {name:'Kola Fashola',role:'Data Analyst',score:66,status:'HOLD'},
+  {name:'Lola Bello',role:'BI Developer',score:82,status:'SHORTLIST'},
+  {name:'Musa Ibrahim',role:'Analytics Lead',score:22,status:'REJECT'},
+];
+let cvRunning=false;
+async function runCVSim(){
+  if(cvRunning)return;cvRunning=true;
+  const btn=document.getElementById('cvBtn');btn.textContent='Screening...';btn.style.opacity='0.7';
+  document.getElementById('cvBody').innerHTML='';
+  const psteps=['cvp1','cvp2','cvp3','cvp4','cvp5','cvp6','cvp7','cvp8'];
+  psteps.forEach(id=>{const el=document.getElementById(id);if(el){el.style.opacity='0.3';el.querySelector('.ps-num').style.background='var(--muted)';}});
+  const light=(id)=>{document.querySelectorAll('#cvPipelineSteps li').forEach(l=>{l.style.opacity='0.3';l.querySelector('.ps-num').style.background='var(--muted)';});const el=document.getElementById(id);if(el){el.style.opacity='1';el.style.color='var(--green)';el.querySelector('.ps-num').style.background='var(--gold)';}};
+  light('cvp1');await delay(600);light('cvp2');await delay(600);light('cvp3');await delay(400);
+  for(let i=0;i<cvCandidates.length;i++){
+    await delay(280);
+    const c=cvCandidates[i];
+    const row=document.createElement('div');
+    row.className='cv-row screening';
+    const sc=c.score>=70?'var(--green)':c.score>=50?'var(--amber)':'var(--red)';
+    const badgeClass=c.status==='SHORTLIST'?'badge-pass':c.status==='HOLD'?'badge-screen':'badge-fail';
+    const badgeTxt=c.status==='SHORTLIST'?'Shortlisted':c.status==='HOLD'?'Hold':'Rejected';
+    row.innerHTML=`<div class="cv-score" style="color:${sc}">${c.score}</div><div><div class="cv-name">${c.name}</div><div class="cv-role">${c.role}</div></div><div style="margin-left:auto"><span class="cv-badge ${badgeClass}">${badgeTxt}</span></div>`;
+    document.getElementById('cvBody').appendChild(row);
+    document.getElementById('cvBody').scrollTop=9999;
+    document.getElementById('cvCount').textContent=`${i+1} / 12 processed`;
+    setTimeout(()=>{row.classList.remove('screening');row.classList.add(c.status==='SHORTLIST'?'passed':c.status==='REJECT'?'rejected':'');},300);
+  }
+  light('cvp4');await delay(500);light('cvp5');await delay(500);light('cvp6');await delay(500);light('cvp7');await delay(500);light('cvp8');
+  btn.textContent='↺ Run Again';btn.style.opacity='1';cvRunning=false;
+}
+function delay(ms){return new P
