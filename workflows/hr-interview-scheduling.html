@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HR Interview Scheduling Automation</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Source+Code+Pro:wght@300;400;500;600&family=Barlow:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f0f4f8;--surface:#ffffff;--surface2:#e8edf3;--border:#d0dae6;--ink:#0a1628;--teal:#00b4d8;--teal2:#0077a8;--electric:#00f5d4;--warn:#ff6b35;--green:#06d6a0;--red:#ef476f;--muted:#6b7fa0;--accent:#0096c7;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--ink);font-family:'Source Code Pro',monospace;overflow-x:hidden;}
+nav{position:fixed;top:0;left:0;right:0;z-index:100;background:var(--ink);display:flex;align-items:center;justify-content:space-between;padding:0 2.5rem;height:56px;}
+.nav-brand{font-family:'Bebas Neue',sans-serif;font-size:1.1rem;color:var(--teal);letter-spacing:0.15em;}
+.nav-dots{display:flex;gap:0.3rem;}
+.nav-dot{width:7px;height:7px;border-radius:50%;background:#2a3a50;cursor:pointer;transition:all 0.2s;}
+.nav-dot.active{background:var(--teal);transform:scale(1.5);}
+.nav-dot.done{background:var(--green);}
+.timer{font-size:0.68rem;color:var(--teal);background:rgba(0,180,216,0.1);border:1px solid rgba(0,180,216,0.3);padding:0.2rem 0.7rem;border-radius:2px;letter-spacing:0.1em;}
+.slide{min-height:100vh;padding:76px 0 50px;display:none;flex-direction:column;align-items:center;justify-content:center;position:relative;overflow:hidden;}
+.slide.active{display:flex;}
+.slide-inner{width:100%;max-width:1140px;padding:0 2.5rem;position:relative;z-index:2;}
+/* Hero bg */
+.hero-ink{position:absolute;inset:0;background:var(--ink);}
+.hero-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(0,180,216,0.08) 1px,transparent 1px),linear-gradient(90deg,rgba(0,180,216,0.08) 1px,transparent 1px);background-size:48px 48px;}
+.hero-circle{position:absolute;right:-10%;top:50%;transform:translateY(-50%);width:600px;height:600px;border-radius:50%;background:radial-gradient(circle,rgba(0,180,216,0.12) 0%,transparent 70%);pointer-events:none;}
+h1.main-title{font-family:'Bebas Neue',sans-serif;font-size:clamp(3rem,7vw,6rem);line-height:0.95;letter-spacing:0.03em;color:white;margin-bottom:1.5rem;}
+h1.main-title span{color:var(--teal);display:block;}
+.hero-desc{font-family:'Barlow',sans-serif;font-size:1rem;color:rgba(255,255,255,0.6);max-width:500px;line-height:1.7;margin-bottom:2.5rem;}
+.kpi-row{display:flex;gap:1px;background:rgba(255,255,255,0.08);}
+.kpi{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);padding:1.2rem 1.8rem;text-align:left;}
+.kpi-val{font-family:'Bebas Neue',sans-serif;font-size:2.2rem;color:var(--teal);line-height:1;}
+.kpi-lbl{font-size:0.6rem;letter-spacing:0.15em;text-transform:uppercase;color:rgba(255,255,255,0.4);margin-top:0.3rem;}
+.sec-eyebrow{font-size:0.6rem;letter-spacing:0.3em;text-transform:uppercase;color:var(--accent);margin-bottom:0.4rem;font-weight:600;}
+.sec-title{font-family:'Bebas Neue',sans-serif;font-size:clamp(2rem,4vw,3.5rem);line-height:1;letter-spacing:0.03em;margin-bottom:0.5rem;color:var(--ink);}
+.sec-desc{font-family:'Barlow',sans-serif;font-size:0.88rem;color:var(--muted);margin-bottom:2rem;max-width:540px;line-height:1.7;}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;}
+.three-col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;}
+.lr{display:grid;grid-template-columns:1.1fr 1fr;gap:1.5rem;align-items:start;}
+.lr-rev{display:grid;grid-template-columns:1fr 1.1fr;gap:1.5rem;align-items:start;}
+.card{background:white;border:1px solid var(--border);border-radius:2px;padding:1.25rem;transition:border-color 0.2s,transform 0.2s;}
+.card:hover{border-color:var(--teal);transform:translateY(-2px);}
+.card-icon{font-size:1.3rem;margin-bottom:0.5rem;}
+.card-title{font-family:'Bebas Neue',sans-serif;font-size:1.1rem;letter-spacing:0.05em;margin-bottom:0.3rem;color:var(--ink);}
+.card-desc{font-size:0.71rem;color:var(--muted);line-height:1.6;}
+.panel{background:white;border:1px solid var(--border);padding:1.5rem;border-radius:2px;}
+.panel h3{font-family:'Bebas Neue',sans-serif;font-size:1rem;letter-spacing:0.1em;color:var(--teal2);margin-bottom:1rem;display:flex;align-items:center;gap:0.5rem;}
+.panel h3::before{content:'//';color:var(--border);font-size:0.85rem;}
+.steps{list-style:none;}
+.steps li{display:flex;gap:0.75rem;padding:0.45rem 0;border-bottom:1px solid var(--border);font-family:'Barlow',sans-serif;font-size:0.79rem;line-height:1.5;}
+.steps li:last-child{border-bottom:none;}
+.step-n{width:22px;height:22px;border-radius:2px;background:var(--teal);color:white;font-size:0.63rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:'Source Code Pro',monospace;}
+/* Workflow */
+.wf-canvas{background:var(--ink);border:1px solid rgba(0,180,216,0.2);border-radius:2px;padding:2rem;position:relative;overflow:hidden;}
+.wf-grid2{position:absolute;inset:0;background-image:radial-gradient(circle,rgba(0,180,216,0.15) 1px,transparent 1px);background-size:26px 26px;opacity:0.5;}
+.wf-lbl{position:absolute;top:0.7rem;left:1rem;font-size:0.58rem;letter-spacing:0.18em;text-transform:uppercase;color:var(--teal);display:flex;align-items:center;gap:0.4rem;z-index:3;}
+.wf-lbl::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--electric);box-shadow:0 0 8px var(--electric);animation:blink2 2s infinite;}
+@keyframes blink2{0%,100%{opacity:1}50%{opacity:0.2}}
+.wf-nodes{display:flex;align-items:flex-start;gap:0;padding-top:1.5rem;position:relative;z-index:2;flex-wrap:wrap;}
+.wf-stage{display:flex;flex-direction:column;align-items:center;gap:0.3rem;}
+.wf-slabel{font-size:0.54rem;letter-spacing:0.12em;text-transform:uppercase;color:rgba(255,255,255,0.3);margin-bottom:0.2rem;}
+.wf-node{display:flex;flex-direction:column;align-items:center;gap:0.3rem;cursor:pointer;position:relative;}
+.wf-box{width:58px;height:58px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1.25rem;border:2px solid transparent;transition:all 0.3s;}
+.wf-node:hover .wf-box{transform:scale(1.1);box-shadow:0 0 20px rgba(0,180,216,0.4);}
+.wf-nlbl{font-size:0.54rem;text-align:center;color:rgba(255,255,255,0.45);max-width:66px;line-height:1.3;}
+.wf-arr{color:rgba(255,255,255,0.2);padding:0 0.2rem;font-size:0.85rem;align-self:flex-start;margin-top:19px;flex-shrink:0;}
+.ttw{position:relative;}
+.tti{position:absolute;bottom:calc(100%+8px);left:50%;transform:translateX(-50%);background:rgba(255,255,255,0.95);border:1px solid var(--border);border-radius:2px;padding:0.6rem 0.9rem;font-size:0.67rem;opacity:0;pointer-events:none;transition:opacity 0.2s;z-index:50;color:var(--ink);line-height:1.5;max-width:190px;white-space:normal;text-align:left;}
+.ttw:hover .tti{opacity:1;}
+/* Calendar sim */
+.cal-window{background:white;border:1px solid var(--border);border-radius:2px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,0.08);}
+.cal-header{background:var(--ink);color:white;padding:0.75rem 1rem;display:flex;justify-content:space-between;align-items:center;}
+.cal-month{font-family:'Bebas Neue',sans-serif;font-size:1rem;letter-spacing:0.1em;color:var(--teal);}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;background:var(--border);padding:0;}
+.cal-day-hdr{background:var(--surface2);padding:0.4rem;text-align:center;font-size:0.6rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);}
+.cal-day{background:white;padding:0.4rem;min-height:52px;font-size:0.65rem;color:var(--muted);position:relative;transition:background 0.2s;}
+.cal-day.has-slot{background:rgba(0,180,216,0.04);}
+.cal-day.booked{background:rgba(0,245,212,0.08);}
+.cal-day-num{font-weight:600;color:var(--ink);margin-bottom:0.15rem;}
+.cal-slot{background:var(--teal);color:white;border-radius:2px;padding:0.1rem 0.3rem;font-size:0.55rem;margin-top:0.1rem;cursor:pointer;transition:all 0.2s;}
+.cal-slot:hover{background:var(--teal2);}
+.cal-slot.booked-slot{background:var(--green);}
+.cal-slot.new-book{background:var(--warn);animation:flash 0.5s 3;}
+@keyframes flash{0%,100%{opacity:1}50%{opacity:0.3}}
+/* Candidate card */
+.cand-card{background:white;border:1px solid var(--border);border-radius:2px;padding:0.75rem 1rem;display:flex;align-items:center;gap:0.75rem;margin-bottom:0.5rem;transition:all 0.3s;font-size:0.73rem;}
+.cand-card.scheduling{border-color:var(--warn);background:rgba(255,107,53,0.03);}
+.cand-card.scheduled{border-color:var(--green);background:rgba(6,214,160,0.04);}
+.cand-avatar{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.8rem;font-weight:700;font-family:'Bebas Neue',sans-serif;flex-shrink:0;}
+.cand-name{font-weight:500;font-family:'Barlow',sans-serif;}
+.cand-time{font-size:0.65rem;color:var(--muted);}
+.cand-status{margin-left:auto;}
+.st-badge{font-size:0.6rem;padding:0.12rem 0.5rem;border-radius:2px;font-weight:600;letter-spacing:0.05em;}
+.st-pend{background:rgba(255,107,53,0.12);color:var(--warn);border:1px solid rgba(255,107,53,0.3);}
+.st-done{background:rgba(6,214,160,0.12);color:var(--green);border:1px solid rgba(6,214,160,0.3);}
+.st-conf{background:rgba(0,180,216,0.12);color:var(--teal);border:1px solid rgba(0,180,216,0.3);}
+/* Sheet */
+.sheet-table{background:white;border:1px solid var(--border);border-radius:2px;overflow:hidden;font-size:0.7rem;}
+.sheet-head{background:var(--surface2);border-bottom:1px solid var(--border);display:grid;grid-template-columns:36px 120px 150px 100px 120px 80px;padding:0.55rem 0.75rem;gap:0.4rem;font-size:0.62rem;letter-spacing:0.05em;color:var(--teal2);font-weight:600;}
+.sheet-row{display:grid;grid-template-columns:36px 120px 150px 100px 120px 80px;padding:0.5rem 0.75rem;gap:0.4rem;border-bottom:1px solid rgba(208,218,230,0.5);align-items:center;transition:background 0.15s;}
+.sheet-row:hover{background:var(--surface2);}
+.sheet-row:last-child{border-bottom:none;}
+.s-badge{display:inline-block;padding:0.1rem 0.45rem;border-radius:2px;font-size:0.58rem;font-weight:600;letter-spacing:0.04em;}
+.sb-done{background:rgba(6,214,160,0.12);color:var(--green);border:1px solid rgba(6,214,160,0.25);}
+.sb-pend{background:rgba(255,107,53,0.1);color:var(--warn);border:1px solid rgba(255,107,53,0.25);}
+.sb-conf{background:rgba(0,180,216,0.1);color:var(--teal);border:1px solid rgba(0,180,216,0.25);}
+/* Before/after */
+.ba-item{padding:0.6rem 0.9rem;border-radius:2px;font-family:'Barlow',sans-serif;font-size:0.76rem;line-height:1.5;}
+.ba-bad{background:rgba(239,71,111,0.05);border:1px solid rgba(239,71,111,0.15);}
+.ba-good{background:rgba(6,214,160,0.05);border:1px solid rgba(6,214,160,0.15);}
+.quote-block{background:var(--ink);color:white;padding:1.5rem 2rem;border-radius:2px;}
+.quote-text{font-family:'Barlow',sans-serif;font-size:1.05rem;line-height:1.7;margin-bottom:0.75rem;font-weight:300;}
+.quote-text strong{color:var(--teal);font-weight:600;}
+.info-box{padding:0.7rem 1rem;border-radius:2px;font-family:'Barlow',sans-serif;font-size:0.76rem;line-height:1.6;}
+.info-teal{background:rgba(0,180,216,0.07);border:1px solid rgba(0,180,216,0.2);color:var(--teal2);}
+.ps-list{list-style:none;}
+.ps-list li{display:flex;gap:0.75rem;padding:0.45rem 0;border-bottom:1px solid var(--border);font-family:'Barlow',sans-serif;font-size:0.74rem;line-height:1.5;transition:all 0.3s;}
+.ps-list li:last-child{border-bottom:none;}
+.ps-num{width:20px;height:20px;border-radius:2px;background:var(--muted);color:white;font-size:0.6rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;transition:background 0.3s;}
+/* Run btn */
+.run-btn{background:var(--teal);color:white;border:none;border-radius:2px;padding:0.7rem 1.5rem;font-family:'Source Code Pro',monospace;font-size:0.75rem;font-weight:600;cursor:pointer;letter-spacing:0.08em;transition:all 0.2s;width:100%;text-align:center;}
+.run-btn:hover{background:var(--teal2);}
+.slide-counter{position:fixed;bottom:1.5rem;left:2rem;font-size:0.62rem;color:var(--muted);letter-spacing:0.1em;z-index:100;}
+.slide-nav{position:fixed;bottom:1.5rem;right:2rem;display:flex;gap:0.5rem;z-index:100;}
+.nav-btn{background:white;border:1px solid var(--border);color:var(--ink);padding:0.55rem 1.2rem;border-radius:2px;font-family:'Source Code Pro',monospace;font-size:0.7rem;cursor:pointer;transition:all 0.2s;}
+.nav-btn:hover{border-color:var(--teal);color:var(--teal);}
+.nav-btn.primary{background:var(--teal);border-color:var(--teal);color:white;}
+.nav-btn.primary:hover{background:var(--teal2);}
+.animate-in{opacity:0;animation:fadeUp 0.45s ease-out forwards;}
+.slide.active .animate-in:nth-child(1){animation-delay:0.05s;}
+.slide.active .animate-in:nth-child(2){animation-delay:0.15s;}
+.slide.active .animate-in:nth-child(3){animation-delay:0.25s;}
+.slide.active .animate-in:nth-child(4){animation-delay:0.35s;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+</style>
+</head>
+<body>
+<nav>
+  <div class="nav-brand">HR · INTERVIEW SCHEDULING</div>
+  <div class="nav-dots" id="navDots"></div>
+  <div class="timer" id="timerBadge">⏱ 00:00</div>
+</nav>
+
+<!-- SLIDE 1: HERO -->
+<section class="slide active" id="slide-0">
+  <div class="hero-ink"></div><div class="hero-grid"></div><div class="hero-circle"></div>
+  <div class="slide-inner">
+    <div class="animate-in"><div style="font-size:0.6rem;letter-spacing:0.3em;text-transform:uppercase;color:var(--teal);margin-bottom:1rem;font-weight:600">n8n AI Automation · HR Department</div></div>
+    <div class="animate-in"><h1 class="main-title">ZERO-TOUCH<span>INTERVIEW</span>SCHEDULING</h1></div>
+    <div class="animate-in"><p class="hero-desc">Shortlisted candidates self-book interviews. Reminders send automatically. Reschedules happen without HR lifting a finger. The entire coordination loop — automated.</p></div>
+    <div class="animate-in">
+      <div class="kpi-row">
+        <div class="kpi"><div class="kpi-val">0</div><div class="kpi-lbl">Scheduling Emails</div></div>
+        <div class="kpi"><div class="kpi-val">100%</div><div class="kpi-lbl">Auto-Confirmed</div></div>
+        <div class="kpi"><div class="kpi-val">3x</div><div class="kpi-lbl">Faster Time-to-Interview</div></div>
+        <div class="kpi"><div class="kpi-val">24/7</div><div class="kpi-lbl">Booking Available</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 2: PROBLEM -->
+<section class="slide" id="slide-1">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-eyebrow">01 — THE PROBLEM</div><div class="sec-title">SCHEDULING HELL</div><p class="sec-desc">Interview coordination is one of the most time-consuming, error-prone tasks in recruitment. And it's 100% automatable.</p></div>
+    <div class="animate-in two-col" style="margin-bottom:1.5rem">
+      <div class="card"><div class="card-icon">📧</div><div class="card-title">Email Tennis</div><div class="card-desc">Average 6–8 emails to schedule a single interview. "Are you free Tuesday?" "I can do Wednesday." "Actually Tuesday works..." — all automatable.</div></div>
+      <div class="card"><div class="card-icon">🗓️</div><div class="card-title">Calendar Conflicts</div><div class="card-desc">HR books a slot, interviewer isn't available, candidate is told to reschedule. No real-time calendar availability check = constant back-tracking.</div></div>
+      <div class="card"><div class="card-icon">🔔</div><div class="card-title">No-shows & Forgetting</div><div class="card-desc">Candidates forget their interview. No reminder system. 20–30% no-show rate on manually scheduled interviews — fixed instantly with automated reminders.</div></div>
+      <div class="card"><div class="card-icon">📋</div><div class="card-title">Pre-Interview Prep Gap</div><div class="card-desc">Candidates arrive unprepared because no one sent them role details, interviewer name, or what to expect. AI can send a full prep pack automatically.</div></div>
+    </div>
+    <div class="animate-in"><div class="info-box info-teal">✅ n8n + Calendly + GPT-4o eliminates all four — candidates book, get reminded, and arrive prepared. HR does nothing.</div></div>
+  </div>
+</section>
+
+<!-- SLIDE 3: WORKFLOW -->
+<section class="slide" id="slide-2">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-eyebrow">02 — THE BLUEPRINT</div><div class="sec-title">n8n SCHEDULING WORKFLOW</div><p class="sec-desc">From shortlist notification to confirmed interview — fully automated in 4 stages.</p></div>
+    <div class="animate-in wf-canvas">
+      <div class="wf-grid2"></div><div class="wf-lbl">n8n canvas — scheduling pipeline</div>
+      <div class="wf-nodes">
+        <div class="wf-stage"><div class="wf-slabel">Trigger</div>
+          <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#0a2a1a,#065f46);color:#6ee7b7;border-color:#065f46;">📊</div><div class="wf-nlbl">Sheets<br>Trigger</div><div class="tti">When a row in the Applicant Tracker changes status to "SHORTLIST", n8n fires automatically.</div></div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-stage"><div class="wf-slabel">Personalise</div>
+          <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a0a2e,#6d28d9);color:#c4b5fd;border-color:#6d28d9;">🧠</div><div class="wf-nlbl">GPT-4o<br>Prep Pack</div><div class="tti">Generates personalised interview prep email: role details, interviewer name, what to expect, format, and tips specific to the candidate's background.</div></div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-stage"><div class="wf-slabel">Schedule</div>
+          <div style="display:flex;flex-direction:column;gap:0.35rem">
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#0a1a2a,#1d4ed8);color:#93c5fd;border-color:#1d4ed8;">📅</div><div class="wf-nlbl">Calendly<br>Link Send</div><div class="tti">Unique Calendly link embedded in email — shows only slots where BOTH interviewer and candidate are available. Real-time availability sync.</div></div>
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a0a0a,#991b1b);color:#fca5a5;border-color:#991b1b;">⏰</div><div class="wf-nlbl">Reminder<br>Schedule</div><div class="tti">n8n schedules 3 automatic reminders: 24hrs before, 2hrs before, 30 mins before. Each sent via email + SMS.</div></div>
+          </div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-stage"><div class="wf-slabel">Confirm</div>
+          <div style="display:flex;flex-direction:column;gap:0.35rem">
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#0a1a0a,#14532d);color:#86efac;border-color:#14532d;">✅</div><div class="wf-nlbl">Confirm<br>Email</div><div class="tti">When booking is confirmed via Calendly, n8n sends confirmation to candidate AND interviewer with calendar invite .ics attachment.</div></div>
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a1a0a,#78350f);color:#fde68a;border-color:#78350f;">📊</div><div class="wf-nlbl">Sheets<br>Update</div><div class="tti">Applicant Tracker row updated: status → "Interview Scheduled", date/time filled in, interviewer name logged.</div></div>
+          </div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-stage"><div class="wf-slabel">Post-Interview</div>
+          <div style="display:flex;flex-direction:column;gap:0.35rem">
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#0a0a1a,#1e3a5f);color:#93c5fd;border-color:#1e3a5f;">💬</div><div class="wf-nlbl">Feedback<br>Form</div><div class="tti">1 hour after interview end time, n8n sends interviewer a feedback form. Response auto-logged to Sheets and triggers next pipeline step.</div></div>
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a0a1a,#7c3aed);color:#d8b4fe;border-color:#7c3aed;">🚨</div><div class="wf-nlbl">Slack<br>Alert</div><div class="tti">No-show detected (Calendly → no join) → instant Slack alert to HR + reschedule email sent to candidate automatically.</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 4: SIM — SCHEDULING -->
+<section class="slide" id="slide-3">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-eyebrow">03 — SIMULATION 1</div><div class="sec-title">LIVE: SCHEDULING<br>5 CANDIDATES</div><p class="sec-desc">5 candidates just hit "Shortlist" in the tracker. Watch n8n coordinate all their interviews simultaneously — no HR involvement.</p></div>
+    <div class="animate-in lr">
+      <div style="display:flex;flex-direction:column;gap:1rem">
+        <div class="panel">
+          <h3>Scheduling Pipeline</h3>
+          <ul class="ps-list" id="schedSteps">
+            <li id="ss1" style="opacity:0.3"><div class="ps-num">1</div><div>Sheets trigger fires — 5 candidates newly shortlisted</div></li>
+            <li id="ss2" style="opacity:0.3"><div class="ps-num">2</div><div>GPT-4o generates personalised prep emails for each</div></li>
+            <li id="ss3" style="opacity:0.3"><div class="ps-num">3</div><div>Calendly links generated with interviewer availability</div></li>
+            <li id="ss4" style="opacity:0.3"><div class="ps-num">4</div><div>Invite emails sent to all 5 candidates</div></li>
+            <li id="ss5" style="opacity:0.3"><div class="ps-num">5</div><div>Candidates book their preferred slots</div></li>
+            <li id="ss6" style="opacity:0.3"><div class="ps-num">6</div><div>Confirmation + .ics sent to candidates & interviewers</div></li>
+            <li id="ss7" style="opacity:0.3"><div class="ps-num">7</div><div>Sheets updated — all 5 interviews confirmed ✅</div></li>
+          </ul>
+        </div>
+        <button class="run-btn" onclick="runSchedSim()" id="schedBtn">▶ SCHEDULE 5 INTERVIEWS NOW</button>
+      </div>
+      <div>
+        <div style="margin-bottom:0.75rem;font-size:0.62rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted)">Candidate Status Board</div>
+        <div id="candBoard">
+          <div class="cand-card" id="cc1" data-name="Adaeze Okonkwo" data-initials="AO" data-color="#0096c7">
+            <div class="cand-avatar" style="background:rgba(0,150,199,0.12);color:#0096c7">AO</div>
+            <div><div class="cand-name">Adaeze Okonkwo</div><div class="cand-time">Score: 87 · Data Analyst</div></div>
+            <div class="cand-status"><span class="st-badge st-pend">Pending</span></div>
+          </div>
+          <div class="cand-card" id="cc2" data-name="Gbenga Adeyemi" data-initials="GA" data-color="#06d6a0">
+            <div class="cand-avatar" style="background:rgba(6,214,160,0.12);color:#06d6a0">GA</div>
+            <div><div class="cand-name">Gbenga Adeyemi</div><div class="cand-time">Score: 91 · Data Analyst</div></div>
+            <div class="cand-status"><span class="st-badge st-pend">Pending</span></div>
+          </div>
+          <div class="cand-card" id="cc3" data-name="Ifeanyi Obi" data-initials="IO" data-color="#ff6b35">
+            <div class="cand-avatar" style="background:rgba(255,107,53,0.12);color:#ff6b35">IO</div>
+            <div><div class="cand-name">Ifeanyi Obi</div><div class="cand-time">Score: 73 · Data Engineer</div></div>
+            <div class="cand-status"><span class="st-badge st-pend">Pending</span></div>
+          </div>
+          <div class="cand-card" id="cc4" data-name="Lola Bello" data-initials="LB" data-color="#7c3aed">
+            <div class="cand-avatar" style="background:rgba(124,58,237,0.12);color:#7c3aed">LB</div>
+            <div><div class="cand-name">Lola Bello</div><div class="cand-time">Score: 82 · BI Developer</div></div>
+            <div class="cand-status"><span class="st-badge st-pend">Pending</span></div>
+          </div>
+          <div class="cand-card" id="cc5" data-name="Emeka Nwankwo" data-initials="EN" data-color="#d4a843">
+            <div class="cand-avatar" style="background:rgba(212,168,67,0.12);color:#d4a843">EN</div>
+            <div><div class="cand-name">Emeka Nwankwo</div><div class="cand-time">Score: 79 · Data Scientist</div></div>
+            <div class="cand-status"><span class="st-badge st-pend">Pending</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 5: SIM — CALENDAR -->
+<section class="slide" id="slide-4">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-eyebrow">04 — SIMULATION 2</div><div class="sec-title">LIVE CALENDAR<br>BOOKING VIEW</div><p class="sec-desc">Watch slots fill in real time as candidates book their interviews through Calendly. Available slots shown — booked slots confirmed automatically.</p></div>
+    <div class="animate-in lr-rev">
+      <div style="display:flex;flex-direction:column;gap:1rem">
+        <div class="panel">
+          <h3>What n8n Does on Each Booking</h3>
+          <ul class="steps">
+            <li><div class="step-n">1</div><div>Calendly fires webhook → n8n receives booking data</div></li>
+            <li><div class="step-n">2</div><div>Status in Applicant Tracker updated to "Interview Confirmed"</div></li>
+            <li><div class="step-n">3</div><div>Calendar invite (.ics) sent to candidate + interviewer</div></li>
+            <li><div class="step-n">4</div><div>Google Meet/Zoom link auto-generated and included</div></li>
+            <li><div class="step-n">5</div><div>3 reminders scheduled: 24hr, 2hr, 30min before</div></li>
+          </ul>
+        </div>
+        <div class="info-box info-teal">📊 When booking confirmed: Sheets row updates, Slack notifies HR manager, interviewer gets briefing email with candidate profile attached.</div>
+        <button class="run-btn" onclick="runCalSim()" id="calBtn">▶ WATCH CALENDAR FILL</button>
+      </div>
+      <div class="cal-window">
+        <div class="cal-header">
+          <div class="cal-month">APRIL 2025</div>
+          <div style="font-size:0.62rem;color:rgba(255,255,255,0.5)">Interview Schedule</div>
+        </div>
+        <div class="cal-grid">
+          <div class="cal-day-hdr">MON</div><div class="cal-day-hdr">TUE</div><div class="cal-day-hdr">WED</div><div class="cal-day-hdr">THU</div><div class="cal-day-hdr">FRI</div><div class="cal-day-hdr">SAT</div><div class="cal-day-hdr">SUN</div>
+          <div class="cal-day"></div><div class="cal-day"></div><div class="cal-day"><div class="cal-day-num">1</div></div>
+          <div class="cal-day has-slot"><div class="cal-day-num">2</div><div class="cal-slot" id="slot-7a">10:00</div><div class="cal-slot" id="slot-7b">14:00</div></div>
+          <div class="cal-day has-slot"><div class="cal-day-num">3</div><div class="cal-slot" id="slot-8a">09:00</div><div class="cal-slot" id="slot-8b">11:00</div></div>
+          <div class="cal-day"></div><div class="cal-day"></div>
+          <div class="cal-day has-slot"><div class="cal-day-num">7</div><div class="cal-slot" id="slot-1a">10:00</div><div class="cal-slot" id="slot-1b">15:00</div></div>
+          <div class="cal-day has-slot"><div class="cal-day-num">8</div><div class="cal-slot" id="slot-2a">09:30</div><div class="cal-slot" id="slot-2b">13:00</div></div>
+          <div class="cal-day has-slot"><div class="cal-day-num">9</div><div class="cal-slot" id="slot-3a">11:00</div></div>
+          <div class="cal-day"><div class="cal-day-num">10</div></div>
+          <div class="cal-day"><div class="cal-day-num">11</div></div>
+          <div class="cal-day"><div class="cal-day-num">12</div></div>
+          <div class="cal-day"><div class="cal-day-num">13</div></div>
+        </div>
+        <div style="padding:0.6rem 0.75rem;background:var(--surface2);font-size:0.62rem;display:flex;gap:1rem;color:var(--muted);border-top:1px solid var(--border)">
+          <span style="display:flex;align-items:center;gap:0.3rem"><span style="width:10px;height:10px;background:var(--teal);border-radius:1px;display:inline-block"></span>Available</span>
+          <span style="display:flex;align-items:center;gap:0.3rem"><span style="width:10px;height:10px;background:var(--green);border-radius:1px;display:inline-block"></span>Booked</span>
+          <span style="display:flex;align-items:center;gap:0.3rem"><span style="width:10px;height:10px;background:var(--warn);border-radius:1px;display:inline-block"></span>Just Booked</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 6: SIM — REMINDER FLOW -->
+<section class="slide" id="slide-5">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-eyebrow">05 — SIMULATION 3</div><div class="sec-title">AUTOMATED REMINDER<br>& PREP SEQUENCE</div><p class="sec-desc">Once booked, the candidate enters an automated touch sequence — prep pack, reminders, and post-interview feedback — all zero-touch.</p></div>
+    <div class="animate-in two-col">
+      <div style="display:flex;flex-direction:column;gap:0.75rem">
+        <div class="panel">
+          <h3>Touch Sequence Timeline</h3>
+          <div style="position:relative;padding-left:1.5rem">
+            <div style="position:absolute;left:0.35rem;top:0;bottom:0;width:2px;background:linear-gradient(to bottom,var(--teal),transparent)"></div>
+            <div style="display:flex;flex-direction:column;gap:0.75rem">
+              <div style="position:relative"><div style="position:absolute;left:-1.15rem;top:3px;width:8px;height:8px;border-radius:50%;background:var(--teal)"></div><div style="font-family:'Barlow',sans-serif;font-size:0.76rem"><strong>T+0: Interview Booked</strong><br><span style="color:var(--muted)">Confirmation email + .ics + Google Meet link</span></div></div>
+              <div style="position:relative"><div style="position:absolute;left:-1.15rem;top:3px;width:8px;height:8px;border-radius:50%;background:var(--teal)"></div><div style="font-family:'Barlow',sans-serif;font-size:0.76rem"><strong>T-24hrs: Prep Pack</strong><br><span style="color:var(--muted)">Role details, interviewer bio, format, 5 prep tips</span></div></div>
+              <div style="position:relative"><div style="position:absolute;left:-1.15rem;top:3px;width:8px;height:8px;border-radius:50%;background:var(--teal)"></div><div style="font-family:'Barlow',sans-serif;font-size:0.76rem"><strong>T-2hrs: Reminder SMS</strong><br><span style="color:var(--muted)">"Your interview is in 2 hours — here's the join link"</span></div></div>
+              <div style="position:relative"><div style="position:absolute;left:-1.15rem;top:3px;width:8px;height:8px;border-radius:50%;background:var(--electric)"></div><div style="font-family:'Barlow',sans-serif;font-size:0.76rem"><strong>T-0: Interview Day</strong></div></div>
+              <div style="position:relative"><div style="position:absolute;left:-1.15rem;top:3px;width:8px;height:8px;border-radius:50%;background:var(--muted)"></div><div style="font-family:'Barlow',sans-serif;font-size:0.76rem"><strong>T+1hr: Feedback Form</strong><br><span style="color:var(--muted)">Sent to interviewer — logged to Sheets on response</span></div></div>
+              <div style="position:relative"><div style="position:absolute;left:-1.15rem;top:3px;width:8px;height:8px;border-radius:50%;background:var(--muted)"></div><div style="font-family:'Barlow',sans-serif;font-size:0.76rem"><strong>T+48hrs: Candidate Update</strong><br><span style="color:var(--muted)">AI sends outcome email — offer, reject, or next round</span></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:0.75rem">
+        <div style="background:var(--ink);border-radius:2px;padding:1.25rem;color:white">
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:0.85rem;letter-spacing:0.1em;color:var(--teal);margin-bottom:0.75rem">📧 T-24HR PREP PACK</div>
+          <div style="font-family:'Barlow',sans-serif;font-size:0.74rem;line-height:1.7;color:rgba(255,255,255,0.8)">
+            Hi <strong style="color:white">Adaeze</strong>,<br><br>
+            Your interview for <strong>Senior Data Analyst</strong> is tomorrow at 10:00 AM. Here's everything you need:<br><br>
+            👤 <strong>Interviewer:</strong> David Eke, Head of Analytics<br>
+            ⏱ <strong>Format:</strong> 30 min technical + 15 min culture<br>
+            🖥 <strong>Platform:</strong> Google Meet (link below)<br><br>
+            <strong>Prep Tips based on your background:</strong><br>
+            • Be ready to walk through a Python data pipeline you've built<br>
+            • Have a Power BI dashboard example ready to share<br>
+            • They'll likely ask about stakeholder communication<br><br>
+            <span style="color:var(--teal)">→ meet.google.com/abc-def-ghi</span><br><br>
+            <span style="color:rgba(255,255,255,0.4);font-size:0.65rem">Generated by n8n + GPT-4o · Zero human involvement</span>
+          </div>
+        </div>
+        <div class="info-box info-teal">💡 GPT-4o personalises the prep pack using the candidate's CV and the job description — no generic templates. Each pack is unique.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 7: BEFORE/AFTER -->
+<section class="slide" id="slide-6">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-eyebrow">06 — BUSINESS IMPACT</div><div class="sec-title">THE NUMBERS DON'T LIE</div></div>
+    <div class="animate-in two-col" style="margin-bottom:1.5rem">
+      <div>
+        <div style="font-size:0.62rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--red);margin-bottom:0.75rem;font-weight:600">❌ BEFORE</div>
+        <div style="display:flex;flex-direction:column;gap:0.5rem">
+          <div class="ba-item ba-bad">6–8 emails per candidate to agree a single slot</div>
+          <div class="ba-item ba-bad">20–30% no-show rate — no automated reminders</div>
+          <div class="ba-item ba-bad">HR manually sends prep info (or doesn't bother)</div>
+          <div class="ba-item ba-bad">Calendar conflicts discovered on interview day</div>
+          <div class="ba-item ba-bad">Feedback forms chased manually — often ignored</div>
+        </div>
+      </div>
+      <div>
+        <div style="font-size:0.62rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--green);margin-bottom:0.75rem;font-weight:600">✅ AFTER</div>
+        <div style="display:flex;flex-direction:column;gap:0.5rem">
+          <div class="ba-item ba-good">0 scheduling emails — candidate self-books in 60 seconds</div>
+          <div class="ba-item ba-good">No-show rate drops to under 5% with 3-touch reminders</div>
+          <div class="ba-item ba-good">Personalised prep pack auto-sent 24hrs before</div>
+          <div class="ba-item ba-good">Real-time calendar sync — conflicts impossible</div>
+          <div class="ba-item ba-good">Feedback auto-collected 1hr after every interview</div>
+        </div>
+      </div>
+    </div>
+    <div class="animate-in">
+      <div class="quote-block">
+        <div class="quote-text">"Every hour your HR team spends coordinating interview calendars is an hour <strong>not spent on culture, development, and the conversations that actually matter</strong>. This workflow gives that time back — permanently."</div>
+        <div style="font-size:0.62rem;color:rgba(255,255,255,0.35);letter-spacing:0.1em">STACK: n8n · GPT-4o · Calendly · Google Calendar API · Gmail · Twilio SMS · Google Sheets · Slack</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="slide-counter" id="slideCounter">Slide 1 of 7</div>
+<div class="slide-nav">
+  <button class="nav-btn" onclick="prevSlide()">← Prev</button>
+  <button class="nav-btn primary" onclick="nextSlide()">Next →</button>
+</div>
+
+<script>
+const slides=document.querySelectorAll('.slide'),total=slides.length;let cur=0;
+const dots=document.getElementById('navDots');
+for(let i=0;i<total;i++){const d=document.createElement('div');d.className='nav-dot'+(i===0?' active':'');d.onclick=()=>goTo(i);dots.appendChild(d);}
+function goTo(n){slides[cur].classList.remove('active');dots.children[cur].classList.remove('active');if(cur<n)dots.children[cur].classList.add('done');cur=n;slides[cur].classList.add('active');dots.children[cur].classList.add('active');document.getElementById('slideCounter').textContent=`Slide ${cur+1} of ${total}`;}
+function nextSlide(){if(cur<total-1)goTo(cur+1);}function prevSlide(){if(cur>0)goTo(cur-1);}
+document.addEventListener('keydown',e=>{if(e.key==='ArrowRight'||e.key==='ArrowDown')nextSlide();if(e.key==='ArrowLeft'||e.key==='ArrowUp')prevSlide();});
+let secs=0;setInterval(()=>{secs++;const m=String(Math.floor(secs/60)).padStart(2,'0'),s=String(secs%60).padStart(2,'0');document.getElementById('timerBadge').textContent=`⏱ ${m}:${s}`;if(secs>=840)document.getElementById('timerBadge').style.color='#ef476f';},1000);
+function delay(ms){return new Promise(r=>setTimeout(r,ms));}
+
+// Scheduling sim
+const candIds=['cc1','cc2','cc3','cc4','cc5'];
+const schedTimes=['Apr 7 · 10:00','Apr 8 · 09:30','Apr 7 · 15:00','Apr 9 · 11:00','Apr 8 · 13:00'];
+let schedRunning=false;
+async function runSchedSim(){
+  if(schedRunning)return;schedRunning=true;
+  const btn=document.getElementById('schedBtn');btn.textContent='Scheduling...';
+  const steps=['ss1','ss2','ss3','ss4','ss5','ss6','ss7'];
+  steps.forEach(id=>{const el=document.getElementById(id);if(el){el.style.opacity='0.3';el.querySelector('.ps-num').style.background='var(--muted)';}});
+  const light=(id)=>{steps.forEach(s=>{const el=document.getElementById(s);if(el){el.style.opacity='0.3';el.querySelector('.ps-num').style.background='var(--muted)';}});const el=document.getElementById(id);if(el){el.style.opacity='1';el.style.color='var(--teal)';el.querySelector('.ps-num').style.background='var(--teal)';}};
+  light('ss1');await delay(600);light('ss2');await delay(700);light('ss3');await delay(600);light('ss4');await delay(500);
+  for(let i=0;i<candIds.length;i++){
+    await delay(400);
+    const card=document.getElementById(candIds[i]);
+    if(!card)continue;
+    card.classList.add('scheduling');
+    card.querySelector('.st-badge').className='st-badge st-conf';
+    card.querySelector('.st-badge').textContent='Email Sent';
+  }
+  light('ss5');await delay(500);
+  for(let i=0;i<candIds.length;i++){
+    await delay(500);
+    const card=document.getElementById(candIds[i]);
+    if(!card)continue;
+    card.classList.remove('scheduling');card.classList.add('scheduled');
+    card.querySelector('.cand-time').textContent=schedTimes[i];
+    card.querySelector('.st-badge').className='st-badge st-done';
+    card.querySelector('.st-badge').textContent='Confirmed ✓';
+  }
+  light('ss6');await delay(500);light('ss7');
+  btn.textContent='↺ Reset & Run Again';schedRunning=false;
+}
+
+// Calendar sim
+let calRunning=false;
+const calBookings=[
+  {slot:'slot-1a',name:'Adaeze · 10:00'},
+  {slot:'slot-2a',name:'Gbenga · 09:30'},
+  {slot:'slot-1b',name:'Emeka · 15:00'},
+  {slot:'slot-3a',name:'Lola · 11:00'},
+  {slot:'slot-2b',name:'Ifeanyi · 13:00'},
+];
+async function runCalSim(){
+  if(calRunning)return;calRunning=true;
+  const btn=document.getElementById('calBtn');btn.textContent='Booking...';
+  // reset
+  document.querySelectorAll('.cal-slot').forEach(s=>{s.className='cal-slot';s.textContent=s.textContent.split('·')[0].trim();});
+  for(const b of calBookings){
+    await delay(700);
+    const el=document.getElementById(b.slot);
+    if(!el)continue;
+    el.classList.add('new-book');
+    el.textContent=b.name;
+    await delay(400);
+    el.classList.remove('new-book');
+    el.classList.add('booked-slot');
+  }
+  btn.textContent='↺ Reset & Run Again';calRunning=false;
+}
+</script>
+</body>
+</html>
