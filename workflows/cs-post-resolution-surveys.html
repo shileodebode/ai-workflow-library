@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Customer Service — Post-Resolution Surveys Automation</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Nunito:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,300&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f7f5ff;--surface:#ffffff;--surface2:#ede9ff;--border:#ddd6fe;--ink:#1a1030;--purple:#6d28d9;--purple2:#5b21b6;--violet:#7c3aed;--lavender:#ede9fe;--lilac:#f5f3ff;--green:#16a34a;--red:#dc2626;--amber:#d97706;--blue:#1d4ed8;--pink:#be185d;--text:#2a1a50;--muted:#7c6fa0;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'Nunito',sans-serif;overflow-x:hidden;}
+.top-glow{position:fixed;top:0;left:0;right:0;height:4px;z-index:200;background:linear-gradient(90deg,var(--purple),var(--violet),#a855f7);}
+nav{position:fixed;top:4px;left:0;right:0;z-index:100;background:rgba(247,245,255,0.97);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 2.5rem;height:54px;}
+.nav-brand{font-family:'DM Mono',monospace;font-size:0.72rem;color:var(--purple2);letter-spacing:0.04em;}
+.nav-dots{display:flex;gap:0.3rem;}
+.nav-dot{width:7px;height:7px;border-radius:50%;background:var(--border);cursor:pointer;transition:all 0.2s;}
+.nav-dot.active{background:var(--purple);transform:scale(1.5);}
+.nav-dot.done{background:var(--green);}
+.timer{font-size:0.67rem;color:var(--purple);background:rgba(109,40,217,0.08);border:1px solid rgba(109,40,217,0.2);padding:0.2rem 0.75rem;border-radius:20px;font-family:'DM Mono',monospace;}
+.slide{min-height:100vh;padding:78px 0 50px;display:none;flex-direction:column;align-items:center;justify-content:center;position:relative;overflow:hidden;}
+.slide.active{display:flex;}
+.slide-inner{width:100%;max-width:1140px;padding:0 2.5rem;position:relative;z-index:2;}
+.hero-stars{position:absolute;right:5%;top:15%;font-size:12rem;opacity:0.06;pointer-events:none;}
+.hero-blob{position:absolute;bottom:-80px;left:-80px;width:450px;height:450px;border-radius:50%;background:radial-gradient(circle,rgba(109,40,217,0.06) 0%,transparent 65%);pointer-events:none;}
+.hero-badge{display:inline-flex;align-items:center;gap:0.45rem;background:var(--lavender);border:1px solid rgba(109,40,217,0.2);color:var(--purple2);font-size:0.67rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;padding:0.28rem 0.85rem;border-radius:20px;margin-bottom:1.5rem;font-family:'DM Mono',monospace;}
+.hero-badge::before{content:'⭐';font-size:0.65rem;}
+h1.hero-title{font-family:'DM Serif Display',serif;font-size:clamp(2.8rem,5.5vw,4.8rem);font-weight:400;line-height:1.05;letter-spacing:-0.01em;color:var(--ink);margin-bottom:1.5rem;}
+h1.hero-title em{font-style:italic;color:var(--purple);}
+.hero-desc{font-size:0.97rem;color:var(--muted);max-width:510px;line-height:1.78;margin-bottom:2.5rem;font-weight:400;}
+.kpi-strip{display:flex;gap:1px;background:var(--border);border:1px solid var(--border);border-radius:16px;overflow:hidden;max-width:620px;box-shadow:0 2px 16px rgba(109,40,217,0.08);}
+.kpi{background:white;padding:1.1rem 1.4rem;flex:1;}
+.kpi-val{font-family:'DM Serif Display',serif;font-size:2rem;font-weight:400;color:var(--purple);line-height:1;}
+.kpi-lbl{font-size:0.59rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);margin-top:0.2rem;font-family:'DM Mono',monospace;}
+.sec-tag{font-size:0.61rem;letter-spacing:0.22em;text-transform:uppercase;color:var(--purple);margin-bottom:0.4rem;font-weight:700;font-family:'DM Mono',monospace;}
+.sec-title{font-family:'DM Serif Display',serif;font-size:clamp(1.9rem,3.8vw,3rem);font-weight:400;line-height:1.1;margin-bottom:0.5rem;color:var(--ink);}
+.sec-title em{font-style:italic;color:var(--purple);}
+.sec-desc{font-size:0.87rem;color:var(--muted);margin-bottom:1.85rem;max-width:540px;line-height:1.78;}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;}
+.three-col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;}
+.lr{display:grid;grid-template-columns:1.1fr 1fr;gap:2rem;align-items:start;}
+.lr-rev{display:grid;grid-template-columns:1fr 1.15fr;gap:2rem;align-items:start;}
+.card{background:white;border:1px solid var(--border);border-radius:16px;padding:1.25rem;transition:all 0.2s;box-shadow:0 1px 6px rgba(109,40,217,0.05);}
+.card:hover{border-color:var(--purple);transform:translateY(-2px);box-shadow:0 6px 20px rgba(109,40,217,0.1);}
+.card-icon{font-size:1.4rem;margin-bottom:0.5rem;}
+.card-title{font-family:'DM Serif Display',serif;font-size:1.05rem;font-weight:400;margin-bottom:0.3rem;color:var(--ink);}
+.card-desc{font-size:0.72rem;color:var(--muted);line-height:1.65;}
+.panel{background:white;border:1px solid var(--border);border-radius:14px;padding:1.4rem;}
+.panel h3{font-family:'DM Serif Display',serif;font-size:1rem;font-weight:400;color:var(--purple2);margin-bottom:0.9rem;display:flex;align-items:center;gap:0.5rem;}
+.panel h3::before{content:'✦';color:var(--purple);font-size:0.8rem;}
+.steps{list-style:none;}
+.steps li{display:flex;gap:0.75rem;padding:0.45rem 0;border-bottom:1px solid var(--border);font-size:0.76rem;line-height:1.6;}
+.steps li:last-child{border-bottom:none;}
+.step-n{width:22px;height:22px;border-radius:50%;background:var(--purple);color:white;font-size:0.62rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+/* Workflow */
+.wf-canvas{background:var(--ink);border-radius:18px;padding:2rem;position:relative;overflow:hidden;}
+.wf-stars-bg{position:absolute;inset:0;background-image:radial-gradient(circle,rgba(109,40,217,0.2) 1px,transparent 1px);background-size:24px 24px;opacity:0.5;}
+.wf-glow{position:absolute;top:-40px;right:-40px;width:350px;height:350px;background:radial-gradient(circle,rgba(124,58,237,0.1) 0%,transparent 65%);}
+.wf-label{position:absolute;top:0.75rem;left:1rem;font-size:0.57rem;letter-spacing:0.18em;text-transform:uppercase;color:rgba(255,255,255,0.3);display:flex;align-items:center;gap:0.4rem;z-index:3;font-family:'DM Mono',monospace;}
+.wf-label::before{content:'';width:7px;height:7px;border-radius:50%;background:#a855f7;box-shadow:0 0 8px #a855f7;animation:ppulse 2s infinite;}
+@keyframes ppulse{0%,100%{opacity:1}50%{opacity:0.2}}
+.wf-nodes{display:flex;align-items:flex-start;gap:0;padding-top:1.5rem;position:relative;z-index:2;flex-wrap:wrap;}
+.wf-stage{display:flex;flex-direction:column;align-items:center;}
+.wf-slbl{font-size:0.51rem;letter-spacing:0.14em;text-transform:uppercase;color:rgba(255,255,255,0.28);margin-bottom:0.3rem;font-family:'DM Mono',monospace;}
+.wf-node{display:flex;flex-direction:column;align-items:center;gap:0.3rem;cursor:pointer;position:relative;}
+.wf-box{width:58px;height:58px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:1.25rem;border:2px solid transparent;transition:all 0.3s;}
+.wf-node:hover .wf-box{transform:scale(1.1);box-shadow:0 0 20px rgba(109,40,217,0.4);}
+.wf-nlbl{font-size:0.52rem;text-align:center;color:rgba(255,255,255,0.42);max-width:66px;line-height:1.3;font-family:'DM Mono',monospace;}
+.wf-arr{color:rgba(255,255,255,0.18);padding:0 0.2rem;font-size:0.85rem;align-self:flex-start;margin-top:19px;flex-shrink:0;}
+.ttw{position:relative;}
+.tti{position:absolute;bottom:calc(100%+8px);left:50%;transform:translateX(-50%);background:white;border:1px solid var(--border);border-radius:10px;padding:0.6rem 0.9rem;font-size:0.67rem;opacity:0;pointer-events:none;transition:opacity 0.2s;z-index:50;color:var(--ink);line-height:1.5;max-width:200px;white-space:normal;text-align:left;box-shadow:0 4px 16px rgba(109,40,217,0.1);}
+.ttw:hover .tti{opacity:1;}
+/* Survey card */
+.survey-card{background:white;border:1px solid var(--border);border-radius:14px;overflow:hidden;box-shadow:0 2px 12px rgba(109,40,217,0.07);}
+.sc-header{background:linear-gradient(135deg,var(--purple),var(--violet));color:white;padding:0.85rem 1.1rem;}
+.sc-title{font-family:'DM Serif Display',serif;font-size:0.95rem;font-weight:400;}
+.sc-body{padding:1rem;}
+.sc-q{font-size:0.75rem;font-weight:600;color:var(--ink);margin-bottom:0.5rem;}
+.star-row{display:flex;gap:0.35rem;margin-bottom:0.85rem;}
+.star{font-size:1.5rem;cursor:pointer;transition:transform 0.15s;opacity:0.25;}
+.star.lit{opacity:1;}
+.star:hover{transform:scale(1.2);}
+.sc-textarea{background:var(--lilac);border:1px solid var(--border);border-radius:8px;padding:0.5rem 0.75rem;font-size:0.73rem;font-family:'Nunito',sans-serif;color:var(--text);width:100%;min-height:40px;margin-bottom:0.65rem;}
+.sc-btn{background:var(--purple);color:white;border:none;border-radius:20px;padding:0.5rem 1.2rem;font-family:'Nunito',sans-serif;font-size:0.75rem;font-weight:700;cursor:pointer;width:100%;}
+/* Response cards */
+.resp-card{background:white;border:1px solid var(--border);border-radius:10px;padding:0.85rem 1rem;margin-bottom:0.5rem;display:flex;gap:0.75rem;align-items:flex-start;transition:all 0.3s;}
+.resp-card.positive{border-color:#a855f7;background:rgba(168,85,247,0.03);}
+.resp-card.negative{border-color:var(--red);background:rgba(220,38,38,0.03);}
+.resp-card.neutral{border-color:var(--amber);background:rgba(217,119,6,0.03);}
+.rc-stars{font-size:0.75rem;margin-bottom:0.15rem;}
+.rc-name{font-weight:700;font-size:0.75rem;color:var(--ink);}
+.rc-comment{font-size:0.67rem;color:var(--muted);font-style:italic;margin-top:0.15rem;}
+.rc-badge{margin-left:auto;font-size:0.59rem;padding:0.1rem 0.45rem;border-radius:20px;font-weight:700;font-family:'DM Mono',monospace;white-space:nowrap;}
+.rb-pos{background:rgba(109,40,217,0.1);color:var(--purple);border:1px solid rgba(109,40,217,0.2);}
+.rb-neg{background:rgba(220,38,38,0.1);color:var(--red);border:1px solid rgba(220,38,38,0.2);}
+.rb-neu{background:rgba(217,119,6,0.1);color:var(--amber);border:1px solid rgba(217,119,6,0.2);}
+/* Insights panel */
+.insight-row{display:flex;align-items:center;gap:0.85rem;padding:0.6rem 0.85rem;background:white;border:1px solid var(--border);border-radius:8px;margin-bottom:0.4rem;font-size:0.73rem;transition:all 0.3s;}
+.insight-row.reveal{border-color:var(--purple);background:rgba(109,40,217,0.03);}
+.ins-icon{font-size:1.1rem;flex-shrink:0;}
+.ins-pct{margin-left:auto;font-family:'DM Mono',monospace;font-size:0.7rem;font-weight:700;color:var(--purple);}
+/* CSAT score */
+.csat-big{text-align:center;padding:1.25rem;background:white;border:1px solid var(--border);border-radius:14px;}
+.csat-num{font-family:'DM Serif Display',serif;font-size:3.5rem;color:var(--purple);line-height:1;}
+.csat-label{font-size:0.62rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);font-family:'DM Mono',monospace;margin-top:0.25rem;}
+/* PS list */
+.ps-list{list-style:none;}
+.ps-list li{display:flex;gap:0.75rem;padding:0.45rem 0;border-bottom:1px solid var(--border);font-size:0.74rem;line-height:1.5;transition:all 0.3s;}
+.ps-list li:last-child{border-bottom:none;}
+.ps-num{width:20px;height:20px;border-radius:50%;background:var(--border);color:white;font-size:0.6rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;transition:background 0.3s;}
+/* Info boxes */
+.info-purple{padding:0.75rem 1rem;border-radius:10px;font-size:0.77rem;line-height:1.6;background:rgba(109,40,217,0.06);border:1px solid rgba(109,40,217,0.15);color:var(--purple2);}
+.ba-bad{padding:0.6rem 0.9rem;border-radius:8px;font-size:0.76rem;line-height:1.5;background:rgba(220,38,38,0.04);border:1px solid rgba(220,38,38,0.12);}
+.ba-good{padding:0.6rem 0.9rem;border-radius:8px;font-size:0.76rem;line-height:1.5;background:rgba(22,163,74,0.05);border:1px solid rgba(22,163,74,0.14);}
+.quote-block{background:var(--ink);border-radius:16px;padding:1.75rem 2rem;color:white;}
+.quote-text{font-family:'DM Serif Display',serif;font-style:italic;font-size:1.15rem;line-height:1.75;margin-bottom:0.75rem;font-weight:400;}
+.quote-text strong{color:#c4b5fd;font-style:normal;}
+.slide-counter{position:fixed;bottom:1.5rem;left:2rem;font-size:0.62rem;color:var(--muted);z-index:100;font-family:'DM Mono',monospace;}
+.slide-nav{position:fixed;bottom:1.5rem;right:2rem;display:flex;gap:0.5rem;z-index:100;}
+.nav-btn{background:white;border:1px solid var(--border);color:var(--text);padding:0.55rem 1.2rem;border-radius:10px;font-family:'DM Mono',monospace;font-size:0.7rem;cursor:pointer;transition:all 0.2s;}
+.nav-btn:hover{border-color:var(--purple);color:var(--purple);}
+.nav-btn.primary{background:var(--purple);border-color:var(--purple);color:white;}
+.nav-btn.primary:hover{background:var(--purple2);}
+.run-btn{background:var(--purple);color:white;border:none;border-radius:20px;padding:0.7rem 1.5rem;font-family:'DM Mono',monospace;font-size:0.72rem;cursor:pointer;transition:all 0.2s;width:100%;text-align:center;}
+.run-btn:hover{background:var(--purple2);}
+.animate-in{opacity:0;animation:fadeUp 0.5s ease-out forwards;}
+.slide.active .animate-in:nth-child(1){animation-delay:0.05s;}
+.slide.active .animate-in:nth-child(2){animation-delay:0.15s;}
+.slide.active .animate-in:nth-child(3){animation-delay:0.25s;}
+.slide.active .animate-in:nth-child(4){animation-delay:0.35s;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+</style>
+</head>
+<body>
+<div class="top-glow"></div>
+<nav>
+  <div class="nav-brand">CS · Post-Resolution Surveys</div>
+  <div class="nav-dots" id="navDots"></div>
+  <div class="timer" id="timerBadge">⏱ 00:00</div>
+</nav>
+
+<!-- SLIDE 1: HERO -->
+<section class="slide active" id="slide-0">
+  <div class="hero-stars">⭐</div><div class="hero-blob"></div>
+  <div class="slide-inner">
+    <div class="animate-in"><div class="hero-badge">n8n AI Automation · Customer Service</div></div>
+    <div class="animate-in"><h1 class="hero-title">Every Customer<br>Heard. Every<br><em>Insight Used.</em></h1></div>
+    <div class="animate-in"><p class="hero-desc">Automated CSAT surveys sent at the perfect moment, responses analysed by AI, and actionable insights delivered to the right team — without lifting a finger.</p></div>
+    <div class="animate-in">
+      <div class="kpi-strip">
+        <div class="kpi"><div class="kpi-val">3×</div><div class="kpi-lbl">Survey Response Rate</div></div>
+        <div class="kpi"><div class="kpi-val">100%</div><div class="kpi-lbl">Auto-Analysed</div></div>
+        <div class="kpi"><div class="kpi-val">Live</div><div class="kpi-lbl">CSAT Dashboard</div></div>
+        <div class="kpi"><div class="kpi-val">0</div><div class="kpi-lbl">Insight Lost</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 2: PROBLEM -->
+<section class="slide" id="slide-1">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">01 — The Problem</div><div class="sec-title">Feedback You <em>Never</em><br>Actually Receive</div><p class="sec-desc">Most businesses think they understand their customer experience. Most don't — because they ask at the wrong time, analyse nothing, and act on even less.</p></div>
+    <div class="animate-in two-col" style="margin-bottom:1.5rem">
+      <div class="card"><div class="card-icon">⏰</div><div class="card-title">Wrong Timing</div><div class="card-desc">Monthly bulk surveys. Quarterly NPS blasts. By the time you ask, the customer has forgotten the experience — or it's been too long and they've churned. Timing is everything.</div></div>
+      <div class="card"><div class="card-icon">📊</div><div class="card-title">Unread Reports</div><div class="card-desc">Survey responses go into a spreadsheet or a dashboard nobody opens. The feedback exists but is never acted on. The same issues recur quarter after quarter.</div></div>
+      <div class="card"><div class="card-icon">😤</div><div class="card-title">Negative Feedback Ignored</div><div class="card-desc">A customer rates you 1 star and writes a scathing comment. Nobody sees it for 3 weeks. No follow-up, no rescue — just a lost customer who feels unheard.</div></div>
+      <div class="card"><div class="card-icon">🔇</div><div class="card-title">Low Response Rates</div><div class="card-desc">Generic survey links sent to everyone. 6% open rate. 1.5% completion. The feedback you do get is unrepresentative — mostly extreme opinions, nothing useful in the middle.</div></div>
+    </div>
+    <div class="animate-in"><div class="info-purple">✅ n8n sends surveys automatically at resolution, analyses every response with GPT-4o, escalates negative feedback instantly, and builds a live CSAT dashboard.</div></div>
+  </div>
+</section>
+
+<!-- SLIDE 3: WORKFLOW -->
+<section class="slide" id="slide-2">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">02 — The Blueprint</div><div class="sec-title">n8n Survey <em>Automation</em><br>Workflow</div><p class="sec-desc">Ticket resolved → survey sent → response analysed → insight acted on. The whole loop automated, every time, for every customer.</p></div>
+    <div class="animate-in wf-canvas">
+      <div class="wf-stars-bg"></div><div class="wf-glow"></div><div class="wf-label">n8n canvas — CSAT survey pipeline</div>
+      <div class="wf-nodes">
+        <div class="wf-stage"><div class="wf-slbl">Trigger</div>
+          <div style="display:flex;flex-direction:column;gap:0.35rem">
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#0a1a1a,#065f46);color:#6ee7b7;border-color:#065f46;">✅</div><div class="wf-nlbl">Ticket<br>Resolved</div><div class="tti">Zendesk/Freshdesk webhook fires when ticket status changes to Resolved. Triggers survey pipeline for all ticket types.</div></div>
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a0a1a,#7c3aed);color:#d8b4fe;border-color:#7c3aed;">⏰</div><div class="wf-nlbl">Timed<br>Wait</div><div class="tti">n8n waits 30 minutes after resolution before sending survey. Gives customer time to confirm the solution works — increases honest positive responses.</div></div>
+          </div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-stage"><div class="wf-slbl">Personalise</div>
+          <div style="display:flex;flex-direction:column;gap:0.35rem">
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a0a0a,#991b1b);color:#fca5a5;border-color:#991b1b;">🧠</div><div class="wf-nlbl">GPT-4o<br>Tailor</div><div class="tti">GPT-4o personalises the survey: uses customer name, references the specific issue resolved, and adjusts tone based on ticket sentiment history.</div></div>
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#0a1a2a,#1d4ed8);color:#93c5fd;border-color:#1d4ed8;">🎯</div><div class="wf-nlbl">Channel<br>Select</div><div class="tti">Survey sent via the same channel the ticket was raised: Email ticket → email survey. Chat ticket → in-chat rating. WhatsApp ticket → WhatsApp survey.</div></div>
+          </div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-stage"><div class="wf-slbl">Collect</div>
+          <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a1a0a,#78350f);color:#fde68a;border-color:#78350f;">⭐</div><div class="wf-nlbl">Rating +<br>Comment</div><div class="tti">One-click star rating (1–5) + optional text comment. Simple enough for 90%+ completion rate. Low friction = high response rate.</div></div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-stage"><div class="wf-slbl">Analyse</div>
+          <div style="display:flex;flex-direction:column;gap:0.35rem">
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a0a0a,#991b1b);color:#fca5a5;border-color:#991b1b;">🧠</div><div class="wf-nlbl">GPT-4o<br>Analyse</div><div class="tti">GPT-4o categorises response: Positive/Neutral/Negative. Extracts themes: wait time, agent quality, resolution effectiveness. Flags agent coaching opportunities.</div></div>
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#2a0a1a,#9d174d);color:#fbcfe8;border-color:#9d174d;">🚨</div><div class="wf-nlbl">Alert<br>Router</div><div class="tti">1-2 star: CS manager notified immediately + save-the-customer email drafted. 3 star: logged for review. 4-5 star: logged + agent recognition message sent.</div></div>
+          </div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-stage"><div class="wf-slbl">Act</div>
+          <div style="display:flex;flex-direction:column;gap:0.35rem">
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#0a0a1a,#1e3a5f);color:#93c5fd;border-color:#1e3a5f;">📊</div><div class="wf-nlbl">CSAT<br>Dashboard</div><div class="tti">All responses feed live dashboard: overall CSAT score, trend over time, by agent, by ticket type. Weekly digest sent to CS manager every Monday.</div></div>
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#0a1a1a,#065f46);color:#6ee7b7;border-color:#065f46;">🔁</div><div class="wf-nlbl">Training<br>Loop</div><div class="tti">Recurring negative themes automatically surfaced to CS manager monthly. Agent coaching triggers for low-rated interactions. Knowledge base gaps flagged.</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 4: SIM 1 — SURVEY -->
+<section class="slide" id="slide-3">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">03 — Simulation 1</div><div class="sec-title">Live: Survey Sent &<br><em>Response Analysed</em></div><p class="sec-desc">Amaka's password reset ticket was just resolved. Watch n8n send a personalised survey, collect her response, and analyse the feedback — fully automated.</p></div>
+    <div class="animate-in lr">
+      <div style="display:flex;flex-direction:column;gap:1rem">
+        <div class="panel">
+          <h3>Survey Pipeline</h3>
+          <ul class="ps-list" id="surveySteps">
+            <li id="sv1" style="opacity:0.3"><div class="ps-num">1</div><div>Ticket resolved webhook fires from Zendesk</div></li>
+            <li id="sv2" style="opacity:0.3"><div class="ps-num">2</div><div>30-minute wait — confirmation window</div></li>
+            <li id="sv3" style="opacity:0.3"><div class="ps-num">3</div><div>GPT-4o personalises survey with ticket context</div></li>
+            <li id="sv4" style="opacity:0.3"><div class="ps-num">4</div><div>Survey email sent to Amaka's inbox</div></li>
+            <li id="sv5" style="opacity:0.3"><div class="ps-num">5</div><div>Response received — GPT-4o analyses sentiment</div></li>
+            <li id="sv6" style="opacity:0.3"><div class="ps-num">6</div><div>4-star logged · Agent praised in Slack ✅</div></li>
+          </ul>
+        </div>
+        <button class="run-btn" id="survBtn" onclick="runSurveySim()">▶ SEND & COLLECT SURVEY</button>
+      </div>
+      <div>
+        <div class="survey-card" id="surveyCard">
+          <div class="sc-header"><div class="sc-title">How did we do, Amaka? ⭐</div><div style="font-size:0.65rem;opacity:0.75;margin-top:0.15rem">Re: Password reset — resolved by Kemi A.</div></div>
+          <div class="sc-body">
+            <div class="sc-q">How would you rate your support experience today?</div>
+            <div class="star-row" id="starRow">
+              <span class="star" id="s1">⭐</span><span class="star" id="s2">⭐</span><span class="star" id="s3">⭐</span><span class="star" id="s4">⭐</span><span class="star" id="s5">⭐</span>
+            </div>
+            <div class="sc-q">Any comments? (optional)</div>
+            <div class="sc-textarea" id="survComment"></div>
+            <button class="sc-btn" id="survSubmitBtn">Submit Feedback →</button>
+            <div id="survThanks" style="display:none;text-align:center;font-size:0.75rem;color:var(--green);padding:0.5rem;background:rgba(22,163,74,0.06);border:1px solid rgba(22,163,74,0.18);border-radius:8px;margin-top:0.4rem">✅ Thank you Amaka! Your feedback helps us improve every day.</div>
+          </div>
+        </div>
+        <div id="analysisReveal" style="display:none;margin-top:0.85rem">
+          <div class="panel">
+            <h3>GPT-4o Analysis</h3>
+            <div style="font-size:0.73rem;line-height:1.75">
+              <strong>Rating:</strong> ⭐⭐⭐⭐ (4/5)<br>
+              <strong>Sentiment:</strong> Positive · Theme: Agent quality<br>
+              <strong>Key phrase:</strong> "Kemi was really helpful and patient"<br>
+              <strong>Action:</strong> Agent praise sent to Kemi via Slack ✅<br>
+              <strong>CSAT contribution:</strong> Added to live dashboard
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 5: SIM 2 — RESPONSE BOARD -->
+<section class="slide" id="slide-4">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">04 — Simulation 2</div><div class="sec-title">Live Response Board<br><em>& Auto-Actions</em></div><p class="sec-desc">Watch a week's worth of survey responses stream in — each one classified, acted on, and fed into the CSAT dashboard automatically.</p></div>
+    <div class="animate-in lr-rev">
+      <div style="display:flex;flex-direction:column;gap:1rem">
+        <div class="three-col" style="margin-bottom:0.5rem">
+          <div class="csat-big"><div class="csat-num" id="csatNum">—</div><div class="csat-label">CSAT Score</div></div>
+          <div class="csat-big"><div class="csat-num" style="color:var(--green);font-size:2.2rem" id="positiveNum">—</div><div class="csat-label">Positive</div></div>
+          <div class="csat-big"><div class="csat-num" style="color:var(--red);font-size:2.2rem" id="negativeNum">—</div><div class="csat-label">Negative</div></div>
+        </div>
+        <div class="panel">
+          <h3>Auto-Actions Per Score</h3>
+          <ul class="steps">
+            <li><div class="step-n">⭐</div><div><strong>1–2 stars:</strong> Manager alerted instantly + save-the-customer email drafted</div></li>
+            <li><div class="step-n">⭐</div><div><strong>3 stars:</strong> Logged for weekly review + improvement theme tracked</div></li>
+            <li><div class="step-n">⭐</div><div><strong>4–5 stars:</strong> Agent praised in Slack + used for testimonial pipeline</div></li>
+          </ul>
+        </div>
+        <button class="run-btn" id="boardBtn" onclick="runBoardSim()">▶ STREAM SURVEY RESPONSES</button>
+      </div>
+      <div id="responseBoard" style="display:flex;flex-direction:column;gap:0.4rem;max-height:380px;overflow-y:auto">
+        <div style="font-size:0.61rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);font-family:'DM Mono',monospace;margin-bottom:0.1rem">Live response feed</div>
+        <div class="resp-card" id="rc1"><div><div class="rc-stars">⭐⭐⭐⭐⭐</div><div class="rc-name">Oluwaseun A.</div><div class="rc-comment">"Fastest support I've ever had. Amazing!"</div></div><span class="rc-badge rb-pos" id="rcb1">—</span></div>
+        <div class="resp-card" id="rc2"><div><div class="rc-stars">⭐</div><div class="rc-name">Tunde L.</div><div class="rc-comment">"Waited 3 days and issue still not fixed."</div></div><span class="rc-badge rb-neg" id="rcb2">—</span></div>
+        <div class="resp-card" id="rc3"><div><div class="rc-stars">⭐⭐⭐⭐</div><div class="rc-name">Amaka O.</div><div class="rc-comment">"Kemi was really helpful and patient."</div></div><span class="rc-badge rb-pos" id="rcb3">—</span></div>
+        <div class="resp-card" id="rc4"><div><div class="rc-stars">⭐⭐⭐</div><div class="rc-name">Ngozi E.</div><div class="rc-comment">"Resolved but took longer than expected."</div></div><span class="rc-badge rb-neu" id="rcb4">—</span></div>
+        <div class="resp-card" id="rc5"><div><div class="rc-stars">⭐⭐⭐⭐⭐</div><div class="rc-name">Fatima B.</div><div class="rc-comment">"10/10 — would recommend to anyone!"</div></div><span class="rc-badge rb-pos" id="rcb5">—</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 6: BEFORE/AFTER -->
+<section class="slide" id="slide-5">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">05 — Business Impact</div><div class="sec-title"><em>Feedback</em> That<br>Actually Changes Things</div></div>
+    <div class="animate-in two-col" style="margin-bottom:1.5rem">
+      <div>
+        <div style="font-size:0.62rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--red);margin-bottom:0.75rem;font-weight:700">❌ BEFORE</div>
+        <div style="display:flex;flex-direction:column;gap:0.5rem">
+          <div class="ba-bad">Monthly surveys — customers forget the experience entirely</div>
+          <div class="ba-bad">6% response rate — feedback from only extremes, not the middle</div>
+          <div class="ba-bad">1-star responses sit unseen — customer churns quietly</div>
+          <div class="ba-bad">CSAT data in a spreadsheet nobody reads or acts on</div>
+          <div class="ba-bad">Agents get no feedback — can't improve, don't feel recognised</div>
+        </div>
+      </div>
+      <div>
+        <div style="font-size:0.62rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--green);margin-bottom:0.75rem;font-weight:700">✅ AFTER</div>
+        <div style="display:flex;flex-direction:column;gap:0.5rem">
+          <div class="ba-good">Survey sent 30 min after resolution — peak emotional recall</div>
+          <div class="ba-good">3× higher response rate — right time, right channel, personalised</div>
+          <div class="ba-good">1-2 star responses escalated immediately — customer saved</div>
+          <div class="ba-good">Live CSAT dashboard — management sees trends as they happen</div>
+          <div class="ba-good">Agents praised for 5-star interactions — morale and retention improve</div>
+        </div>
+      </div>
+    </div>
+    <div class="animate-in">
+      <div class="quote-block">
+        <div class="quote-text">"A customer who leaves feedback — <strong>positive or negative</strong> — is a customer still engaged. The automation makes sure you hear every voice, act on every signal, and never let a frustrated customer slip away unnoticed."</div>
+        <div style="font-size:0.62rem;color:rgba(255,255,255,0.3);font-family:'DM Mono',monospace">STACK: n8n · GPT-4o · Zendesk · Gmail · WhatsApp API · Typeform · Google Sheets · Slack</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="slide-counter" id="slideCounter">Slide 1 of 6</div>
+<div class="slide-nav">
+  <button class="nav-btn" onclick="prevSlide()">← Prev</button>
+  <button class="nav-btn primary" onclick="nextSlide()">Next →</button>
+</div>
+<script>
+const slides=document.querySelectorAll('.slide'),total=slides.length;let cur=0;
+const dots=document.getElementById('navDots');
+for(let i=0;i<total;i++){const d=document.createElement('div');d.className='nav-dot'+(i===0?' active':'');d.onclick=()=>goTo(i);dots.appendChild(d);}
+function goTo(n){slides[cur].classList.remove('active');dots.children[cur].classList.remove('active');if(cur<n)dots.children[cur].classList.add('done');cur=n;slides[cur].classList.add('active');dots.children[cur].classList.add('active');document.getElementById('slideCounter').textContent=`Slide ${cur+1} of ${total}`;}
+function nextSlide(){if(cur<total-1)goTo(cur+1);}function prevSlide(){if(cur>0)goTo(cur-1);}
+document.addEventListener('keydown',e=>{if(e.key==='ArrowRight'||e.key==='ArrowDown')nextSlide();if(e.key==='ArrowLeft'||e.key==='ArrowUp')prevSlide();});
+let secs=0;setInterval(()=>{secs++;const m=String(Math.floor(secs/60)).padStart(2,'0'),s=String(secs%60).padStart(2,'0');document.getElementById('timerBadge').textContent=`⏱ ${m}:${s}`;if(secs>=840)document.getElementById('timerBadge').style.color='#dc2626';},1000);
+function delay(ms){return new Promise(r=>setTimeout(r,ms));}
+
+let survRunning=false;
+async function runSurveySim(){
+  if(survRunning)return;survRunning=true;
+  const btn=document.getElementById('survBtn');btn.textContent='Sending...';
+  document.getElementById('survThanks').style.display='none';
+  document.getElementById('analysisReveal').style.display='none';
+  document.getElementById('survSubmitBtn').style.display='block';
+  document.getElementById('survComment').textContent='';
+  for(let i=1;i<=5;i++){const s=document.getElementById('s'+i);if(s)s.className='star';}
+  const steps=['sv1','sv2','sv3','sv4','sv5','sv6'];
+  steps.forEach(id=>{const el=document.getElementById(id);if(el){el.style.opacity='0.3';el.querySelector('.ps-num').style.background='var(--border)';}});
+  const light=(i)=>{steps.forEach(id=>{const el=document.getElementById(id);if(el){el.style.opacity='0.3';el.querySelector('.ps-num').style.background='var(--border)';}});const el=document.getElementById(steps[i]);if(el){el.style.opacity='1';el.style.color='var(--purple)';el.querySelector('.ps-num').style.background='var(--purple)';}};
+  for(let s=0;s<4;s++){light(s);await delay(500);}
+  // Fill stars
+  for(let i=1;i<=4;i++){await delay(180);document.getElementById('s'+i).className='star lit';}
+  // Type comment
+  const comment="Kemi was really helpful and patient — resolved quickly!";
+  const comm=document.getElementById('survComment');let ci=0;
+  await new Promise(r=>{const iv=setInterval(()=>{comm.textContent=comment.slice(0,++ci);if(ci>=comment.length){clearInterval(iv);r();}},28);});
+  await delay(500);
+  document.getElementById('survSubmitBtn').style.display='none';
+  document.getElementById('survThanks').style.display='block';
+  light(4);await delay(600);light(5);
+  document.getElementById('analysisReveal').style.display='block';
+  btn.textContent='↺ Reset & Run Again';survRunning=false;
+}
+
+const boardData=[
+  {id:'rc1',b:'rcb1',cls:'positive',txt:'Positive ✓',bcls:'rb-pos'},
+  {id:'rc2',b:'rcb2',cls:'negative',txt:'🚨 Escalated',bcls:'rb-neg'},
+  {id:'rc3',b:'rcb3',cls:'positive',txt:'Positive ✓',bcls:'rb-pos'},
+  {id:'rc4',b:'rcb4',cls:'neutral',txt:'Review →',bcls:'rb-neu'},
+  {id:'rc5',b:'rcb5',cls:'positive',txt:'Positive ✓',bcls:'rb-pos'},
+];
+let boardRunning=false,positives=0,negatives=0;
+async function runBoardSim(){
+  if(boardRunning)return;boardRunning=true;positives=0;negatives=0;
+  const btn=document.getElementById('boardBtn');btn.textContent='Streaming...';
+  document.getElementById('csatNum').textContent='—';
+  document.getElementById('positiveNum').textContent='—';
+  document.getElementById('negativeNum').textContent='—';
+  boardData.forEach(d=>{const el=document.getElementById(d.id);const b=document.getElementById(d.b);if(el)el.className='resp-card';if(b){b.className='rc-badge '+d.bcls;b.textContent='Analysing...';}});
+  for(const d of boardData){
+    await delay(700);
+    const el=document.getElementById(d.id);const b=document.getElementById(d.b);
+    if(el)el.classList.add(d.cls);
+    if(b){b.className='rc-badge '+d.bcls;b.textContent=d.txt;}
+    if(d.cls==='positive')positives++;
+    else if(d.cls==='negative')negatives++;
+    document.getElementById('positiveNum').textContent=positives;
+    document.getElementById('negativeNum').textContent=negatives;
+    const score=Math.round(((positives/(positives+negatives+(boardData.indexOf(d)+1-positives-negatives)))*5)*10)/10;
+    document.getElementById('csatNum').textContent=score.toFixed(1);
+  }
+  document.getElementById('csatNum').textContent='4.2';
+  btn.textContent='↺ Reset & Run Again';boardRunning=false;
+}
+</script>
+</body>
+</html>
