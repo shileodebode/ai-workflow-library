@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Marketing — Lead Magnet & Nurture Automation</title>
+<link href="https://fonts.googleapis.com/css2?family=Clash+Display:wght@400;500;600;700&family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#fff8fb;--surface:#ffffff;--surface2:#ffeef6;--border:#f0d0e4;
+  --ink:#1a0820;--pink:#d4186c;--pink2:#a8125a;--rose:#f03e8a;
+  --magenta:#e8107a;--blush:#fff0f7;--green:#1a7a42;--red:#c82828;
+  --amber:#c47a10;--blue:#1a52a8;--text:#280a1a;--muted:#9070a0;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'Space Grotesk',sans-serif;overflow-x:hidden;}
+.top-stripe{position:fixed;top:0;left:0;right:0;height:4px;z-index:200;background:linear-gradient(90deg,var(--pink),var(--rose),#f97316,var(--rose),var(--pink));}
+nav{position:fixed;top:4px;left:0;right:0;z-index:100;background:rgba(255,248,251,0.97);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 2.5rem;height:54px;}
+.nav-brand{font-family:'Space Mono',monospace;font-size:0.7rem;color:var(--pink2);letter-spacing:0.06em;}
+.nav-dots{display:flex;gap:0.3rem;}
+.nav-dot{width:7px;height:7px;border-radius:50%;background:var(--border);cursor:pointer;transition:all 0.2s;}
+.nav-dot.active{background:var(--pink);transform:scale(1.5);}
+.nav-dot.done{background:var(--green);}
+.timer{font-size:0.67rem;color:var(--pink);background:rgba(212,24,108,0.08);border:1px solid rgba(212,24,108,0.2);padding:0.2rem 0.75rem;border-radius:20px;font-family:'Space Mono',monospace;}
+.slide{min-height:100vh;padding:78px 0 50px;display:none;flex-direction:column;align-items:center;justify-content:center;position:relative;overflow:hidden;}
+.slide.active{display:flex;}
+.slide-inner{width:100%;max-width:1140px;padding:0 2.5rem;position:relative;z-index:2;}
+/* Hero */
+.hero-orb1{position:absolute;top:-80px;right:-80px;width:520px;height:520px;border-radius:50%;background:radial-gradient(circle,rgba(212,24,108,0.07) 0%,transparent 65%);pointer-events:none;}
+.hero-orb2{position:absolute;bottom:-60px;left:-60px;width:360px;height:360px;border-radius:50%;background:radial-gradient(circle,rgba(240,62,138,0.05) 0%,transparent 65%);pointer-events:none;}
+.hero-eyebrow{display:inline-flex;align-items:center;gap:0.5rem;background:var(--blush);border:1px solid rgba(212,24,108,0.2);color:var(--pink2);font-size:0.67rem;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;padding:0.28rem 0.9rem;border-radius:20px;margin-bottom:1.5rem;font-family:'Space Mono',monospace;}
+.hero-eyebrow::before{content:'✦';font-size:0.6rem;}
+h1.hero-title{font-family:'Clash Display',sans-serif;font-size:clamp(2.8rem,5.5vw,4.8rem);font-weight:700;line-height:1.0;letter-spacing:-0.03em;color:var(--ink);margin-bottom:1.5rem;}
+h1.hero-title span{background:linear-gradient(135deg,var(--pink),var(--rose));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.hero-desc{font-size:0.97rem;color:var(--muted);max-width:510px;line-height:1.78;margin-bottom:2.5rem;font-weight:300;}
+.kpi-strip{display:flex;gap:1px;background:var(--border);border:1px solid var(--border);border-radius:14px;overflow:hidden;max-width:620px;box-shadow:0 2px 16px rgba(212,24,108,0.08);}
+.kpi{background:white;padding:1.1rem 1.4rem;flex:1;}
+.kpi-val{font-family:'Clash Display',sans-serif;font-size:1.9rem;font-weight:700;background:linear-gradient(135deg,var(--pink),var(--rose));-webkit-background-clip:text;-webkit-text-fill-color:transparent;line-height:1;}
+.kpi-lbl{font-size:0.59rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);margin-top:0.2rem;font-family:'Space Mono',monospace;}
+.sec-tag{font-size:0.61rem;letter-spacing:0.22em;text-transform:uppercase;color:var(--pink);margin-bottom:0.4rem;font-weight:600;font-family:'Space Mono',monospace;display:flex;align-items:center;gap:0.4rem;}
+.sec-tag::before{content:'✦';font-size:0.55rem;}
+.sec-title{font-family:'Clash Display',sans-serif;font-size:clamp(1.9rem,3.8vw,3rem);font-weight:700;line-height:1.05;margin-bottom:0.5rem;color:var(--ink);letter-spacing:-0.02em;}
+.sec-title span{color:var(--pink);}
+.sec-desc{font-size:0.87rem;color:var(--muted);margin-bottom:1.85rem;max-width:540px;line-height:1.78;font-weight:300;}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;}
+.three-col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;}
+.lr{display:grid;grid-template-columns:1.1fr 1fr;gap:2rem;align-items:start;}
+.lr-rev{display:grid;grid-template-columns:1fr 1.15fr;gap:2rem;align-items:start;}
+.card{background:white;border:1px solid var(--border);border-radius:14px;padding:1.25rem;transition:all 0.2s;box-shadow:0 1px 6px rgba(212,24,108,0.05);}
+.card:hover{border-color:var(--pink);transform:translateY(-2px);box-shadow:0 6px 20px rgba(212,24,108,0.1);}
+.card-icon{font-size:1.4rem;margin-bottom:0.5rem;}
+.card-title{font-family:'Clash Display',sans-serif;font-size:0.95rem;font-weight:600;margin-bottom:0.3rem;color:var(--ink);}
+.card-desc{font-size:0.72rem;color:var(--muted);line-height:1.65;}
+.panel{background:white;border:1px solid var(--border);border-radius:14px;padding:1.4rem;}
+.panel h3{font-family:'Clash Display',sans-serif;font-size:0.9rem;font-weight:600;color:var(--pink2);margin-bottom:0.9rem;display:flex;align-items:center;gap:0.5rem;}
+.panel h3::before{content:'✦';color:var(--rose);}
+.steps{list-style:none;}
+.steps li{display:flex;gap:0.75rem;padding:0.45rem 0;border-bottom:1px solid var(--border);font-size:0.76rem;line-height:1.6;}
+.steps li:last-child{border-bottom:none;}
+.step-n{width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,var(--pink),var(--rose));color:white;font-size:0.62rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+/* Workflow */
+.wf-canvas{background:var(--ink);border-radius:16px;padding:2rem;position:relative;overflow:hidden;}
+.wf-glow{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 50%,rgba(212,24,108,0.1) 0%,transparent 60%);}
+.wf-dots{position:absolute;inset:0;background-image:radial-gradient(circle,rgba(212,24,108,0.18) 1px,transparent 1px);background-size:28px 28px;opacity:0.5;}
+.wf-label{position:absolute;top:0.75rem;left:1rem;font-size:0.57rem;letter-spacing:0.18em;text-transform:uppercase;color:rgba(255,255,255,0.3);display:flex;align-items:center;gap:0.4rem;z-index:3;font-family:'Space Mono',monospace;}
+.wf-label::before{content:'';width:7px;height:7px;border-radius:50%;background:var(--rose);box-shadow:0 0 8px var(--rose);animation:rpulse 2s infinite;}
+@keyframes rpulse{0%,100%{opacity:1}50%{opacity:0.2}}
+.wf-nodes{display:flex;align-items:flex-start;gap:0;padding-top:1.5rem;position:relative;z-index:2;flex-wrap:wrap;}
+.wf-stage{display:flex;flex-direction:column;align-items:center;}
+.wf-slbl{font-size:0.51rem;letter-spacing:0.14em;text-transform:uppercase;color:rgba(255,255,255,0.28);margin-bottom:0.3rem;font-family:'Space Mono',monospace;}
+.wf-node{display:flex;flex-direction:column;align-items:center;gap:0.3rem;cursor:pointer;}
+.wf-box{width:58px;height:58px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:1.25rem;border:2px solid transparent;transition:all 0.3s;}
+.wf-node:hover .wf-box{transform:scale(1.1);box-shadow:0 0 20px rgba(212,24,108,0.4);}
+.wf-nlbl{font-size:0.52rem;text-align:center;color:rgba(255,255,255,0.42);max-width:66px;line-height:1.3;font-family:'Space Mono',monospace;}
+.wf-arr{color:rgba(255,255,255,0.18);padding:0 0.2rem;font-size:0.85rem;align-self:flex-start;margin-top:19px;flex-shrink:0;}
+.ttw{position:relative;}
+.tti{position:absolute;bottom:calc(100%+8px);left:50%;transform:translateX(-50%);background:white;border:1px solid var(--border);border-radius:10px;padding:0.6rem 0.9rem;font-size:0.67rem;opacity:0;pointer-events:none;transition:opacity 0.2s;z-index:50;color:var(--ink);line-height:1.5;max-width:200px;white-space:normal;text-align:left;box-shadow:0 4px 16px rgba(0,0,0,0.1);}
+.ttw:hover .tti{opacity:1;}
+/* Lead magnet form */
+.lm-form{background:white;border:1px solid var(--border);border-radius:14px;overflow:hidden;box-shadow:0 4px 20px rgba(212,24,108,0.08);}
+.lm-header{background:linear-gradient(135deg,var(--pink),var(--rose));color:white;padding:1.1rem 1.25rem;}
+.lm-emoji{font-size:2rem;margin-bottom:0.3rem;}
+.lm-title{font-family:'Clash Display',sans-serif;font-size:1rem;font-weight:600;}
+.lm-sub{font-size:0.68rem;opacity:0.85;margin-top:0.15rem;}
+.lm-body{padding:1rem;}
+.lm-field label{font-size:0.61rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:0.2rem;font-family:'Space Mono',monospace;}
+.lm-input{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:0.42rem 0.7rem;font-size:0.73rem;color:var(--text);font-family:'Space Grotesk',sans-serif;width:100%;min-height:28px;margin-bottom:0.55rem;transition:border-color 0.3s;}
+.lm-btn{background:linear-gradient(135deg,var(--pink),var(--rose));color:white;border:none;border-radius:20px;padding:0.65rem 1rem;font-family:'Space Grotesk',sans-serif;font-size:0.78rem;font-weight:600;cursor:pointer;width:100%;text-align:center;transition:all 0.2s;}
+/* Nurture email */
+.nurture-step{background:white;border:1px solid var(--border);border-radius:12px;padding:0.75rem 1rem;margin-bottom:0.5rem;display:flex;align-items:flex-start;gap:0.85rem;transition:all 0.3s;}
+.nurture-step.active-ns{border-color:var(--pink);background:rgba(212,24,108,0.03);}
+.nurture-step.sent-ns{border-color:rgba(212,24,108,0.3);background:rgba(212,24,108,0.02);opacity:0.8;}
+.ns-day{background:linear-gradient(135deg,var(--pink),var(--rose));color:white;border-radius:6px;padding:0.18rem 0.42rem;font-size:0.6rem;font-weight:700;flex-shrink:0;margin-top:2px;font-family:'Space Mono',monospace;}
+.ns-subject{font-weight:600;font-size:0.78rem;color:var(--ink);margin-bottom:0.12rem;}
+.ns-preview{font-size:0.67rem;color:var(--muted);line-height:1.45;}
+.ns-status{margin-left:auto;font-size:0.6rem;padding:0.1rem 0.45rem;border-radius:20px;font-weight:600;font-family:'Space Mono',monospace;white-space:nowrap;}
+.nss-queued{background:rgba(212,24,108,0.08);color:var(--pink);border:1px solid rgba(212,24,108,0.2);}
+.nss-sent{background:rgba(26,122,66,0.1);color:var(--green);border:1px solid rgba(26,122,66,0.2);}
+.nss-opened{background:rgba(26,82,168,0.1);color:var(--blue);border:1px solid rgba(26,82,168,0.2);}
+/* Lead score board */
+.lead-row{background:white;border:1px solid var(--border);border-radius:10px;padding:0.7rem 1rem;margin-bottom:0.45rem;display:flex;align-items:center;gap:0.85rem;font-size:0.74rem;transition:all 0.3s;}
+.lead-row.hot-lead{border-color:var(--pink);}
+.lead-row.warm-lead{border-color:var(--amber);}
+.lr-score{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.8rem;font-weight:700;flex-shrink:0;font-family:'Clash Display',sans-serif;}
+.ls-hot{background:rgba(212,24,108,0.1);color:var(--pink2);}
+.ls-warm{background:rgba(196,122,16,0.1);color:var(--amber);}
+.ls-cold{background:rgba(144,112,160,0.1);color:var(--muted);}
+.lr-name{font-weight:600;color:var(--ink);}
+.lr-tag{margin-left:auto;font-size:0.59rem;padding:0.1rem 0.45rem;border-radius:20px;font-weight:600;font-family:'Space Mono',monospace;}
+.lt-hot{background:rgba(212,24,108,0.1);color:var(--pink2);border:1px solid rgba(212,24,108,0.2);}
+.lt-warm{background:rgba(196,122,16,0.1);color:var(--amber);border:1px solid rgba(196,122,16,0.2);}
+.lt-cold{background:rgba(144,112,160,0.1);color:var(--muted);border:1px solid rgba(144,112,160,0.2);}
+/* PS list */
+.ps-list{list-style:none;}
+.ps-list li{display:flex;gap:0.75rem;padding:0.45rem 0;border-bottom:1px solid var(--border);font-size:0.74rem;line-height:1.5;transition:all 0.3s;}
+.ps-list li:last-child{border-bottom:none;}
+.ps-num{width:20px;height:20px;border-radius:50%;background:var(--border);color:white;font-size:0.6rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;transition:background 0.3s;}
+/* Info */
+.info-pink{padding:0.75rem 1rem;border-radius:10px;font-size:0.77rem;line-height:1.6;background:rgba(212,24,108,0.06);border:1px solid rgba(212,24,108,0.15);color:var(--pink2);}
+.info-green{padding:0.75rem 1rem;border-radius:10px;font-size:0.77rem;line-height:1.6;background:rgba(26,122,66,0.06);border:1px solid rgba(26,122,66,0.15);color:var(--green);}
+.ba-bad{padding:0.6rem 0.9rem;border-radius:8px;font-size:0.76rem;line-height:1.5;background:rgba(200,40,40,0.04);border:1px solid rgba(200,40,40,0.12);}
+.ba-good{padding:0.6rem 0.9rem;border-radius:8px;font-size:0.76rem;line-height:1.5;background:rgba(26,122,66,0.05);border:1px solid rgba(26,122,66,0.14);}
+.quote-block{background:var(--ink);border-radius:16px;padding:1.75rem 2rem;color:white;}
+.quote-text{font-size:1.05rem;line-height:1.78;margin-bottom:0.75rem;font-weight:300;}
+.quote-text strong{color:var(--rose);}
+.slide-counter{position:fixed;bottom:1.5rem;left:2rem;font-size:0.62rem;color:var(--muted);z-index:100;font-family:'Space Mono',monospace;}
+.slide-nav{position:fixed;bottom:1.5rem;right:2rem;display:flex;gap:0.5rem;z-index:100;}
+.nav-btn{background:white;border:1px solid var(--border);color:var(--text);padding:0.55rem 1.2rem;border-radius:10px;font-family:'Space Mono',monospace;font-size:0.7rem;cursor:pointer;transition:all 0.2s;}
+.nav-btn:hover{border-color:var(--pink);color:var(--pink);}
+.nav-btn.primary{background:linear-gradient(135deg,var(--pink),var(--rose));border-color:var(--pink);color:white;}
+.run-btn{background:linear-gradient(135deg,var(--pink),var(--rose));color:white;border:none;border-radius:20px;padding:0.7rem 1.5rem;font-family:'Space Mono',monospace;font-size:0.72rem;cursor:pointer;transition:all 0.2s;width:100%;text-align:center;}
+.run-btn:hover{opacity:0.9;}
+.animate-in{opacity:0;animation:fadeUp 0.5s ease-out forwards;}
+.slide.active .animate-in:nth-child(1){animation-delay:0.05s;}
+.slide.active .animate-in:nth-child(2){animation-delay:0.15s;}
+.slide.active .animate-in:nth-child(3){animation-delay:0.25s;}
+.slide.active .animate-in:nth-child(4){animation-delay:0.35s;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+</style>
+</head>
+<body>
+<div class="top-stripe"></div>
+<nav>
+  <div class="nav-brand">MKT · Lead Magnet & Nurture</div>
+  <div class="nav-dots" id="navDots"></div>
+  <div class="timer" id="timerBadge">⏱ 00:00</div>
+</nav>
+
+<!-- SLIDE 1: HERO -->
+<section class="slide active" id="slide-0">
+  <div class="hero-orb1"></div><div class="hero-orb2"></div>
+  <div class="slide-inner">
+    <div class="animate-in"><div class="hero-eyebrow">n8n AI Automation · Marketing</div></div>
+    <div class="animate-in"><h1 class="hero-title">Turn Downloads<br>Into <span>Buyers.</span><br>Automatically.</h1></div>
+    <div class="animate-in"><p class="hero-desc">Every lead magnet download triggers a personalised nurture sequence. AI scores engagement in real time and hands off high-intent leads to sales — before your next meeting.</p></div>
+    <div class="animate-in">
+      <div class="kpi-strip">
+        <div class="kpi"><div class="kpi-val">3×</div><div class="kpi-lbl">Lead Conversion Rate</div></div>
+        <div class="kpi"><div class="kpi-val">100%</div><div class="kpi-lbl">Leads Nurtured</div></div>
+        <div class="kpi"><div class="kpi-val">AI</div><div class="kpi-lbl">Engagement Scoring</div></div>
+        <div class="kpi"><div class="kpi-val">0</div><div class="kpi-lbl">Leads Left Cold</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 2: PROBLEM -->
+<section class="slide" id="slide-1">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">01 — The Problem</div><div class="sec-title">Your Lead Magnets<br><span>Are Leaking</span></div><p class="sec-desc">You spent time creating the perfect checklist, guide, or webinar. Hundreds of people download it. Then most of them disappear — because nothing follows up fast enough or well enough.</p></div>
+    <div class="animate-in two-col" style="margin-bottom:1.5rem">
+      <div class="card"><div class="card-icon">📥</div><div class="card-title">Download & Disappear</div><div class="card-desc">Someone downloads your lead magnet — the highest intent signal they'll ever give before buying. You send one generic welcome email, then nothing. The moment of peak interest passes unused.</div></div>
+      <div class="card"><div class="card-icon">🎭</div><div class="card-title">Generic Sequences</div><div class="card-desc">Same 5-email drip to every lead regardless of what they downloaded, how engaged they are, or what stage they're at. Cold leads and hot leads get identical treatment.</div></div>
+      <div class="card"><div class="card-icon">👻</div><div class="card-title">Hot Lead Blindspot</div><div class="card-desc">Someone opens every email, clicks every link, visits your pricing page twice. Nobody knows. Sales team isn't told. The lead goes cold because no one reached out at the right moment.</div></div>
+      <div class="card"><div class="card-icon">🚿</div><div class="card-title">Leaky Funnel</div><div class="card-desc">No re-engagement for leads who stop opening. No branching for leads who engage heavily. One-size-fits-all sequences leak revenue at every stage of the funnel.</div></div>
+    </div>
+    <div class="animate-in"><div class="info-pink">✅ n8n detects every download, triggers a personalised sequence, scores engagement in real time, and alerts sales the moment a lead hits the hot threshold.</div></div>
+  </div>
+</section>
+
+<!-- SLIDE 3: WORKFLOW -->
+<section class="slide" id="slide-2">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">02 — The Blueprint</div><div class="sec-title">n8n Lead Magnet<br><span>Nurture Pipeline</span></div><p class="sec-desc">From download to conversation-ready lead — every step personalised, every signal tracked, every handoff to sales perfectly timed.</p></div>
+    <div class="animate-in wf-canvas">
+      <div class="wf-glow"></div><div class="wf-dots"></div>
+      <div class="wf-label">n8n canvas — lead magnet nurture pipeline</div>
+      <div class="wf-nodes">
+        <div class="wf-stage"><div class="wf-slbl">Capture</div>
+          <div style="display:flex;flex-direction:column;gap:0.35rem">
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a0a1a,#7c3aed);color:#d8b4fe;border-color:#7c3aed;">📥</div><div class="wf-nlbl">Lead Magnet<br>Download</div><div class="tti">Form submission (Typeform/HubSpot) triggers n8n webhook. Lead magnet type, source, UTM params all captured for personalisation.</div></div>
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#0a1a2a,#1d4ed8);color:#93c5fd;border-color:#1d4ed8;">🌐</div><div class="wf-nlbl">Website<br>Pop-up</div><div class="tti">Exit-intent or scroll-triggered pop-up forms also feed into the same n8n pipeline. Every source unified.</div></div>
+          </div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-stage"><div class="wf-slbl">Enrich</div>
+          <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a1a0a,#78350f);color:#fde68a;border-color:#78350f;">🔍</div><div class="wf-nlbl">Clearbit<br>Enrich</div><div class="tti">Email enriched with: job title, company, industry, company size, LinkedIn URL. Turns an email address into a full prospect profile instantly.</div></div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-stage"><div class="wf-slbl">Personalise</div>
+          <div style="display:flex;flex-direction:column;gap:0.35rem">
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a0a0a,#991b1b);color:#fca5a5;border-color:#991b1b;">🧠</div><div class="wf-nlbl">GPT-4o<br>Sequence</div><div class="tti">GPT-4o generates a personalised 5-email sequence based on: lead magnet topic, prospect industry, job title, company size, and enrichment data.</div></div>
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#0a1a1a,#065f46);color:#6ee7b7;border-color:#065f46;">🎯</div><div class="wf-nlbl">Segment<br>Tag</div><div class="tti">Lead tagged by: magnet type (awareness/decision), industry, company size, and source. Tags drive which sequence variant fires.</div></div>
+          </div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-stage"><div class="wf-slbl">Nurture</div>
+          <div style="display:flex;flex-direction:column;gap:0.35rem">
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a3a1a,#166534);color:#4ade80;border-color:#166534;">📧</div><div class="wf-nlbl">Email<br>Sequence</div><div class="tti">5-email AI-written sequence delivered over 14 days. Day 1: deliver + value. Day 3: related insight. Day 7: case study. Day 10: soft CTA. Day 14: direct offer.</div></div>
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#0a1a2a,#0369a1);color:#7dd3fc;border-color:#0369a1;">📊</div><div class="wf-nlbl">Engagement<br>Tracker</div><div class="tti">Every email open, click, website revisit, and pricing page view adds points to the engagement score. Score updates in real time.</div></div>
+          </div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-stage"><div class="wf-slbl">Convert</div>
+          <div style="display:flex;flex-direction:column;gap:0.35rem">
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#2a0a1a,#9d174d);color:#fbcfe8;border-color:#9d174d;">🔥</div><div class="wf-nlbl">Hot Lead<br>Alert</div><div class="tti">Score hits threshold → Sales rep notified via Slack instantly with full profile: name, company, which magnet, emails opened, links clicked, pages visited.</div></div>
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a0a2e,#6d28d9);color:#c4b5fd;border-color:#6d28d9;">🔄</div><div class="wf-nlbl">Re-engage<br>Cold</div><div class="tti">No opens after 7 days → re-engagement sequence with different subject line and content angle. Unsubscribe or respond → sequence paused.</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 4: SIM 1 — MAGNET FORM -->
+<section class="slide" id="slide-3">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">03 — Simulation 1</div><div class="sec-title">Live: Download Triggers<br><span>Full Nurture Sequence</span></div><p class="sec-desc">Fatima just downloaded "The 10-Step Marketing Automation Playbook." Watch n8n enrich her profile, personalise a 5-email sequence, and deliver the first email — in 90 seconds.</p></div>
+    <div class="animate-in lr">
+      <div style="display:flex;flex-direction:column;gap:1rem">
+        <div class="panel">
+          <h3>Pipeline Steps</h3>
+          <ul class="ps-list" id="mktSteps">
+            <li id="mk1" style="opacity:0.3"><div class="ps-num">1</div><div>Form submission — lead magnet webhook fires</div></li>
+            <li id="mk2" style="opacity:0.3"><div class="ps-num">2</div><div>Clearbit enriches email → company profile built</div></li>
+            <li id="mk3" style="opacity:0.3"><div class="ps-num">3</div><div>GPT-4o writes personalised 5-email sequence</div></li>
+            <li id="mk4" style="opacity:0.3"><div class="ps-num">4</div><div>Lead tagged + added to HubSpot contact list</div></li>
+            <li id="mk5" style="opacity:0.3"><div class="ps-num">5</div><div>Day 1 email delivered — PDF + personalised intro</div></li>
+            <li id="mk6" style="opacity:0.3"><div class="ps-num">6</div><div>Days 3–14 emails scheduled + engagement tracking active ✅</div></li>
+          </ul>
+        </div>
+        <button class="run-btn" id="mktBtn" onclick="runMktSim()">▶ TRIGGER NURTURE SEQUENCE</button>
+      </div>
+      <div>
+        <div class="lm-form">
+          <div class="lm-header">
+            <div class="lm-emoji">📘</div>
+            <div class="lm-title">The Marketing Automation Playbook</div>
+            <div class="lm-sub">10 workflows every marketer needs in 2025</div>
+          </div>
+          <div class="lm-body">
+            <div class="lm-field"><label>First Name</label><div class="lm-input" id="fm-name"></div></div>
+            <div class="lm-field"><label>Work Email</label><div class="lm-input" id="fm-email"></div></div>
+            <div class="lm-field"><label>Company</label><div class="lm-input" id="fm-company"></div></div>
+            <div class="lm-btn" id="fm-submit" onclick="runMktSim()">Download Free Playbook →</div>
+            <div id="fm-success" style="display:none;text-align:center;font-size:0.73rem;color:var(--green);padding:0.5rem;background:rgba(26,122,66,0.07);border:1px solid rgba(26,122,66,0.2);border-radius:8px;margin-top:0.4rem">✅ Playbook sent! Check your inbox — personalised resources on the way.</div>
+          </div>
+        </div>
+        <div id="seqReveal" style="display:none;margin-top:0.85rem">
+          <div style="font-size:0.61rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);font-family:'Space Mono',monospace;margin-bottom:0.5rem">Fatima's Personalised Sequence — Active</div>
+          <div class="nurture-step active-ns" id="ns1"><div class="ns-day">Day 1</div><div><div class="ns-subject">Your Automation Playbook is inside 📘</div><div class="ns-preview">Hi Fatima, here's the guide + a note specifically for FinTech marketers...</div></div><span class="ns-status nss-sent" id="nss1">Sent ✓</span></div>
+          <div class="nurture-step" id="ns2"><div class="ns-day">Day 3</div><div><div class="ns-subject">The #1 automation FinTech teams overlook</div><div class="ns-preview">Based on your industry, here's the workflow with the highest ROI...</div></div><span class="ns-status nss-queued" id="nss2">Queued</span></div>
+          <div class="nurture-step" id="ns3"><div class="ns-day">Day 7</div><div><div class="ns-subject">How a FinTech CMO 3×'d their pipeline</div><div class="ns-preview">Sharing a case study directly relevant to what GrowthPay does...</div></div><span class="ns-status nss-queued" id="nss3">Queued</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 5: SIM 2 — ENGAGEMENT SCORING -->
+<section class="slide" id="slide-4">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">04 — Simulation 2</div><div class="sec-title">Live Engagement<br><span>Scoring Board</span></div><p class="sec-desc">Five leads are in the nurture pipeline. Watch their engagement scores update in real time as they open emails, click links, and revisit the website.</p></div>
+    <div class="animate-in lr-rev">
+      <div style="display:flex;flex-direction:column;gap:1rem">
+        <div class="panel">
+          <h3>Scoring Events</h3>
+          <ul class="steps">
+            <li><div class="step-n">+</div><div><strong>Email opened:</strong> +5 points per open</div></li>
+            <li><div class="step-n">+</div><div><strong>Link clicked:</strong> +15 points per click</div></li>
+            <li><div class="step-n">+</div><div><strong>Pricing page visit:</strong> +30 points</div></li>
+            <li><div class="step-n">+</div><div><strong>Return website visit:</strong> +10 points</div></li>
+            <li><div class="step-n">🔥</div><div><strong>Score ≥70:</strong> HOT → Sales rep notified immediately</div></li>
+          </ul>
+        </div>
+        <div class="info-pink">💡 When Fatima hits 70 points, her rep gets a Slack message with her full activity history — which emails, which links, how many pricing page visits.</div>
+        <button class="run-btn" id="scoreBtn" onclick="runScoreSim()">▶ SIMULATE ENGAGEMENT</button>
+      </div>
+      <div id="engagementBoard" style="display:flex;flex-direction:column;gap:0.4rem">
+        <div class="lead-row" id="lr1"><div class="lr-score ls-hot" id="ls1">0</div><div><div class="lr-name">Fatima Ibrahim</div><div style="font-size:0.65rem;color:var(--muted)">CMO · GrowthPay · FinTech</div></div><span class="lr-tag lt-cold" id="lt1">Cold</span></div>
+        <div class="lead-row" id="lr2"><div class="lr-score ls-warm" id="ls2">0</div><div><div class="lr-name">Oluwaseun Adeyemi</div><div style="font-size:0.65rem;color:var(--muted)">VP Mkt · TechVenture</div></div><span class="lr-tag lt-cold" id="lt2">Cold</span></div>
+        <div class="lead-row" id="lr3"><div class="lr-score ls-cold" id="ls3">0</div><div><div class="lr-name">Tunde Lawal</div><div style="font-size:0.65rem;color:var(--muted)">Head of Growth · RetailCo</div></div><span class="lr-tag lt-cold" id="lt3">Cold</span></div>
+        <div class="lead-row" id="lr4"><div class="lr-score ls-cold" id="ls4">0</div><div><div class="lr-name">Amaka Eze</div><div style="font-size:0.65rem;color:var(--muted)">Marketing Mgr · DataHub</div></div><span class="lr-tag lt-cold" id="lt4">Cold</span></div>
+        <div class="lead-row" id="lr5"><div class="lr-score ls-cold" id="ls5">0</div><div><div class="lr-name">Ngozi Okafor</div><div style="font-size:0.65rem;color:var(--muted)">Digital Strategist · BrandX</div></div><span class="lr-tag lt-cold" id="lt5">Cold</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 6: SIM 3 — HOT LEAD ALERT -->
+<section class="slide" id="slide-5">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">05 — Simulation 3</div><div class="sec-title">Hot Lead Alert —<br><span>Sales Notified Instantly</span></div><p class="sec-desc">Fatima just visited the pricing page for the second time. Her score just crossed 70. Watch n8n alert the sales rep — with everything they need to close.</p></div>
+    <div class="animate-in two-col">
+      <div style="background:var(--ink);border-radius:14px;padding:1.5rem;color:white">
+        <div style="font-family:'Space Mono',monospace;font-size:0.62rem;color:var(--rose);margin-bottom:1rem">💬 Slack · #sales-hot-leads (just now)</div>
+        <div style="background:rgba(255,255,255,0.05);border-left:3px solid var(--rose);padding:0.85rem 1rem;border-radius:0 10px 10px 0;font-size:0.75rem;line-height:1.75">
+          🔥 <strong style="color:var(--rose)">HOT MARKETING LEAD — Score 84</strong><br><br>
+          👤 <strong>Fatima Ibrahim</strong> — CMO<br>
+          🏢 GrowthPay · FinTech · 120 staff<br>
+          📘 Downloaded: Marketing Automation Playbook<br>
+          📧 Opened 4/5 emails · Clicked 3 links<br>
+          💻 Visited pricing page <strong style="color:var(--rose)">twice</strong> (today + yesterday)<br>
+          📊 Engagement score: 84/100 — crossed threshold 2 min ago<br><br>
+          <span style="color:rgba(255,255,255,0.5);font-size:0.65rem">→ Open in HubSpot · Call Now · Send Demo Invite</span>
+        </div>
+        <div style="margin-top:0.75rem;font-size:0.62rem;color:rgba(255,255,255,0.3);font-family:'Space Mono',monospace">Auto-triggered by n8n · Engagement threshold crossed</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:1rem">
+        <div class="panel">
+          <h3>Why This Matters</h3>
+          <ul class="steps">
+            <li><div class="step-n">1</div><div>Rep contacts Fatima at peak intent — she's actively researching</div></li>
+            <li><div class="step-n">2</div><div>Rep arrives fully briefed — knows her industry, her downloads, her behaviour</div></li>
+            <li><div class="step-n">3</div><div>No cold outreach — Fatima has already engaged with 4 emails</div></li>
+            <li><div class="step-n">4</div><div>Timing is perfect — pricing page visit = buying signal</div></li>
+          </ul>
+        </div>
+        <div class="info-green">✅ This is the difference between interrupting someone randomly and reaching out to someone who's already halfway through buying. The automation makes the difference — every time.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 7: BEFORE/AFTER -->
+<section class="slide" id="slide-6">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">06 — Business Impact</div><div class="sec-title">Every Download<br><span>Working Harder</span></div></div>
+    <div class="animate-in two-col" style="margin-bottom:1.5rem">
+      <div>
+        <div style="font-size:0.62rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--red);margin-bottom:0.75rem;font-weight:600;font-family:'Space Mono',monospace">❌ BEFORE</div>
+        <div style="display:flex;flex-direction:column;gap:0.5rem">
+          <div class="ba-bad">One generic welcome email → lead goes cold in 24 hours</div>
+          <div class="ba-bad">Same sequence for every lead — no personalisation, low engagement</div>
+          <div class="ba-bad">Hot lead visits pricing page — nobody knows, nobody calls</div>
+          <div class="ba-bad">Marketing and sales in silos — no signal passing between teams</div>
+          <div class="ba-bad">No re-engagement — cold leads abandoned with no attempt to revive</div>
+        </div>
+      </div>
+      <div>
+        <div style="font-size:0.62rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--green);margin-bottom:0.75rem;font-weight:600;font-family:'Space Mono',monospace">✅ AFTER</div>
+        <div style="display:flex;flex-direction:column;gap:0.5rem">
+          <div class="ba-good">5-email personalised sequence starts within 90 seconds of download</div>
+          <div class="ba-good">GPT-4o tailors every email by industry, role, and magnet type</div>
+          <div class="ba-good">Pricing page visit → rep alerted in 2 minutes with full profile</div>
+          <div class="ba-good">Real-time engagement scores visible to both marketing and sales</div>
+          <div class="ba-good">Cold leads re-engaged automatically with new angle after 7 days</div>
+        </div>
+      </div>
+    </div>
+    <div class="animate-in">
+      <div class="quote-block">
+        <div class="quote-text">"The lead magnet is just the conversation starter. The <strong>nurture sequence is where revenue is built</strong> — and this automation ensures every lead gets the perfect sequence, the perfect timing, and the perfect handoff to sales."</div>
+        <div style="font-size:0.62rem;color:rgba(255,255,255,0.3);font-family:'Space Mono',monospace">STACK: n8n · GPT-4o · Clearbit · HubSpot · Gmail · Typeform · Slack · Google Analytics</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="slide-counter" id="slideCounter">Slide 1 of 7</div>
+<div class="slide-nav">
+  <button class="nav-btn" onclick="prevSlide()">← Prev</button>
+  <button class="nav-btn primary" onclick="nextSlide()">Next →</button>
+</div>
+<script>
+const slides=document.querySelectorAll('.slide'),total=slides.length;let cur=0;
+const dots=document.getElementById('navDots');
+for(let i=0;i<total;i++){const d=document.createElement('div');d.className='nav-dot'+(i===0?' active':'');d.onclick=()=>goTo(i);dots.appendChild(d);}
+function goTo(n){slides[cur].classList.remove('active');dots.children[cur].classList.remove('active');if(cur<n)dots.children[cur].classList.add('done');cur=n;slides[cur].classList.add('active');dots.children[cur].classList.add('active');document.getElementById('slideCounter').textContent=`Slide ${cur+1} of ${total}`;}
+function nextSlide(){if(cur<total-1)goTo(cur+1);}function prevSlide(){if(cur>0)goTo(cur-1);}
+document.addEventListener('keydown',e=>{if(e.key==='ArrowRight'||e.key==='ArrowDown')nextSlide();if(e.key==='ArrowLeft'||e.key==='ArrowUp')prevSlide();});
+let secs=0;setInterval(()=>{secs++;const m=String(Math.floor(secs/60)).padStart(2,'0'),s=String(secs%60).padStart(2,'0');document.getElementById('timerBadge').textContent=`⏱ ${m}:${s}`;if(secs>=840)document.getElementById('timerBadge').style.color='#c82828';},1000);
+function delay(ms){return new Promise(r=>setTimeout(r,ms));}
+
+let mktRunning=false;
+async function runMktSim(){
+  if(mktRunning)return;mktRunning=true;
+  const fields=[['fm-name','Fatima Ibrahim'],['fm-email','fatima@growthpay.io'],['fm-company','GrowthPay (FinTech, 120 staff)']];
+  for(const[id,val]of fields){const el=document.getElementById(id);if(!el)continue;let i=0;await new Promise(r=>{const iv=setInterval(()=>{el.textContent=val.slice(0,++i);if(i>=val.length){clearInterval(iv);r();}},22);});await delay(100);}
+  document.getElementById('fm-submit').style.display='none';
+  document.getElementById('fm-success').style.display='block';
+  const steps=['mk1','mk2','mk3','mk4','mk5','mk6'];
+  steps.forEach(id=>{const el=document.getElementById(id);if(el){el.style.opacity='0.3';el.querySelector('.ps-num').style.background='var(--border)';}});
+  for(let i=0;i<steps.length;i++){
+    await delay(480);
+    steps.forEach(id=>{const el=document.getElementById(id);if(el){el.style.opacity='0.3';el.querySelector('.ps-num').style.background='var(--border)';}});
+    const el=document.getElementById(steps[i]);
+    if(el){el.style.opacity='1';el.style.color='var(--pink)';el.querySelector('.ps-num').style.background='var(--pink)';}
+  }
+  document.getElementById('seqReveal').style.display='block';
+  document.getElementById('mktBtn').textContent='↺ Reset & Run Again';mktRunning=false;
+}
+
+const scoreData=[
+  {id:'lr1',sc:'ls1',tg:'lt1',events:[5,15,30,10,15],threshold:70},
+  {id:'lr2',sc:'ls2',tg:'lt2',events:[5,5,15,10],threshold:70},
+  {id:'lr3',sc:'ls3',tg:'lt3',events:[5,5],threshold:70},
+  {id:'lr4',sc:'ls4',tg:'lt4',events:[5,15,5],threshold:70},
+  {id:'lr5',sc:'ls5',tg:'lt5',events:[5],threshold:70},
+];
+let scoreRunning=false;
+async function runScoreSim(){
+  if(scoreRunning)return;scoreRunning=true;
+  const btn=document.getElementById('scoreBtn');btn.textContent='Scoring...';
+  scoreData.forEach(d=>{const sc=document.getElementById(d.sc);const tg=document.getElementById(d.tg);const row=document.getElementById(d.id);if(sc)sc.textContent='0';if(tg){tg.className='lr-tag lt-cold';tg.textContent='Cold';}if(row)row.className='lead-row';});
+  const allEvents=[];
+  scoreData.forEach(d=>{let s=0;d.events.forEach(pts=>{allEvents.push({...d,pts,prevScore:s});s+=pts;});});
+  allEvents.sort(()=>Math.random()-0.5);
+  const scores={};scoreData.forEach(d=>{scores[d.id]=0;});
+  for(const ev of allEvents){
+    await delay(400);
+    scores[ev.id]=(scores[ev.id]||0)+ev.pts;
+    const sc=document.getElementById(ev.sc);const tg=document.getElementById(ev.tg);const row=document.getElementById(ev.id);
+    if(sc)sc.textContent=scores[ev.id];
+    if(scores[ev.id]>=70){if(row)row.className='lead-row hot-lead';if(tg){tg.className='lr-tag lt-hot';tg.textContent='HOT 🔥';}}
+    else if(scores[ev.id]>=35){if(row)row.className='lead-row warm-lead';if(tg){tg.className='lr-tag lt-warm';tg.textContent='Warm';}}
+  }
+  btn.textContent='↺ Reset & Run Again';scoreRunning=false;
+}
+</script>
+</body>
+</html>
