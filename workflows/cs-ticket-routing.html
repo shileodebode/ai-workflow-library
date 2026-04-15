@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Customer Service — Support Ticket Routing Automation</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f6f8fc;--surface:#ffffff;--surface2:#eef2f8;--border:#dce4f0;--ink:#0a1628;--blue:#1a6cf5;--blue2:#0d4fd4;--cyan:#00b8d9;--sky:#e8f4ff;--green:#0a8a4a;--red:#d42b2b;--amber:#d47a0a;--purple:#6c2bd9;--text:#1a2640;--muted:#6070a0;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;overflow-x:hidden;}
+.top-bar{position:fixed;top:0;left:0;right:0;height:3px;z-index:200;background:linear-gradient(90deg,var(--blue),var(--cyan));}
+nav{position:fixed;top:3px;left:0;right:0;z-index:100;background:rgba(246,248,252,0.97);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 2.5rem;height:54px;}
+.nav-brand{font-family:'JetBrains Mono',monospace;font-size:0.72rem;color:var(--blue2);letter-spacing:0.05em;font-weight:500;}
+.nav-dots{display:flex;gap:0.3rem;}
+.nav-dot{width:7px;height:7px;border-radius:50%;background:var(--border);cursor:pointer;transition:all 0.2s;}
+.nav-dot.active{background:var(--blue);transform:scale(1.5);}
+.nav-dot.done{background:var(--green);}
+.timer{font-size:0.67rem;color:var(--blue);background:rgba(26,108,245,0.08);border:1px solid rgba(26,108,245,0.2);padding:0.2rem 0.75rem;border-radius:20px;font-family:'JetBrains Mono',monospace;}
+.slide{min-height:100vh;padding:78px 0 50px;display:none;flex-direction:column;align-items:center;justify-content:center;position:relative;overflow:hidden;}
+.slide.active{display:flex;}
+.slide-inner{width:100%;max-width:1140px;padding:0 2.5rem;position:relative;z-index:2;}
+.hero-mesh{position:absolute;top:-100px;right:-100px;width:600px;height:600px;background:radial-gradient(ellipse,rgba(26,108,245,0.07) 0%,transparent 65%);pointer-events:none;}
+.hero-mesh2{position:absolute;bottom:-80px;left:-80px;width:400px;height:400px;background:radial-gradient(ellipse,rgba(0,184,217,0.05) 0%,transparent 65%);pointer-events:none;}
+.hero-badge{display:inline-flex;align-items:center;gap:0.45rem;background:var(--sky);border:1px solid rgba(26,108,245,0.2);color:var(--blue2);font-size:0.67rem;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;padding:0.28rem 0.85rem;border-radius:6px;margin-bottom:1.5rem;font-family:'JetBrains Mono',monospace;}
+.hero-badge::before{content:'●';font-size:0.5rem;color:var(--cyan);}
+h1.hero-title{font-family:'Outfit',sans-serif;font-size:clamp(2.8rem,5.5vw,4.8rem);font-weight:800;line-height:1.0;letter-spacing:-0.03em;color:var(--ink);margin-bottom:1.5rem;}
+h1.hero-title span{color:var(--blue);}
+.hero-desc{font-size:0.97rem;color:var(--muted);max-width:510px;line-height:1.78;margin-bottom:2.5rem;font-weight:300;}
+.kpi-strip{display:flex;gap:1px;background:var(--border);border:1px solid var(--border);border-radius:12px;overflow:hidden;max-width:620px;box-shadow:0 2px 12px rgba(26,108,245,0.07);}
+.kpi{background:white;padding:1.1rem 1.4rem;flex:1;}
+.kpi-val{font-family:'Outfit',sans-serif;font-size:1.85rem;font-weight:800;color:var(--blue);line-height:1;}
+.kpi-lbl{font-size:0.59rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);margin-top:0.2rem;font-family:'JetBrains Mono',monospace;}
+.sec-tag{font-size:0.61rem;letter-spacing:0.22em;text-transform:uppercase;color:var(--blue);margin-bottom:0.4rem;font-weight:600;font-family:'JetBrains Mono',monospace;display:flex;align-items:center;gap:0.4rem;}
+.sec-tag::before{content:'';width:16px;height:2px;background:var(--blue);border-radius:1px;}
+.sec-title{font-family:'Outfit',sans-serif;font-size:clamp(1.9rem,3.8vw,3rem);font-weight:800;line-height:1.05;margin-bottom:0.5rem;color:var(--ink);letter-spacing:-0.02em;}
+.sec-title span{color:var(--blue);}
+.sec-desc{font-size:0.87rem;color:var(--muted);margin-bottom:1.85rem;max-width:540px;line-height:1.78;font-weight:300;}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;}
+.three-col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;}
+.lr{display:grid;grid-template-columns:1.1fr 1fr;gap:2rem;align-items:start;}
+.lr-rev{display:grid;grid-template-columns:1fr 1.15fr;gap:2rem;align-items:start;}
+.card{background:white;border:1px solid var(--border);border-radius:12px;padding:1.25rem;transition:all 0.2s;box-shadow:0 1px 4px rgba(0,0,0,0.04);}
+.card:hover{border-color:var(--blue);transform:translateY(-2px);box-shadow:0 6px 20px rgba(26,108,245,0.1);}
+.card-icon{font-size:1.4rem;margin-bottom:0.5rem;}
+.card-title{font-family:'Outfit',sans-serif;font-size:0.97rem;font-weight:700;margin-bottom:0.3rem;color:var(--ink);}
+.card-desc{font-size:0.72rem;color:var(--muted);line-height:1.65;}
+.panel{background:white;border:1px solid var(--border);border-radius:12px;padding:1.4rem;box-shadow:0 1px 4px rgba(0,0,0,0.03);}
+.panel h3{font-family:'Outfit',sans-serif;font-size:0.9rem;font-weight:700;color:var(--blue2);margin-bottom:0.9rem;display:flex;align-items:center;gap:0.5rem;}
+.panel h3::before{content:'//';color:var(--border);font-size:0.8rem;font-family:'JetBrains Mono',monospace;}
+.steps{list-style:none;}
+.steps li{display:flex;gap:0.75rem;padding:0.45rem 0;border-bottom:1px solid var(--border);font-size:0.76rem;line-height:1.6;}
+.steps li:last-child{border-bottom:none;}
+.step-n{width:22px;height:22px;border-radius:6px;background:var(--blue);color:white;font-size:0.62rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:'JetBrains Mono',monospace;}
+/* Workflow */
+.wf-canvas{background:var(--ink);border-radius:16px;padding:2rem;position:relative;overflow:hidden;}
+.wf-grid{position:absolute;inset:0;background-image:radial-gradient(circle,rgba(26,108,245,0.18) 1px,transparent 1px);background-size:28px 28px;opacity:0.5;}
+.wf-glow{position:absolute;top:-40px;right:-40px;width:300px;height:300px;background:radial-gradient(circle,rgba(0,184,217,0.08) 0%,transparent 70%);}
+.wf-label{position:absolute;top:0.75rem;left:1rem;font-size:0.57rem;letter-spacing:0.18em;text-transform:uppercase;color:rgba(255,255,255,0.35);display:flex;align-items:center;gap:0.4rem;z-index:3;font-family:'JetBrains Mono',monospace;}
+.wf-label::before{content:'';width:7px;height:7px;border-radius:50%;background:var(--cyan);box-shadow:0 0 8px var(--cyan);animation:cpulse 2s infinite;}
+@keyframes cpulse{0%,100%{opacity:1}50%{opacity:0.2}}
+.wf-nodes{display:flex;align-items:flex-start;gap:0;padding-top:1.5rem;position:relative;z-index:2;flex-wrap:wrap;}
+.wf-stage{display:flex;flex-direction:column;align-items:center;}
+.wf-slbl{font-size:0.51rem;letter-spacing:0.14em;text-transform:uppercase;color:rgba(255,255,255,0.28);margin-bottom:0.3rem;font-family:'JetBrains Mono',monospace;}
+.wf-node{display:flex;flex-direction:column;align-items:center;gap:0.3rem;cursor:pointer;position:relative;}
+.wf-box{width:58px;height:58px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.25rem;border:2px solid transparent;transition:all 0.3s;}
+.wf-node:hover .wf-box{transform:scale(1.1);box-shadow:0 0 20px rgba(26,108,245,0.4);}
+.wf-nlbl{font-size:0.52rem;text-align:center;color:rgba(255,255,255,0.42);max-width:66px;line-height:1.3;font-family:'JetBrains Mono',monospace;}
+.wf-arr{color:rgba(255,255,255,0.18);padding:0 0.2rem;font-size:0.85rem;align-self:flex-start;margin-top:19px;flex-shrink:0;}
+.ttw{position:relative;}
+.tti{position:absolute;bottom:calc(100%+8px);left:50%;transform:translateX(-50%);background:white;border:1px solid var(--border);border-radius:8px;padding:0.6rem 0.9rem;font-size:0.67rem;opacity:0;pointer-events:none;transition:opacity 0.2s;z-index:50;color:var(--ink);line-height:1.5;max-width:200px;white-space:normal;text-align:left;box-shadow:0 4px 16px rgba(0,0,0,0.1);}
+.ttw:hover .tti{opacity:1;}
+/* Ticket card */
+.ticket{background:white;border:1px solid var(--border);border-radius:10px;padding:0.85rem 1rem;margin-bottom:0.5rem;display:flex;align-items:flex-start;gap:0.85rem;transition:all 0.3s;box-shadow:0 1px 4px rgba(0,0,0,0.03);}
+.ticket.incoming{border-color:var(--amber);background:rgba(212,122,10,0.03);}
+.ticket.routed{border-color:var(--blue);background:rgba(26,108,245,0.03);}
+.ticket.resolved{border-color:var(--green);background:rgba(10,138,74,0.04);}
+.t-prio{width:6px;border-radius:3px;align-self:stretch;flex-shrink:0;}
+.prio-high{background:var(--red);}
+.prio-med{background:var(--amber);}
+.prio-low{background:var(--green);}
+.t-id{font-family:'JetBrains Mono',monospace;font-size:0.6rem;color:var(--muted);margin-bottom:0.2rem;}
+.t-subject{font-weight:600;font-size:0.78rem;color:var(--ink);margin-bottom:0.15rem;}
+.t-preview{font-size:0.67rem;color:var(--muted);line-height:1.4;}
+.t-meta{margin-left:auto;display:flex;flex-direction:column;align-items:flex-end;gap:0.3rem;flex-shrink:0;}
+.t-badge{font-size:0.59rem;padding:0.1rem 0.45rem;border-radius:20px;font-weight:600;font-family:'JetBrains Mono',monospace;white-space:nowrap;}
+.tb-new{background:rgba(212,122,10,0.1);color:var(--amber);border:1px solid rgba(212,122,10,0.2);}
+.tb-tech{background:rgba(26,108,245,0.1);color:var(--blue);border:1px solid rgba(26,108,245,0.2);}
+.tb-billing{background:rgba(108,43,217,0.1);color:var(--purple);border:1px solid rgba(108,43,217,0.2);}
+.tb-general{background:rgba(10,138,74,0.1);color:var(--green);border:1px solid rgba(10,138,74,0.2);}
+.tb-routed{background:rgba(26,108,245,0.12);color:var(--blue2);border:1px solid rgba(26,108,245,0.25);}
+.tb-resolved{background:rgba(10,138,74,0.12);color:var(--green);border:1px solid rgba(10,138,74,0.2);}
+/* Agent board */
+.agent-card{background:white;border:1px solid var(--border);border-radius:10px;padding:0.85rem 1rem;display:flex;align-items:center;gap:0.85rem;margin-bottom:0.5rem;transition:all 0.3s;}
+.agent-card.assigned{border-color:var(--blue);background:rgba(26,108,245,0.03);}
+.agent-avatar{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.85rem;font-weight:700;flex-shrink:0;font-family:'Outfit',sans-serif;}
+.agent-name{font-weight:600;font-size:0.78rem;color:var(--ink);}
+.agent-spec{font-size:0.63rem;color:var(--muted);}
+.agent-load{margin-left:auto;text-align:right;}
+.load-bar-wrap{width:80px;height:5px;background:var(--border);border-radius:3px;overflow:hidden;margin-top:0.2rem;}
+.load-bar{height:100%;border-radius:3px;background:linear-gradient(to right,var(--blue),var(--cyan));transition:width 0.8s ease;}
+.load-count{font-size:0.6rem;color:var(--muted);font-family:'JetBrains Mono',monospace;}
+/* PS list */
+.ps-list{list-style:none;}
+.ps-list li{display:flex;gap:0.75rem;padding:0.45rem 0;border-bottom:1px solid var(--border);font-size:0.74rem;line-height:1.5;transition:all 0.3s;}
+.ps-list li:last-child{border-bottom:none;}
+.ps-num{width:20px;height:20px;border-radius:6px;background:var(--border);color:white;font-size:0.6rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;transition:background 0.3s;font-family:'JetBrains Mono',monospace;}
+/* SLA display */
+.sla-row{display:flex;align-items:center;gap:0.85rem;padding:0.65rem 0.85rem;background:white;border:1px solid var(--border);border-radius:8px;margin-bottom:0.4rem;font-size:0.73rem;}
+.sla-row.breach{border-color:var(--red);background:rgba(212,43,43,0.03);}
+.sla-row.warn{border-color:var(--amber);background:rgba(212,122,10,0.03);}
+.sla-row.ok{border-color:var(--green);background:rgba(10,138,74,0.03);}
+.sla-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+.sla-time{margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:0.65rem;font-weight:700;}
+/* Sheet */
+.sheet-table{background:white;border:1px solid var(--border);border-radius:12px;overflow:hidden;font-size:0.7rem;box-shadow:0 2px 10px rgba(0,0,0,0.05);}
+.sheet-head{background:var(--surface2);border-bottom:1px solid var(--border);display:grid;grid-template-columns:50px 130px 100px 90px 70px 90px 80px;padding:0.55rem 0.85rem;gap:0.4rem;font-size:0.59rem;letter-spacing:0.08em;color:var(--blue2);font-weight:700;text-transform:uppercase;font-family:'JetBrains Mono',monospace;}
+.sheet-row{display:grid;grid-template-columns:50px 130px 100px 90px 70px 90px 80px;padding:0.52rem 0.85rem;gap:0.4rem;border-bottom:1px solid rgba(220,228,240,0.5);align-items:center;transition:background 0.15s;}
+.sheet-row:hover{background:var(--surface2);}
+.sheet-row:last-child{border-bottom:none;}
+.sb{display:inline-block;padding:0.1rem 0.45rem;border-radius:20px;font-size:0.58rem;font-weight:600;font-family:'JetBrains Mono',monospace;}
+.sb-open{background:rgba(26,108,245,0.1);color:var(--blue);border:1px solid rgba(26,108,245,0.2);}
+.sb-prog{background:rgba(212,122,10,0.1);color:var(--amber);border:1px solid rgba(212,122,10,0.2);}
+.sb-res{background:rgba(10,138,74,0.1);color:var(--green);border:1px solid rgba(10,138,74,0.2);}
+.sb-esc{background:rgba(212,43,43,0.1);color:var(--red);border:1px solid rgba(212,43,43,0.2);}
+/* Info boxes */
+.info-blue{padding:0.75rem 1rem;border-radius:8px;font-size:0.77rem;line-height:1.6;background:rgba(26,108,245,0.06);border:1px solid rgba(26,108,245,0.15);color:var(--blue2);}
+.info-green{padding:0.75rem 1rem;border-radius:8px;font-size:0.77rem;line-height:1.6;background:rgba(10,138,74,0.06);border:1px solid rgba(10,138,74,0.15);color:var(--green);}
+.ba-bad{padding:0.6rem 0.9rem;border-radius:8px;font-size:0.76rem;line-height:1.5;background:rgba(212,43,43,0.04);border:1px solid rgba(212,43,43,0.12);}
+.ba-good{padding:0.6rem 0.9rem;border-radius:8px;font-size:0.76rem;line-height:1.5;background:rgba(10,138,74,0.05);border:1px solid rgba(10,138,74,0.14);}
+.quote-block{background:var(--ink);border-radius:12px;padding:1.75rem 2rem;color:white;}
+.quote-text{font-size:1.05rem;line-height:1.78;margin-bottom:0.75rem;font-weight:300;}
+.quote-text strong{color:var(--cyan);}
+.slide-counter{position:fixed;bottom:1.5rem;left:2rem;font-size:0.62rem;color:var(--muted);letter-spacing:0.1em;z-index:100;font-family:'JetBrains Mono',monospace;}
+.slide-nav{position:fixed;bottom:1.5rem;right:2rem;display:flex;gap:0.5rem;z-index:100;}
+.nav-btn{background:white;border:1px solid var(--border);color:var(--text);padding:0.55rem 1.2rem;border-radius:8px;font-family:'JetBrains Mono',monospace;font-size:0.7rem;cursor:pointer;transition:all 0.2s;}
+.nav-btn:hover{border-color:var(--blue);color:var(--blue);}
+.nav-btn.primary{background:var(--blue);border-color:var(--blue);color:white;}
+.nav-btn.primary:hover{background:var(--blue2);}
+.run-btn{background:var(--blue);color:white;border:none;border-radius:8px;padding:0.7rem 1.5rem;font-family:'JetBrains Mono',monospace;font-size:0.72rem;font-weight:500;cursor:pointer;letter-spacing:0.05em;transition:all 0.2s;width:100%;text-align:center;}
+.run-btn:hover{background:var(--blue2);}
+.animate-in{opacity:0;animation:fadeUp 0.5s ease-out forwards;}
+.slide.active .animate-in:nth-child(1){animation-delay:0.05s;}
+.slide.active .animate-in:nth-child(2){animation-delay:0.15s;}
+.slide.active .animate-in:nth-child(3){animation-delay:0.25s;}
+.slide.active .animate-in:nth-child(4){animation-delay:0.35s;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+</style>
+</head>
+<body>
+<div class="top-bar"></div>
+<nav>
+  <div class="nav-brand">CS · Support Ticket Routing</div>
+  <div class="nav-dots" id="navDots"></div>
+  <div class="timer" id="timerBadge">⏱ 00:00</div>
+</nav>
+
+<!-- SLIDE 1: HERO -->
+<section class="slide active" id="slide-0">
+  <div class="hero-mesh"></div><div class="hero-mesh2"></div>
+  <div class="slide-inner">
+    <div class="animate-in"><div class="hero-badge">n8n AI Automation · Customer Service</div></div>
+    <div class="animate-in"><h1 class="hero-title">Right Ticket.<br><span>Right Agent.</span><br>Right Now.</h1></div>
+    <div class="animate-in"><p class="hero-desc">Every support ticket automatically classified, prioritised, and routed to the best-qualified agent — before a human reads a single word. Faster resolution, happier customers.</p></div>
+    <div class="animate-in">
+      <div class="kpi-strip">
+        <div class="kpi"><div class="kpi-val">90s</div><div class="kpi-lbl">Avg Route Time</div></div>
+        <div class="kpi"><div class="kpi-val">100%</div><div class="kpi-lbl">Tickets Classified</div></div>
+        <div class="kpi"><div class="kpi-val">AI</div><div class="kpi-lbl">Smart Prioritisation</div></div>
+        <div class="kpi"><div class="kpi-val">0</div><div class="kpi-lbl">Misrouted Tickets</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 2: PROBLEM -->
+<section class="slide" id="slide-1">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">01 — The Problem</div><div class="sec-title">Manual Routing<br><span>Costs Everyone</span></div><p class="sec-desc">Support teams drowning in tickets spend more time sorting and assigning than actually helping customers. That overhead is expensive and completely avoidable.</p></div>
+    <div class="animate-in two-col" style="margin-bottom:1.5rem">
+      <div class="card"><div class="card-icon">🔀</div><div class="card-title">Wrong Agent Assignment</div><div class="card-desc">Billing tickets land with technical agents. Complex API issues go to junior support. Every misroute means a handoff, delay, and a frustrated customer who has to repeat themselves.</div></div>
+      <div class="card"><div class="card-icon">🐢</div><div class="card-title">Triage Delays</div><div class="card-desc">A human reads, categorises, and assigns each ticket. In high-volume periods, this backlog grows. Critical issues sit waiting while trivial ones get processed first — by whoever opened the queue.</div></div>
+      <div class="card"><div class="card-icon">🔥</div><div class="card-title">SLA Breaches</div><div class="card-desc">Without automated prioritisation, SLA timers run silently. Agents don't know which ticket is about to breach. Response-time commitments missed. Contracts at risk.</div></div>
+      <div class="card"><div class="card-icon">📊</div><div class="card-title">No Workload Visibility</div><div class="card-desc">Manager has no real-time view of which agents are overloaded, which queues are backing up, or which issue categories are spiking. All decisions made blind.</div></div>
+    </div>
+    <div class="animate-in"><div class="info-blue">✅ n8n + GPT-4o classifies every ticket in 90 seconds, prioritises by SLA urgency, matches to the right agent by skill and current load — automatically.</div></div>
+  </div>
+</section>
+
+<!-- SLIDE 3: WORKFLOW -->
+<section class="slide" id="slide-2">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">02 — The Blueprint</div><div class="sec-title">n8n Ticket Routing<br><span>Architecture</span></div><p class="sec-desc">Tickets flow from any channel into one intelligent pipeline. AI reads, classifies, scores urgency, and assigns — before the first agent even logs in.</p></div>
+    <div class="animate-in wf-canvas">
+      <div class="wf-grid"></div><div class="wf-glow"></div><div class="wf-label">n8n canvas — ticket routing pipeline</div>
+      <div class="wf-nodes">
+        <div class="wf-stage"><div class="wf-slbl">Ingest</div>
+          <div style="display:flex;flex-direction:column;gap:0.35rem">
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a3a1a,#166534);color:#4ade80;border-color:#166534;">📧</div><div class="wf-nlbl">Email<br>Tickets</div><div class="tti">Gmail trigger captures support emails. Extracts sender, subject, body, attachments into structured JSON for processing.</div></div>
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#0a1a2a,#1d4ed8);color:#93c5fd;border-color:#1d4ed8;">💬</div><div class="wf-nlbl">Chat &<br>WhatsApp</div><div class="tti">Live chat and WhatsApp messages captured via webhooks. Conversation thread packaged and sent to routing pipeline.</div></div>
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a0a1a,#7c3aed);color:#d8b4fe;border-color:#7c3aed;">🌐</div><div class="wf-nlbl">Web Form<br>Submit</div><div class="tti">Support form submissions from website captured via webhook. Contact info and issue description extracted automatically.</div></div>
+          </div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-stage"><div class="wf-slbl">Classify</div>
+          <div style="display:flex;flex-direction:column;gap:0.35rem">
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a0a0a,#991b1b);color:#fca5a5;border-color:#991b1b;">🧠</div><div class="wf-nlbl">GPT-4o<br>Classify</div><div class="tti">GPT-4o reads full ticket content. Returns: Category (Technical/Billing/General/Complaint), Priority (P1-P4), Sentiment, Summary, and Suggested Resolution.</div></div>
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#0a1a1a,#065f46);color:#6ee7b7;border-color:#065f46;">🔢</div><div class="wf-nlbl">SLA<br>Calculator</div><div class="tti">SLA deadline calculated based on priority and customer tier (Free/Pro/Enterprise). P1 Enterprise = 1hr. P4 Free = 48hr.</div></div>
+          </div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-stage"><div class="wf-slbl">Route</div>
+          <div style="display:flex;flex-direction:column;gap:0.35rem">
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a1a0a,#78350f);color:#fde68a;border-color:#78350f;">👥</div><div class="wf-nlbl">Agent<br>Matcher</div><div class="tti">Matches ticket to best available agent: checks specialisation (Technical/Billing/VIP), current queue depth, shift status, and SLA urgency. Balances load automatically.</div></div>
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#0a0a1a,#1e3a5f);color:#93c5fd;border-color:#1e3a5f;">📊</div><div class="wf-nlbl">Zendesk/<br>Freshdesk</div><div class="tti">Ticket created in helpdesk with all metadata: category, priority, SLA deadline, agent assignment, GPT-4o summary, customer tier all pre-filled.</div></div>
+          </div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-stage"><div class="wf-slbl">Notify</div>
+          <div style="display:flex;flex-direction:column;gap:0.35rem">
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#0a1a2a,#0369a1);color:#7dd3fc;border-color:#0369a1;">💬</div><div class="wf-nlbl">Agent<br>Slack</div><div class="tti">Agent receives Slack notification with ticket summary, customer tier, SLA countdown, and one-click link to helpdesk. Never needs to check a queue.</div></div>
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a3a1a,#166534);color:#4ade80;border-color:#166534;">📧</div><div class="wf-nlbl">Auto<br>Ack Email</div><div class="tti">Customer receives acknowledgement within 2 minutes: ticket reference number, expected response time, and self-service links relevant to their issue category.</div></div>
+          </div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-stage"><div class="wf-slbl">Monitor</div>
+          <div style="display:flex;flex-direction:column;gap:0.35rem">
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a0a0a,#7f1d1d);color:#fca5a5;border-color:#7f1d1d;">🚨</div><div class="wf-nlbl">SLA<br>Alerts</div><div class="tti">n8n monitors SLA countdown every 5 minutes. At 75% time used: agent warned. At 90%: supervisor alerted. At breach: escalation triggered automatically.</div></div>
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a1a0a,#3d3200);color:#fbbf24;border-color:#92400e;">📈</div><div class="wf-nlbl">Live<br>Dashboard</div><div class="tti">Real-time Google Sheets/Looker dashboard: open tickets by category, agent loads, SLA health, CSAT scores, and volume trends.</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 4: SIM 1 — TICKET ROUTING -->
+<section class="slide" id="slide-3">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">03 — Simulation 1</div><div class="sec-title">Live: 7 Tickets<br><span>Classified & Routed</span></div><p class="sec-desc">Seven support tickets just arrived from email, chat, and web form simultaneously. Watch GPT-4o classify and route every one in under 2 minutes.</p></div>
+    <div class="animate-in lr">
+      <div style="display:flex;flex-direction:column;gap:1rem">
+        <div class="panel">
+          <h3>Routing Pipeline Steps</h3>
+          <ul class="ps-list" id="routeSteps">
+            <li id="rt1" style="opacity:0.3"><div class="ps-num">1</div><div>7 tickets ingested from 3 channels simultaneously</div></li>
+            <li id="rt2" style="opacity:0.3"><div class="ps-num">2</div><div>GPT-4o classifies each ticket — category + priority</div></li>
+            <li id="rt3" style="opacity:0.3"><div class="ps-num">3</div><div>SLA deadlines calculated per customer tier</div></li>
+            <li id="rt4" style="opacity:0.3"><div class="ps-num">4</div><div>Agent matcher checks skills, loads & availability</div></li>
+            <li id="rt5" style="opacity:0.3"><div class="ps-num">5</div><div>Tickets created in Zendesk — all metadata pre-filled</div></li>
+            <li id="rt6" style="opacity:0.3"><div class="ps-num">6</div><div>Agents notified via Slack + customers acknowledged ✅</div></li>
+          </ul>
+        </div>
+        <button class="run-btn" id="routeBtn" onclick="runRouteSim()">▶ ROUTE 7 TICKETS NOW</button>
+      </div>
+      <div id="ticketBoard" style="max-height:380px;overflow-y:auto;display:flex;flex-direction:column;gap:0">
+        <div class="ticket" id="tk1"><div class="t-prio prio-high"></div><div><div class="t-id">#TKT-0001</div><div class="t-subject">API returning 503 — production down</div><div class="t-preview">Our payment API has been returning errors for 20 min...</div></div><div class="t-meta"><span class="t-badge tb-new" id="tkb1">New</span></div></div>
+        <div class="ticket" id="tk2"><div class="t-prio prio-med"></div><div><div class="t-id">#TKT-0002</div><div class="t-subject">Charged twice for last month</div><div class="t-preview">I see two identical charges on my statement from April...</div></div><div class="t-meta"><span class="t-badge tb-new" id="tkb2">New</span></div></div>
+        <div class="ticket" id="tk3"><div class="t-prio prio-low"></div><div><div class="t-id">#TKT-0003</div><div class="t-subject">How do I export my data?</div><div class="t-preview">Hi, I'd like to download all my account data as CSV...</div></div><div class="t-meta"><span class="t-badge tb-new" id="tkb3">New</span></div></div>
+        <div class="ticket" id="tk4"><div class="t-prio prio-high"></div><div><div class="t-id">#TKT-0004</div><div class="t-subject">Webhook not firing — critical integration</div><div class="t-preview">Our n8n webhook stopped receiving events at 09:15...</div></div><div class="t-meta"><span class="t-badge tb-new" id="tkb4">New</span></div></div>
+        <div class="ticket" id="tk5"><div class="t-prio prio-med"></div><div><div class="t-id">#TKT-0005</div><div class="t-subject">Need to update billing email</div><div class="t-preview">Our finance team has changed, please update billing to...</div></div><div class="t-meta"><span class="t-badge tb-new" id="tkb5">New</span></div></div>
+        <div class="ticket" id="tk6"><div class="t-prio prio-low"></div><div><div class="t-id">#TKT-0006</div><div class="t-subject">Feature request — bulk import</div><div class="t-preview">Would love to see CSV bulk import in the next release...</div></div><div class="t-meta"><span class="t-badge tb-new" id="tkb6">New</span></div></div>
+        <div class="ticket" id="tk7"><div class="t-prio prio-high"></div><div><div class="t-id">#TKT-0007</div><div class="t-subject">Data breach concern — urgent</div><div class="t-preview">I received an email from your domain that I didn't request...</div></div><div class="t-meta"><span class="t-badge tb-new" id="tkb7">New</span></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 5: SIM 2 — AGENT WORKLOAD -->
+<section class="slide" id="slide-4">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">04 — Simulation 2</div><div class="sec-title">Smart Agent Load<br><span>Balancing</span></div><p class="sec-desc">n8n doesn't just assign to any available agent — it balances workload in real time, ensuring no agent drowns while others are idle.</p></div>
+    <div class="animate-in lr-rev">
+      <div style="display:flex;flex-direction:column;gap:1rem">
+        <div class="panel">
+          <h3>Assignment Logic</h3>
+          <ul class="steps">
+            <li><div class="step-n">1</div><div><strong>Specialisation match:</strong> P1 Technical → Senior Tech Agent only</div></li>
+            <li><div class="step-n">2</div><div><strong>Load check:</strong> Agent with fewest open tickets gets priority</div></li>
+            <li><div class="step-n">3</div><div><strong>Shift aware:</strong> Off-shift agents skipped — on-call escalated</div></li>
+            <li><div class="step-n">4</div><div><strong>VIP routing:</strong> Enterprise customers → dedicated CSM always</div></li>
+            <li><div class="step-n">5</div><div><strong>Overflow:</strong> If all agents at 90% capacity → supervisor alert</div></li>
+          </ul>
+        </div>
+        <div class="info-blue">💡 Agent load updates in real time as tickets are resolved. Every new ticket checks current state — not a static assignment rule.</div>
+        <button class="run-btn" id="agentBtn" onclick="runAgentSim()">▶ SIMULATE TICKET ASSIGNMENTS</button>
+      </div>
+      <div id="agentBoard">
+        <div class="agent-card" id="ag1"><div class="agent-avatar" style="background:rgba(26,108,245,0.1);color:var(--blue)">KA</div><div><div class="agent-name">Kemi Adeyemi</div><div class="agent-spec">Senior Technical · P1/P2</div></div><div class="agent-load"><div class="load-count" id="al1">3 tickets</div><div class="load-bar-wrap"><div class="load-bar" id="alb1" style="width:30%"></div></div></div></div>
+        <div class="agent-card" id="ag2"><div class="agent-avatar" style="background:rgba(108,43,217,0.1);color:var(--purple)">TO</div><div><div class="agent-name">Tunde Okafor</div><div class="agent-spec">Billing Specialist</div></div><div class="agent-load"><div class="load-count" id="al2">2 tickets</div><div class="load-bar-wrap"><div class="load-bar" id="alb2" style="width:20%"></div></div></div></div>
+        <div class="agent-card" id="ag3"><div class="agent-avatar" style="background:rgba(10,138,74,0.1);color:var(--green)">AF</div><div><div class="agent-name">Amaka Fashola</div><div class="agent-spec">General Support</div></div><div class="agent-load"><div class="load-count" id="al3">5 tickets</div><div class="load-bar-wrap"><div class="load-bar" id="alb3" style="width:50%"></div></div></div></div>
+        <div class="agent-card" id="ag4"><div class="agent-avatar" style="background:rgba(212,122,10,0.1);color:var(--amber)">BI</div><div><div class="agent-name">Babatunde Ike</div><div class="agent-spec">Technical · Security</div></div><div class="agent-load"><div class="load-count" id="al4">1 ticket</div><div class="load-bar-wrap"><div class="load-bar" id="alb4" style="width:10%"></div></div></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 6: SIM 3 — SLA MONITOR -->
+<section class="slide" id="slide-5">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">05 — Simulation 3</div><div class="sec-title">Live SLA Monitoring<br><span>& Auto-Escalation</span></div><p class="sec-desc">n8n watches every open ticket's SLA clock. Warnings fire before breach. Escalations trigger automatically — so supervisors never discover a breach after the fact.</p></div>
+    <div class="animate-in two-col" style="margin-bottom:1.25rem">
+      <div style="display:flex;flex-direction:column;gap:0.5rem">
+        <div style="font-size:0.61rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);margin-bottom:0.25rem;font-family:'JetBrains Mono',monospace">Active SLA Monitor</div>
+        <div class="sla-row breach"><div class="sla-dot" style="background:var(--red)"></div><div><div style="font-weight:600;font-size:0.77rem">#TKT-0007 — Data breach concern</div><div style="font-size:0.65rem;color:var(--muted)">P1 · Enterprise · Kemi Adeyemi</div></div><div class="sla-time" style="color:var(--red)">BREACH</div></div>
+        <div class="sla-row warn"><div class="sla-dot" style="background:var(--amber)"></div><div><div style="font-weight:600;font-size:0.77rem">#TKT-0001 — API returning 503</div><div style="font-size:0.65rem;color:var(--muted)">P1 · Pro · Kemi Adeyemi</div></div><div class="sla-time" style="color:var(--amber)">14 min left</div></div>
+        <div class="sla-row ok"><div class="sla-dot" style="background:var(--green)"></div><div><div style="font-weight:600;font-size:0.77rem">#TKT-0004 — Webhook not firing</div><div style="font-size:0.65rem;color:var(--muted)">P2 · Pro · Babatunde Ike</div></div><div class="sla-time" style="color:var(--green)">2hr 40min</div></div>
+        <div class="sla-row ok"><div class="sla-dot" style="background:var(--green)"></div><div><div style="font-weight:600;font-size:0.77rem">#TKT-0002 — Double charge</div><div style="font-size:0.65rem;color:var(--muted)">P2 · Free · Tunde Okafor</div></div><div class="sla-time" style="color:var(--green)">5hr 20min</div></div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:0.85rem">
+        <div style="background:var(--ink);border-radius:12px;padding:1.1rem;color:white;font-size:0.75rem;line-height:1.7">
+          <div style="font-family:'JetBrains Mono',monospace;font-size:0.6rem;color:var(--cyan);margin-bottom:0.5rem">💬 Slack · #cs-escalations (just now)</div>
+          🚨 <strong style="color:var(--red)">SLA BREACH — #TKT-0007</strong><br>
+          Data breach concern · Enterprise client · P1<br>
+          Assigned to: Kemi Adeyemi<br>
+          Status: No response sent yet<br><br>
+          <span style="color:rgba(255,255,255,0.5)">Action required: Customer success manager notified. Ticket auto-escalated to CS Lead.</span><br><br>
+          <span style="color:rgba(255,255,255,0.3);font-size:0.62rem">Auto-triggered by n8n SLA monitor</span>
+        </div>
+        <div class="info-green">✅ n8n checks SLA timers every 5 minutes. No breach goes unnoticed. Every escalation is automatic, documented, and timestamped.</div>
+      </div>
+    </div>
+    <div class="animate-in">
+      <div class="sheet-table">
+        <div class="sheet-head"><div>Ticket</div><div>Customer</div><div>Category</div><div>Agent</div><div>Priority</div><div>SLA</div><div>Status</div></div>
+        <div class="sheet-row"><div style="font-family:'JetBrains Mono',monospace;font-size:0.65rem">#0001</div><div>Amaka Obi</div><div>Technical</div><div>Kemi A.</div><div style="color:var(--red);font-weight:700">P1</div><div style="color:var(--amber);font-size:0.65rem">14 min</div><div><span class="sb sb-prog">In Progress</span></div></div>
+        <div class="sheet-row"><div style="font-family:'JetBrains Mono',monospace;font-size:0.65rem">#0002</div><div>Gbenga F.</div><div>Billing</div><div>Tunde O.</div><div style="color:var(--amber);font-weight:700">P2</div><div style="color:var(--green);font-size:0.65rem">5hr 20m</div><div><span class="sb sb-open">Open</span></div></div>
+        <div class="sheet-row"><div style="font-family:'JetBrains Mono',monospace;font-size:0.65rem">#0003</div><div>Ngozi E.</div><div>General</div><div>Amaka F.</div><div style="color:var(--green);font-weight:700">P4</div><div style="color:var(--green);font-size:0.65rem">46hr</div><div><span class="sb sb-res">Resolved ✓</span></div></div>
+        <div class="sheet-row"><div style="font-family:'JetBrains Mono',monospace;font-size:0.65rem">#0007</div><div>Seun B.</div><div>Security</div><div>Babatunde I.</div><div style="color:var(--red);font-weight:700">P1</div><div style="color:var(--red);font-size:0.65rem;font-weight:700">BREACH</div><div><span class="sb sb-esc">Escalated 🚨</span></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 7: BEFORE/AFTER -->
+<section class="slide" id="slide-6">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">06 — Business Impact</div><div class="sec-title">Support That<br><span>Scales Itself</span></div></div>
+    <div class="animate-in two-col" style="margin-bottom:1.5rem">
+      <div>
+        <div style="font-size:0.62rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--red);margin-bottom:0.75rem;font-weight:600;font-family:'JetBrains Mono',monospace">❌ BEFORE</div>
+        <div style="display:flex;flex-direction:column;gap:0.5rem">
+          <div class="ba-bad">Supervisor manually reads and routes every ticket — 20+ min delay</div>
+          <div class="ba-bad">Billing tickets land with tech agents — customer repeats themselves</div>
+          <div class="ba-bad">SLA breaches discovered after the fact — client relationship damaged</div>
+          <div class="ba-bad">Some agents overwhelmed, others idle — no workload visibility</div>
+          <div class="ba-bad">No acknowledgement email — customer assumes ticket was lost</div>
+        </div>
+      </div>
+      <div>
+        <div style="font-size:0.62rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--green);margin-bottom:0.75rem;font-weight:600;font-family:'JetBrains Mono',monospace">✅ AFTER</div>
+        <div style="display:flex;flex-direction:column;gap:0.5rem">
+          <div class="ba-good">Every ticket classified and routed in 90 seconds — no human triage</div>
+          <div class="ba-good">Right agent matched by skill, specialisation, and current load</div>
+          <div class="ba-good">SLA warnings at 75% and 90% — breaches prevented proactively</div>
+          <div class="ba-good">Real-time workload balancing — no agent drowns, no idle capacity</div>
+          <div class="ba-good">Customer acknowledged in 2 minutes with ticket ref and ETA</div>
+        </div>
+      </div>
+    </div>
+    <div class="animate-in">
+      <div class="quote-block">
+        <div class="quote-text">"Great support isn't just about answering well — it's about answering <strong>fast, to the right person, in the right order</strong>. This automation guarantees all three, at any volume, without adding headcount."</div>
+        <div style="font-size:0.62rem;color:rgba(255,255,255,0.3);font-family:'JetBrains Mono',monospace;letter-spacing:0.08em">STACK: n8n · GPT-4o · Zendesk/Freshdesk · Gmail · Slack · Google Sheets · Twilio · WhatsApp API</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="slide-counter" id="slideCounter">Slide 1 of 7</div>
+<div class="slide-nav">
+  <button class="nav-btn" onclick="prevSlide()">← Prev</button>
+  <button class="nav-btn primary" onclick="nextSlide()">Next →</button>
+</div>
+<script>
+const slides=document.querySelectorAll('.slide'),total=slides.length;let cur=0;
+const dots=document.getElementById('navDots');
+for(let i=0;i<total;i++){const d=document.createElement('div');d.className='nav-dot'+(i===0?' active':'');d.onclick=()=>goTo(i);dots.appendChild(d);}
+function goTo(n){slides[cur].classList.remove('active');dots.children[cur].classList.remove('active');if(cur<n)dots.children[cur].classList.add('done');cur=n;slides[cur].classList.add('active');dots.children[cur].classList.add('active');document.getElementById('slideCounter').textContent=`Slide ${cur+1} of ${total}`;}
+function nextSlide(){if(cur<total-1)goTo(cur+1);}function prevSlide(){if(cur>0)goTo(cur-1);}
+document.addEventListener('keydown',e=>{if(e.key==='ArrowRight'||e.key==='ArrowDown')nextSlide();if(e.key==='ArrowLeft'||e.key==='ArrowUp')prevSlide();});
+let secs=0;setInterval(()=>{secs++;const m=String(Math.floor(secs/60)).padStart(2,'0'),s=String(secs%60).padStart(2,'0');document.getElementById('timerBadge').textContent=`⏱ ${m}:${s}`;if(secs>=840)document.getElementById('timerBadge').style.color='#d42b2b';},1000);
+function delay(ms){return new Promise(r=>setTimeout(r,ms));}
+
+const ticketData=[
+  {id:'tk1',badge:'tkb1',cls:'routed',badgeTxt:'P1 · Technical',badgeCls:'tb-tech'},
+  {id:'tk2',badge:'tkb2',cls:'routed',badgeTxt:'P2 · Billing',badgeCls:'tb-billing'},
+  {id:'tk3',badge:'tkb3',cls:'resolved',badgeTxt:'P4 · General',badgeCls:'tb-general'},
+  {id:'tk4',badge:'tkb4',cls:'routed',badgeTxt:'P1 · Technical',badgeCls:'tb-tech'},
+  {id:'tk5',badge:'tkb5',cls:'resolved',badgeTxt:'P3 · Billing',badgeCls:'tb-billing'},
+  {id:'tk6',badge:'tkb6',cls:'resolved',badgeTxt:'P4 · General',badgeCls:'tb-general'},
+  {id:'tk7',badge:'tkb7',cls:'routed',badgeTxt:'P1 · Security',badgeCls:'tb-tech'},
+];
+let routeRunning=false;
+async function runRouteSim(){
+  if(routeRunning)return;routeRunning=true;
+  const btn=document.getElementById('routeBtn');btn.textContent='Routing...';
+  ticketData.forEach(d=>{const el=document.getElementById(d.id);const b=document.getElementById(d.badge);if(el)el.className='ticket';if(b){b.className='t-badge tb-new';b.textContent='New';}});
+  const steps=['rt1','rt2','rt3','rt4','rt5','rt6'];
+  steps.forEach(id=>{const el=document.getElementById(id);if(el){el.style.opacity='0.3';el.querySelector('.ps-num').style.background='var(--border)';}});
+  const light=(i)=>{steps.forEach(id=>{const el=document.getElementById(id);if(el){el.style.opacity='0.3';el.querySelector('.ps-num').style.background='var(--border)';}});const el=document.getElementById(steps[i]);if(el){el.style.opacity='1';el.style.color='var(--blue)';el.querySelector('.ps-num').style.background='var(--blue)';}};
+  for(let s=0;s<2;s++){light(s);await delay(550);}
+  for(const d of ticketData){
+    light(2);await delay(350);
+    const el=document.getElementById(d.id);const b=document.getElementById(d.badge);
+    if(el)el.classList.add('incoming');
+    await delay(350);
+    if(el){el.className='ticket '+d.cls;}
+    if(b){b.className='t-badge '+d.badgeCls;b.textContent=d.badgeTxt;}
+  }
+  light(3);await delay(500);light(4);await delay(500);light(5);
+  btn.textContent='↺ Reset & Run Again';routeRunning=false;
+}
+
+const agentAssignments=[
+  {ag:'ag1',al:'al1',alb:'alb1',tickets:6,pct:60,highlight:true},
+  {ag:'ag2',al:'al2',alb:'alb2',tickets:4,pct:40,highlight:true},
+  {ag:'ag3',al:'al3',alb:'alb3',tickets:6,pct:60,highlight:false},
+  {ag:'ag4',al:'al4',alb:'alb4',tickets:3,pct:30,highlight:true},
+];
+let agentRunning=false;
+async function runAgentSim(){
+  if(agentRunning)return;agentRunning=true;
+  const btn=document.getElementById('agentBtn');btn.textContent='Assigning...';
+  agentAssignments.forEach(a=>{const el=document.getElementById(a.ag);if(el)el.className='agent-card';});
+  for(const a of agentAssignments){
+    await delay(600);
+    const ag=document.getElementById(a.ag);const al=document.getElementById(a.al);const alb=document.getElementById(a.alb);
+    if(ag&&a.highlight)ag.classList.add('assigned');
+    if(al)al.textContent=`${a.tickets} tickets`;
+    if(alb)alb.style.width=a.pct+'%';
+  }
+  btn.textContent='↺ Reset & Run Again';agentRunning=false;
+}
+</script>
+</body>
+</html>
