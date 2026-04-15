@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sales Lead Capture & Qualification Automation</title>
+<link href="https://fonts.googleapis.com/css2?family=Clash+Display:wght@400;500;600;700&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#ffffff;--surface:#f8f9fa;--surface2:#f0f2f5;--border:#e2e6ec;
+  --ink:#0f1923;--coral:#e63946;--coral2:#c1121f;--orange:#f4722b;
+  --blue:#2176ae;--green:#2a9d4e;--yellow:#f5a623;--purple:#7c3aed;
+  --text:#1a2332;--muted:#6b7a8d;--light:#edf2f7;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;overflow-x:hidden;}
+/* decorative top stripe */
+.top-stripe{height:4px;background:linear-gradient(90deg,var(--coral),var(--orange),var(--yellow));position:fixed;top:0;left:0;right:0;z-index:200;}
+nav{position:fixed;top:4px;left:0;right:0;z-index:100;background:rgba(255,255,255,0.97);backdrop-filter:blur(10px);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 2.5rem;height:54px;}
+.nav-brand{font-family:'DM Mono',monospace;font-size:0.78rem;color:var(--coral2);letter-spacing:0.08em;font-weight:500;}
+.nav-dots{display:flex;gap:0.3rem;}
+.nav-dot{width:7px;height:7px;border-radius:50%;background:var(--border);cursor:pointer;transition:all 0.2s;}
+.nav-dot.active{background:var(--coral);transform:scale(1.5);}
+.nav-dot.done{background:var(--green);}
+.timer{font-size:0.68rem;color:var(--coral2);background:rgba(230,57,70,0.08);border:1px solid rgba(230,57,70,0.2);padding:0.2rem 0.75rem;border-radius:20px;font-family:'DM Mono',monospace;}
+.slide{min-height:100vh;padding:80px 0 50px;display:none;flex-direction:column;align-items:center;justify-content:center;position:relative;overflow:hidden;}
+.slide.active{display:flex;}
+.slide-inner{width:100%;max-width:1140px;padding:0 2.5rem;position:relative;z-index:2;}
+/* Hero */
+.hero-accent{position:absolute;top:-80px;right:-80px;width:500px;height:500px;border-radius:50%;background:radial-gradient(circle,rgba(230,57,70,0.06) 0%,transparent 70%);pointer-events:none;}
+.hero-dots{position:absolute;bottom:0;left:0;right:0;height:200px;background-image:radial-gradient(circle,rgba(230,57,70,0.08) 1.5px,transparent 1.5px);background-size:28px 28px;mask-image:linear-gradient(to top,black,transparent);}
+.hero-tag{display:inline-flex;align-items:center;gap:0.5rem;background:rgba(230,57,70,0.08);border:1px solid rgba(230,57,70,0.2);color:var(--coral2);font-size:0.68rem;font-weight:500;letter-spacing:0.12em;text-transform:uppercase;padding:0.3rem 0.85rem;border-radius:20px;margin-bottom:1.5rem;font-family:'DM Mono',monospace;}
+.hero-tag::before{content:'●';font-size:0.5rem;}
+h1.hero-title{font-family:'Clash Display',sans-serif;font-size:clamp(2.8rem,5.5vw,4.8rem);font-weight:700;line-height:1.0;letter-spacing:-0.03em;color:var(--ink);margin-bottom:1.5rem;}
+h1.hero-title span{color:var(--coral);}
+.hero-desc{font-size:1rem;color:var(--muted);max-width:520px;line-height:1.75;margin-bottom:2.5rem;font-weight:300;}
+.kpi-strip{display:flex;gap:0;border:1px solid var(--border);border-radius:12px;overflow:hidden;max-width:640px;box-shadow:0 2px 12px rgba(0,0,0,0.06);}
+.kpi{background:white;padding:1.1rem 1.5rem;flex:1;border-right:1px solid var(--border);}
+.kpi:last-child{border-right:none;}
+.kpi-val{font-family:'Clash Display',sans-serif;font-size:1.8rem;font-weight:700;color:var(--coral);line-height:1;}
+.kpi-lbl{font-size:0.6rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);margin-top:0.2rem;font-family:'DM Mono',monospace;}
+/* Sections */
+.sec-tag{font-size:0.62rem;letter-spacing:0.22em;text-transform:uppercase;color:var(--coral);margin-bottom:0.4rem;font-weight:600;font-family:'DM Mono',monospace;}
+.sec-title{font-family:'Clash Display',sans-serif;font-size:clamp(1.9rem,3.8vw,3rem);font-weight:700;letter-spacing:-0.02em;line-height:1.05;margin-bottom:0.5rem;color:var(--ink);}
+.sec-desc{font-size:0.87rem;color:var(--muted);margin-bottom:2rem;max-width:540px;line-height:1.75;font-weight:300;}
+/* Layout */
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;}
+.three-col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;}
+.lr{display:grid;grid-template-columns:1.1fr 1fr;gap:2rem;align-items:start;}
+.lr-rev{display:grid;grid-template-columns:1fr 1.15fr;gap:2rem;align-items:start;}
+/* Cards */
+.card{background:white;border:1px solid var(--border);border-radius:10px;padding:1.25rem;transition:all 0.2s;box-shadow:0 1px 4px rgba(0,0,0,0.04);}
+.card:hover{border-color:var(--coral);transform:translateY(-2px);box-shadow:0 6px 20px rgba(230,57,70,0.1);}
+.card-icon{font-size:1.4rem;margin-bottom:0.5rem;}
+.card-title{font-family:'Clash Display',sans-serif;font-size:0.95rem;font-weight:600;margin-bottom:0.3rem;color:var(--ink);}
+.card-desc{font-size:0.72rem;color:var(--muted);line-height:1.65;}
+/* Panel */
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1.4rem;}
+.panel h3{font-family:'Clash Display',sans-serif;font-size:0.95rem;font-weight:600;color:var(--coral2);margin-bottom:0.9rem;display:flex;align-items:center;gap:0.5rem;}
+.panel h3::before{content:'//';color:var(--border);font-size:0.8rem;font-family:'DM Mono',monospace;}
+.steps{list-style:none;}
+.steps li{display:flex;gap:0.75rem;padding:0.45rem 0;border-bottom:1px solid var(--border);font-size:0.76rem;line-height:1.6;}
+.steps li:last-child{border-bottom:none;}
+.step-n{width:22px;height:22px;border-radius:6px;background:var(--coral);color:white;font-size:0.62rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:'DM Mono',monospace;}
+/* Workflow canvas */
+.wf-canvas{background:var(--ink);border-radius:12px;padding:2rem;position:relative;overflow:hidden;}
+.wf-dot-bg{position:absolute;inset:0;background-image:radial-gradient(circle,rgba(230,57,70,0.15) 1px,transparent 1px);background-size:26px 26px;opacity:0.6;}
+.wf-top-label{position:absolute;top:0.75rem;left:1rem;font-size:0.58rem;letter-spacing:0.18em;text-transform:uppercase;color:rgba(255,255,255,0.4);display:flex;align-items:center;gap:0.4rem;z-index:3;font-family:'DM Mono',monospace;}
+.wf-top-label::before{content:'';width:7px;height:7px;border-radius:50%;background:var(--coral);box-shadow:0 0 8px var(--coral);animation:cpulse 2s infinite;}
+@keyframes cpulse{0%,100%{opacity:1}50%{opacity:0.2}}
+.wf-nodes{display:flex;align-items:flex-start;gap:0;padding-top:1.5rem;position:relative;z-index:2;flex-wrap:wrap;}
+.wf-stage{display:flex;flex-direction:column;align-items:center;gap:0.3rem;}
+.wf-slbl{font-size:0.52rem;letter-spacing:0.14em;text-transform:uppercase;color:rgba(255,255,255,0.3);margin-bottom:0.2rem;font-family:'DM Mono',monospace;}
+.wf-node{display:flex;flex-direction:column;align-items:center;gap:0.3rem;cursor:pointer;position:relative;}
+.wf-box{width:58px;height:58px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.25rem;border:2px solid transparent;transition:all 0.3s;}
+.wf-node:hover .wf-box{transform:scale(1.1);box-shadow:0 0 20px rgba(230,57,70,0.4);}
+.wf-nlbl{font-size:0.53rem;text-align:center;color:rgba(255,255,255,0.45);max-width:66px;line-height:1.3;font-family:'DM Mono',monospace;}
+.wf-arr{color:rgba(255,255,255,0.2);padding:0 0.2rem;font-size:0.85rem;align-self:flex-start;margin-top:19px;flex-shrink:0;}
+.ttw{position:relative;}
+.tti{position:absolute;bottom:calc(100%+8px);left:50%;transform:translateX(-50%);background:white;border:1px solid var(--border);border-radius:8px;padding:0.6rem 0.9rem;font-size:0.67rem;opacity:0;pointer-events:none;transition:opacity 0.2s;z-index:50;color:var(--ink);line-height:1.5;max-width:200px;white-space:normal;text-align:left;box-shadow:0 4px 12px rgba(0,0,0,0.1);}
+.ttw:hover .tti{opacity:1;}
+/* Lead form sim */
+.lead-form{background:white;border:1px solid var(--border);border-radius:10px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,0.06);}
+.lf-header{background:var(--coral);color:white;padding:0.85rem 1.1rem;display:flex;align-items:center;justify-content:space-between;}
+.lf-title{font-family:'Clash Display',sans-serif;font-size:0.9rem;font-weight:600;}
+.lf-body{padding:1rem;display:flex;flex-direction:column;gap:0.6rem;}
+.lf-field label{font-size:0.62rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:0.2rem;font-family:'DM Mono',monospace;}
+.lf-input{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:0.45rem 0.7rem;font-size:0.73rem;color:var(--text);font-family:'DM Sans',sans-serif;width:100%;min-height:28px;transition:border-color 0.3s;}
+.lf-btn{background:var(--coral);color:white;border:none;border-radius:6px;padding:0.6rem 1rem;font-family:'DM Sans',sans-serif;font-size:0.78rem;font-weight:600;cursor:pointer;text-align:center;transition:all 0.2s;letter-spacing:0.03em;}
+.lf-btn:hover{background:var(--coral2);}
+/* Lead score card */
+.score-card{background:white;border:1px solid var(--border);border-radius:10px;padding:1rem 1.25rem;margin-bottom:0.5rem;display:flex;align-items:center;gap:0.85rem;transition:all 0.3s;box-shadow:0 1px 4px rgba(0,0,0,0.04);}
+.score-card.qualifying{border-color:var(--yellow);background:rgba(245,166,35,0.03);}
+.score-card.hot{border-color:var(--coral);background:rgba(230,57,70,0.03);}
+.score-card.warm{border-color:var(--orange);background:rgba(244,114,43,0.03);}
+.score-card.cold{border-color:var(--muted);opacity:0.6;}
+.score-circle{width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Clash Display',sans-serif;font-size:0.9rem;font-weight:700;flex-shrink:0;}
+.sc-hot{background:rgba(230,57,70,0.12);color:var(--coral2);}
+.sc-warm{background:rgba(244,114,43,0.12);color:var(--orange);}
+.sc-cold{background:rgba(107,122,141,0.12);color:var(--muted);}
+.score-name{font-weight:600;font-size:0.8rem;color:var(--ink);}
+.score-company{font-size:0.65rem;color:var(--muted);}
+.score-tag{margin-left:auto;font-size:0.6rem;padding:0.12rem 0.5rem;border-radius:20px;font-weight:600;font-family:'DM Mono',monospace;}
+.st-hot{background:rgba(230,57,70,0.1);color:var(--coral2);border:1px solid rgba(230,57,70,0.2);}
+.st-warm{background:rgba(244,114,43,0.1);color:var(--orange);border:1px solid rgba(244,114,43,0.2);}
+.st-cold{background:rgba(107,122,141,0.1);color:var(--muted);border:1px solid rgba(107,122,141,0.2);}
+.st-new{background:rgba(33,118,174,0.1);color:var(--blue);border:1px solid rgba(33,118,174,0.2);}
+/* Pipeline steps */
+.ps-list{list-style:none;}
+.ps-list li{display:flex;gap:0.75rem;padding:0.45rem 0;border-bottom:1px solid var(--border);font-size:0.74rem;line-height:1.5;transition:all 0.3s;}
+.ps-list li:last-child{border-bottom:none;}
+.ps-num{width:20px;height:20px;border-radius:6px;background:var(--border);color:white;font-size:0.6rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;transition:background 0.3s;font-family:'DM Mono',monospace;}
+/* CRM sheet */
+.crm-table{background:white;border:1px solid var(--border);border-radius:10px;overflow:hidden;font-size:0.7rem;box-shadow:0 2px 10px rgba(0,0,0,0.05);}
+.crm-head{background:var(--surface2);border-bottom:1px solid var(--border);display:grid;grid-template-columns:36px 130px 130px 90px 80px 90px 80px;padding:0.55rem 0.85rem;gap:0.4rem;font-size:0.6rem;letter-spacing:0.08em;color:var(--coral2);font-weight:600;font-family:'DM Mono',monospace;text-transform:uppercase;}
+.crm-row{display:grid;grid-template-columns:36px 130px 130px 90px 80px 90px 80px;padding:0.52rem 0.85rem;gap:0.4rem;border-bottom:1px solid rgba(226,230,236,0.6);align-items:center;transition:background 0.15s;}
+.crm-row:hover{background:var(--surface);}
+.crm-row:last-child{border-bottom:none;}
+.cb{display:inline-block;padding:0.1rem 0.45rem;border-radius:20px;font-size:0.58rem;font-weight:600;font-family:'DM Mono',monospace;}
+.cb-hot{background:rgba(230,57,70,0.1);color:var(--coral2);border:1px solid rgba(230,57,70,0.2);}
+.cb-warm{background:rgba(244,114,43,0.1);color:var(--orange);border:1px solid rgba(244,114,43,0.2);}
+.cb-cold{background:rgba(107,122,141,0.08);color:var(--muted);border:1px solid rgba(107,122,141,0.15);}
+.cb-new{background:rgba(33,118,174,0.1);color:var(--blue);border:1px solid rgba(33,118,174,0.2);}
+/* Before/After */
+.ba-bad{padding:0.6rem 0.9rem;border-radius:8px;font-size:0.76rem;line-height:1.5;background:rgba(230,57,70,0.04);border:1px solid rgba(230,57,70,0.12);}
+.ba-good{padding:0.6rem 0.9rem;border-radius:8px;font-size:0.76rem;line-height:1.5;background:rgba(42,157,78,0.05);border:1px solid rgba(42,157,78,0.15);}
+.info-coral{padding:0.75rem 1rem;border-radius:8px;font-size:0.77rem;line-height:1.6;background:rgba(230,57,70,0.05);border:1px solid rgba(230,57,70,0.15);color:var(--coral2);}
+.info-blue{padding:0.75rem 1rem;border-radius:8px;font-size:0.77rem;line-height:1.6;background:rgba(33,118,174,0.06);border:1px solid rgba(33,118,174,0.15);color:var(--blue);}
+.quote-block{background:var(--ink);border-radius:12px;padding:1.75rem 2rem;color:white;}
+.quote-text{font-size:1.05rem;line-height:1.75;margin-bottom:0.75rem;font-weight:300;}
+.quote-text strong{color:var(--coral);}
+/* Nav */
+.slide-counter{position:fixed;bottom:1.5rem;left:2rem;font-size:0.62rem;color:var(--muted);letter-spacing:0.1em;z-index:100;font-family:'DM Mono',monospace;}
+.slide-nav{position:fixed;bottom:1.5rem;right:2rem;display:flex;gap:0.5rem;z-index:100;}
+.nav-btn{background:white;border:1px solid var(--border);color:var(--text);padding:0.55rem 1.2rem;border-radius:8px;font-family:'DM Mono',monospace;font-size:0.7rem;cursor:pointer;transition:all 0.2s;box-shadow:0 1px 4px rgba(0,0,0,0.06);}
+.nav-btn:hover{border-color:var(--coral);color:var(--coral);}
+.nav-btn.primary{background:var(--coral);border-color:var(--coral);color:white;}
+.nav-btn.primary:hover{background:var(--coral2);}
+.run-btn{background:var(--coral);color:white;border:none;border-radius:8px;padding:0.7rem 1.5rem;font-family:'DM Mono',monospace;font-size:0.74rem;font-weight:500;cursor:pointer;letter-spacing:0.06em;transition:all 0.2s;width:100%;text-align:center;}
+.run-btn:hover{background:var(--coral2);}
+.animate-in{opacity:0;animation:fadeUp 0.5s ease-out forwards;}
+.slide.active .animate-in:nth-child(1){animation-delay:0.05s;}
+.slide.active .animate-in:nth-child(2){animation-delay:0.15s;}
+.slide.active .animate-in:nth-child(3){animation-delay:0.25s;}
+.slide.active .animate-in:nth-child(4){animation-delay:0.35s;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+/* Score bar */
+.score-bar-wrap{height:5px;background:var(--border);border-radius:3px;overflow:hidden;margin-top:0.25rem;}
+.score-bar-fill{height:100%;border-radius:3px;transition:width 1.2s ease;background:linear-gradient(to right,var(--orange),var(--coral));}
+/* AI badge */
+.ai-badge{display:inline-flex;align-items:center;gap:0.35rem;background:rgba(124,58,237,0.08);border:1px solid rgba(124,58,237,0.2);color:var(--purple);font-size:0.65rem;padding:0.2rem 0.6rem;border-radius:20px;font-family:'DM Mono',monospace;font-weight:500;}
+</style>
+</head>
+<body>
+<div class="top-stripe"></div>
+<nav>
+  <div class="nav-brand">SALES · Lead Capture & Qualification</div>
+  <div class="nav-dots" id="navDots"></div>
+  <div class="timer" id="timerBadge">⏱ 00:00</div>
+</nav>
+
+<!-- SLIDE 1: HERO -->
+<section class="slide active" id="slide-0">
+  <div class="hero-accent"></div><div class="hero-dots"></div>
+  <div class="slide-inner">
+    <div class="animate-in"><div class="hero-tag">n8n AI Automation · Sales Department</div></div>
+    <div class="animate-in">
+      <h1 class="hero-title">Never Miss<br>a <span>Lead.</span><br>Ever Again.</h1>
+    </div>
+    <div class="animate-in"><p class="hero-desc">Every lead captured, scored, qualified, and routed to the right rep — automatically. Your sales team only talks to the people most likely to buy.</p></div>
+    <div class="animate-in">
+      <div class="kpi-strip">
+        <div class="kpi"><div class="kpi-val">5x</div><div class="kpi-lbl">Lead Response Speed</div></div>
+        <div class="kpi"><div class="kpi-val">100%</div><div class="kpi-lbl">Leads Captured</div></div>
+        <div class="kpi"><div class="kpi-val">AI</div><div class="kpi-lbl">Qualification Score</div></div>
+        <div class="kpi"><div class="kpi-val">0</div><div class="kpi-lbl">Manual Routing</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 2: PROBLEM -->
+<section class="slide" id="slide-1">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">01 — The Problem</div><div class="sec-title">Your Leads Are<br>Slipping Away</div><p class="sec-desc">Companies spend thousands generating leads, then lose them to slow follow-up, poor qualification, and zero routing logic.</p></div>
+    <div class="animate-in two-col" style="margin-bottom:1.5rem">
+      <div class="card"><div class="card-icon">⏱️</div><div class="card-title">The 5-Minute Rule</div><div class="card-desc">Studies show leads contacted within 5 minutes are 9x more likely to convert. Most companies respond in 24–48 hours. That gap costs deals.</div></div>
+      <div class="card"><div class="card-icon">🎯</div><div class="card-title">No Qualification System</div><div class="card-desc">Sales reps spend 60% of their time chasing unqualified leads. No scoring system means senior reps waste hours on tyre-kickers.</div></div>
+      <div class="card"><div class="card-icon">🔀</div><div class="card-title">Wrong Rep Assignment</div><div class="card-desc">Leads routed by round-robin or whoever picks up first. Enterprise leads go to junior reps. SMB leads go to enterprise specialists. Conversion tanks.</div></div>
+      <div class="card"><div class="card-icon">🌊</div><div class="card-title">Multi-Channel Chaos</div><div class="card-desc">Leads coming from website, LinkedIn, referrals, events, cold email — tracked in 5 different places. No unified view, no priority order.</div></div>
+    </div>
+    <div class="animate-in"><div class="info-coral">✅ n8n unifies all lead sources, scores every lead with GPT-4o, and routes to the right rep in under 90 seconds — automatically.</div></div>
+  </div>
+</section>
+
+<!-- SLIDE 3: WORKFLOW -->
+<section class="slide" id="slide-2">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">02 — The Blueprint</div><div class="sec-title">n8n Lead Pipeline<br>Architecture</div><p class="sec-desc">From first touch to rep notification in under 90 seconds. Every channel, every lead, one intelligent pipeline.</p></div>
+    <div class="animate-in wf-canvas">
+      <div class="wf-dot-bg"></div><div class="wf-top-label">n8n canvas — lead capture pipeline</div>
+      <div class="wf-nodes">
+        <div class="wf-stage"><div class="wf-slbl">Capture</div>
+          <div style="display:flex;flex-direction:column;gap:0.35rem">
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a3a1a,#166534);color:#4ade80;border-color:#166534;">🌐</div><div class="wf-nlbl">Website<br>Form</div><div class="tti">Webhook fires on any website form submission — contact, demo request, pricing inquiry. All routed to same n8n entry point.</div></div>
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#0a1a3a,#1d4ed8);color:#93c5fd;border-color:#1d4ed8;">💼</div><div class="wf-nlbl">LinkedIn<br>Leads</div><div class="tti">LinkedIn Lead Gen Forms API sends leads directly to n8n. Includes campaign source, ad creative, and LinkedIn profile data.</div></div>
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#2a1a0a,#92400e);color:#fcd34d;border-color:#92400e;">📧</div><div class="wf-nlbl">Email<br>Inbound</div><div class="tti">Gmail trigger detects sales inquiry emails. GPT-4o extracts contact details and intent from free-text email body.</div></div>
+          </div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-stage"><div class="wf-slbl">Enrich</div>
+          <div style="display:flex;flex-direction:column;gap:0.35rem">
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a0a1a,#7c3aed);color:#d8b4fe;border-color:#7c3aed;">🔍</div><div class="wf-nlbl">Clearbit<br>Enrich</div><div class="tti">Clearbit API enriches lead with: company size, industry, revenue, tech stack, LinkedIn URL. Turns an email into a full profile.</div></div>
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#0a1a2a,#0369a1);color:#7dd3fc;border-color:#0369a1;">🏢</div><div class="wf-nlbl">Company<br>Lookup</div><div class="tti">Apollo.io or Hunter API adds company data: employee count, funding round, decision-maker contacts, similar companies.</div></div>
+          </div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-stage"><div class="wf-slbl">AI Score</div>
+          <div style="display:flex;flex-direction:column;gap:0.35rem">
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a0a0a,#991b1b);color:#fca5a5;border-color:#991b1b;">🧠</div><div class="wf-nlbl">GPT-4o<br>BANT Score</div><div class="tti">GPT-4o scores lead 0-100 on BANT: Budget (company size/funding), Authority (seniority), Need (inquiry type), Timeline (urgency signals). Returns structured JSON.</div></div>
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#0a1a0a,#14532d);color:#86efac;border-color:#14532d;">🔀</div><div class="wf-nlbl">Hot/Warm/<br>Cold Router</div><div class="tti">Score ≥75: HOT → senior rep + immediate call. Score 45-74: WARM → automated nurture + rep follow-up. Score &lt;45: COLD → nurture sequence only.</div></div>
+          </div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-stage"><div class="wf-slbl">Route</div>
+          <div style="display:flex;flex-direction:column;gap:0.35rem">
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a1a0a,#78350f);color:#fde68a;border-color:#78350f;">👤</div><div class="wf-nlbl">Rep<br>Assignment</div><div class="tti">Routes based on: deal size → senior/junior rep, industry → specialist rep, geography → regional rep. No more round-robin guessing.</div></div>
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#0a1a1a,#065f46);color:#6ee7b7;border-color:#065f46;">📊</div><div class="wf-nlbl">CRM<br>Create</div><div class="tti">HubSpot / Salesforce contact and deal created automatically with all enriched data, score, source, and assignment pre-filled.</div></div>
+          </div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-stage"><div class="wf-slbl">Alert</div>
+          <div style="display:flex;flex-direction:column;gap:0.35rem">
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#0a0a2a,#1e3a5f);color:#93c5fd;border-color:#1e3a5f;">💬</div><div class="wf-nlbl">Slack<br>Alert</div><div class="tti">Rep gets Slack alert with lead summary: name, company, score, inquiry, enrichment data. One-click to open in CRM or call.</div></div>
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a0a1a,#6d28d9);color:#c4b5fd;border-color:#6d28d9;">📱</div><div class="wf-nlbl">SMS<br>Hot Leads</div><div class="tti">HOT leads (score ≥75) also trigger an SMS to the assigned rep's phone. 5-minute response window starts now.</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 4: SIM 1 — LEAD FORM -->
+<section class="slide" id="slide-3">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">03 — Simulation 1</div><div class="sec-title">Live: Lead Captured<br>& Scored in 90s</div><p class="sec-desc">A prospect submits the demo request form. Watch n8n enrich, score, and route the lead — all before the page even loads a thank-you message.</p></div>
+    <div class="animate-in lr">
+      <div style="display:flex;flex-direction:column;gap:1rem">
+        <div class="panel">
+          <h3>Lead Pipeline Steps</h3>
+          <ul class="ps-list" id="leadSteps">
+            <li id="ls1" style="opacity:0.3"><div class="ps-num">1</div><div>Form webhook fires → n8n receives submission</div></li>
+            <li id="ls2" style="opacity:0.3"><div class="ps-num">2</div><div>Clearbit enriches email → company profile built</div></li>
+            <li id="ls3" style="opacity:0.3"><div class="ps-num">3</div><div>GPT-4o scores lead on BANT framework</div></li>
+            <li id="ls4" style="opacity:0.3"><div class="ps-num">4</div><div>Score: 84/100 → HOT lead routed to senior rep</div></li>
+            <li id="ls5" style="opacity:0.3"><div class="ps-num">5</div><div>HubSpot contact + deal created automatically</div></li>
+            <li id="ls6" style="opacity:0.3"><div class="ps-num">6</div><div>Slack + SMS alert sent to rep Tobi Adeyemi</div></li>
+            <li id="ls7" style="opacity:0.3"><div class="ps-num">7</div><div>Auto-reply confirmation sent to prospect ✅</div></li>
+          </ul>
+        </div>
+        <button class="run-btn" id="leadBtn" onclick="runLeadSim()">▶ CAPTURE & QUALIFY LEAD NOW</button>
+      </div>
+      <div>
+        <div class="lead-form" id="leadForm">
+          <div class="lf-header"><div class="lf-title">🚀 Request a Demo</div><div class="ai-badge">🧠 AI-Qualified</div></div>
+          <div class="lf-body">
+            <div class="lf-field"><label>Full Name</label><div class="lf-input" id="lf-name"></div></div>
+            <div class="lf-field"><label>Work Email</label><div class="lf-input" id="lf-email"></div></div>
+            <div class="lf-field"><label>Company</label><div class="lf-input" id="lf-company"></div></div>
+            <div class="lf-field"><label>What are you looking to solve?</label><div class="lf-input" id="lf-msg" style="min-height:48px"></div></div>
+            <div class="lf-btn" id="lf-submit" onclick="runLeadSim()">Submit Request →</div>
+            <div id="lf-success" style="display:none;text-align:center;font-size:0.73rem;color:var(--green);padding:0.5rem;background:rgba(42,157,78,0.07);border:1px solid rgba(42,157,78,0.2);border-radius:6px">✅ Received! Your rep will be in touch shortly.</div>
+          </div>
+        </div>
+        <div id="lead-score-reveal" style="display:none;margin-top:0.85rem">
+          <div class="panel">
+            <h3>AI Score Result</h3>
+            <div style="font-size:0.73rem;line-height:1.7">
+              <strong>Oluwaseun Adeyemi</strong> · VP Operations · TechVenture Ltd<br>
+              <span style="color:var(--muted)">Company: 250 employees · SaaS · Series B · $12M raised</span><br><br>
+              <div style="display:flex;align-items:center;gap:0.75rem;margin:0.5rem 0">
+                <span style="font-family:'DM Mono',monospace;font-size:0.65rem;color:var(--muted)">BANT SCORE</span>
+                <div style="flex:1"><div class="score-bar-wrap"><div class="score-bar-fill" id="scoreBarFill" style="width:0%"></div></div></div>
+                <span style="font-family:'Clash Display',sans-serif;font-weight:700;color:var(--coral)" id="scoreNum">0</span>
+              </div>
+              <span style="color:var(--coral2)">🔥 HOT Lead → Assigned to Tobi Adeyemi (Enterprise)</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 5: SIM 2 — LEAD BOARD -->
+<section class="slide" id="slide-4">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">04 — Simulation 2</div><div class="sec-title">Live Lead Scoring<br>Board — 6 Leads</div><p class="sec-desc">Six leads arrive simultaneously from different channels. Watch GPT-4o score and classify every one in real time.</p></div>
+    <div class="animate-in lr-rev">
+      <div style="display:flex;flex-direction:column;gap:1rem">
+        <div class="panel">
+          <h3>What Each Score Triggers</h3>
+          <ul class="steps">
+            <li><div class="step-n">🔥</div><div><strong>HOT (75–100):</strong> Immediate Slack + SMS to senior rep. CRM deal created. 5-min response SLA clock starts.</div></li>
+            <li><div class="step-n">🌡️</div><div><strong>WARM (45–74):</strong> CRM contact added. Rep notified via Slack. Nurture email sequence enrolled.</div></li>
+            <li><div class="step-n">❄️</div><div><strong>COLD (0–44):</strong> CRM contact logged. 6-touch automated nurture sequence. Re-score trigger at email open #3.</div></li>
+          </ul>
+        </div>
+        <button class="run-btn" id="boardBtn" onclick="runBoardSim()">▶ SCORE 6 LEADS NOW</button>
+      </div>
+      <div id="leadBoard" style="display:flex;flex-direction:column;gap:0.5rem">
+        <div class="score-card" id="sc1"><div class="score-circle sc-hot" id="sv1">—</div><div><div class="score-name">Oluwaseun Adeyemi</div><div class="score-company">VP Ops · TechVenture · 250 staff</div></div><span class="score-tag st-new" id="st1">Incoming</span></div>
+        <div class="score-card" id="sc2"><div class="score-circle sc-hot" id="sv2">—</div><div><div class="score-name">Amaka Obi</div><div class="score-company">CEO · FinanceHub · 80 staff</div></div><span class="score-tag st-new" id="st2">Incoming</span></div>
+        <div class="score-card" id="sc3"><div class="score-circle sc-warm" id="sv3">—</div><div><div class="score-name">Tunde Fashola</div><div class="score-company">Manager · RetailCo · 40 staff</div></div><span class="score-tag st-new" id="st3">Incoming</span></div>
+        <div class="score-card" id="sc4"><div class="score-circle sc-cold" id="sv4">—</div><div><div class="score-name">Ngozi Eze</div><div class="score-company">Assistant · StartupX · 8 staff</div></div><span class="score-tag st-new" id="st4">Incoming</span></div>
+        <div class="score-card" id="sc5"><div class="score-circle sc-hot" id="sv5">—</div><div><div class="score-name">Babatunde Lawal</div><div class="score-company">CTO · CloudBase · 120 staff</div></div><span class="score-tag st-new" id="st5">Incoming</span></div>
+        <div class="score-card" id="sc6"><div class="score-circle sc-warm" id="sv6">—</div><div><div class="score-name">Fatima Ibrahim</div><div class="score-company">Dir. Sales · GrowthCo · 60 staff</div></div><span class="score-tag st-new" id="st6">Incoming</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 6: SIM 3 — CRM TABLE -->
+<section class="slide" id="slide-5">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">05 — Simulation 3</div><div class="sec-title">CRM Auto-Population<br>& Pipeline View</div><p class="sec-desc">Every scored lead flows into HubSpot or your CRM automatically. Sales managers see a live, prioritised pipeline — zero manual data entry.</p></div>
+    <div class="animate-in" style="margin-bottom:1.25rem">
+      <div class="crm-table">
+        <div class="crm-head"><div>#</div><div>Name</div><div>Company</div><div>Source</div><div>Score</div><div>Owner</div><div>Status</div></div>
+        <div class="crm-row"><div style="color:var(--muted)">001</div><div>Oluwaseun Adeyemi</div><div style="color:var(--muted)">TechVenture Ltd</div><div>Website</div><div><strong style="color:var(--coral)">84/100</strong></div><div style="font-size:0.65rem">Tobi A.</div><div><span class="cb cb-hot">HOT 🔥</span></div></div>
+        <div class="crm-row"><div style="color:var(--muted)">002</div><div>Amaka Obi</div><div style="color:var(--muted)">FinanceHub</div><div>LinkedIn</div><div><strong style="color:var(--coral)">91/100</strong></div><div style="font-size:0.65rem">Tobi A.</div><div><span class="cb cb-hot">HOT 🔥</span></div></div>
+        <div class="crm-row"><div style="color:var(--muted)">003</div><div>Tunde Fashola</div><div style="color:var(--muted)">RetailCo</div><div>Referral</div><div><strong style="color:var(--orange)">61/100</strong></div><div style="font-size:0.65rem">Kemi O.</div><div><span class="cb cb-warm">WARM</span></div></div>
+        <div class="crm-row"><div style="color:var(--muted)">004</div><div>Ngozi Eze</div><div style="color:var(--muted)">StartupX</div><div>Website</div><div><strong style="color:var(--muted)">28/100</strong></div><div style="font-size:0.65rem">Nurture</div><div><span class="cb cb-cold">COLD ❄️</span></div></div>
+        <div class="crm-row"><div style="color:var(--muted)">005</div><div>Babatunde Lawal</div><div style="color:var(--muted)">CloudBase</div><div>Event</div><div><strong style="color:var(--coral)">78/100</strong></div><div style="font-size:0.65rem">Tobi A.</div><div><span class="cb cb-hot">HOT 🔥</span></div></div>
+        <div class="crm-row"><div style="color:var(--muted)">006</div><div>Fatima Ibrahim</div><div style="color:var(--muted)">GrowthCo</div><div>LinkedIn</div><div><strong style="color:var(--orange)">55/100</strong></div><div style="font-size:0.65rem">Kemi O.</div><div><span class="cb cb-warm">WARM</span></div></div>
+      </div>
+    </div>
+    <div class="animate-in three-col">
+      <div class="card" style="text-align:center;border-color:rgba(230,57,70,0.2)"><div style="font-family:'Clash Display',sans-serif;font-size:2rem;font-weight:700;color:var(--coral)">3</div><div style="font-size:0.62rem;color:var(--muted);margin-top:0.2rem;font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:0.1em">Hot Leads</div></div>
+      <div class="card" style="text-align:center;border-color:rgba(244,114,43,0.2)"><div style="font-family:'Clash Display',sans-serif;font-size:2rem;font-weight:700;color:var(--orange)">2</div><div style="font-size:0.62rem;color:var(--muted);margin-top:0.2rem;font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:0.1em">Warm Leads</div></div>
+      <div class="card" style="text-align:center"><div style="font-family:'Clash Display',sans-serif;font-size:2rem;font-weight:700;color:var(--muted)">1</div><div style="font-size:0.62rem;color:var(--muted);margin-top:0.2rem;font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:0.1em">In Nurture</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 7: SIM 4 — SLACK ALERT -->
+<section class="slide" id="slide-6">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">06 — Simulation 4</div><div class="sec-title">Rep Alert &<br>Instant Notification</div><p class="sec-desc">The moment a HOT lead is detected, the assigned rep's phone buzzes. Here's exactly what they see — with everything they need to close.</p></div>
+    <div class="animate-in two-col">
+      <div style="background:var(--ink);border-radius:12px;padding:1.5rem;color:white">
+        <div style="font-family:'DM Mono',monospace;font-size:0.7rem;color:var(--coral);margin-bottom:1rem;display:flex;align-items:center;gap:0.5rem">💬 Slack — #sales-hot-leads <span style="color:rgba(255,255,255,0.3);font-size:0.62rem">just now</span></div>
+        <div style="background:rgba(255,255,255,0.05);border-left:3px solid var(--coral);padding:0.85rem 1rem;border-radius:0 8px 8px 0;font-size:0.75rem;line-height:1.75">
+          🔥 <strong style="color:var(--coral)">HOT LEAD — Score 84/100</strong><br><br>
+          👤 <strong>Oluwaseun Adeyemi</strong><br>
+          🏢 VP Operations · TechVenture Ltd<br>
+          📧 o.adeyemi@techventure.io<br>
+          💰 Company: 250 staff · Series B · $12M raised<br>
+          🎯 Need: "Automate our ops workflows — currently all manual"<br>
+          📊 BANT: Budget ✓ · Authority ✓ · Need ✓ · Timeline: Q2<br><br>
+          <span style="color:rgba(255,255,255,0.5);font-size:0.65rem">Assigned to: Tobi Adeyemi (Enterprise) · Response SLA: 5 min</span><br><br>
+          <span style="color:var(--coral)">→ Open in HubSpot · Call Now · Schedule Meeting</span>
+        </div>
+        <div style="margin-top:0.75rem;font-size:0.65rem;color:rgba(255,255,255,0.3);font-family:'DM Mono',monospace">Auto-generated by n8n + GPT-4o · 0 manual effort</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:1rem">
+        <div style="background:#1c1c2e;border-radius:12px;padding:1.25rem;color:white">
+          <div style="font-size:0.65rem;color:var(--muted);margin-bottom:0.6rem;font-family:'DM Mono',monospace">📱 SMS — Tobi's phone</div>
+          <div style="background:rgba(230,57,70,0.15);border-radius:8px;padding:0.75rem;font-size:0.76rem;line-height:1.65">
+            🔥 HOT LEAD: Oluwaseun Adeyemi, VP Ops at TechVenture (250 staff, Series B). Score 84. Needs ops automation — timeline Q2. Reply within 5 mins. CRM link: hubspot.co/deal/1284
+          </div>
+        </div>
+        <div class="panel">
+          <h3>Why Speed Matters</h3>
+          <div style="font-size:0.76rem;line-height:1.7">
+            📊 <strong>5 min response</strong> → 9× more likely to qualify<br>
+            📊 <strong>10 min response</strong> → 4× more likely to qualify<br>
+            📊 <strong>24 hr response</strong> → effectively 0× vs competitors<br><br>
+            <span style="color:var(--muted)">This system guarantees your rep is notified in under 90 seconds. Every time.</span>
+          </div>
+        </div>
+        <div class="info-blue">💡 Rep sees full BANT score, company data, and the exact words the prospect used. They walk into the call prepared — not guessing.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 8: BEFORE/AFTER -->
+<section class="slide" id="slide-7">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">07 — Business Impact</div><div class="sec-title">Before vs After</div></div>
+    <div class="animate-in two-col" style="margin-bottom:1.5rem">
+      <div>
+        <div style="font-size:0.62rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--coral2);margin-bottom:0.75rem;font-weight:600;font-family:'DM Mono',monospace">❌ BEFORE</div>
+        <div style="display:flex;flex-direction:column;gap:0.5rem">
+          <div class="ba-bad">Leads wait 24–48 hrs for response — deals lost to competitors</div>
+          <div class="ba-bad">No scoring — reps waste 60% of time on unqualified leads</div>
+          <div class="ba-bad">Round-robin routing — wrong rep, wrong conversation</div>
+          <div class="ba-bad">Leads from 5 channels tracked in 5 different systems</div>
+          <div class="ba-bad">CRM data incomplete — reps enter what they remember</div>
+        </div>
+      </div>
+      <div>
+        <div style="font-size:0.62rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--green);margin-bottom:0.75rem;font-weight:600;font-family:'DM Mono',monospace">✅ AFTER</div>
+        <div style="display:flex;flex-direction:column;gap:0.5rem">
+          <div class="ba-good">Rep notified in under 90 seconds — 9× conversion advantage</div>
+          <div class="ba-good">AI BANT score on every lead — reps only chase quality</div>
+          <div class="ba-good">Smart routing by company size, industry, geography</div>
+          <div class="ba-good">All channels unified in one n8n pipeline → one CRM view</div>
+          <div class="ba-good">CRM 100% accurate — enriched automatically, zero typing</div>
+        </div>
+      </div>
+    </div>
+    <div class="animate-in">
+      <div class="quote-block">
+        <div class="quote-text">"Your sales team's job is to <strong>close deals</strong> — not to qualify, route, and chase. This system does the first three automatically so your reps can focus entirely on what they were hired to do."</div>
+        <div style="font-size:0.62rem;color:rgba(255,255,255,0.35);font-family:'DM Mono',monospace;letter-spacing:0.08em">STACK: n8n · GPT-4o · Clearbit · HubSpot/Salesforce · LinkedIn API · Slack · Twilio SMS · Google Sheets</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="slide-counter" id="slideCounter">Slide 1 of 8</div>
+<div class="slide-nav">
+  <button class="nav-btn" onclick="prevSlide()">← Prev</button>
+  <button class="nav-btn primary" onclick="nextSlide()">Next →</button>
+</div>
+
+<script>
+const slides=document.querySelectorAll('.slide'),total=slides.length;let cur=0;
+const dots=document.getElementById('navDots');
+for(let i=0;i<total;i++){const d=document.createElement('div');d.className='nav-dot'+(i===0?' active':'');d.onclick=()=>goTo(i);dots.appendChild(d);}
+function goTo(n){slides[cur].classList.remove('active');dots.children[cur].classList.remove('active');if(cur<n)dots.children[cur].classList.add('done');cur=n;slides[cur].classList.add('active');dots.children[cur].classList.add('active');document.getElementById('slideCounter').textContent=`Slide ${cur+1} of ${total}`;}
+function nextSlide(){if(cur<total-1)goTo(cur+1);}function prevSlide(){if(cur>0)goTo(cur-1);}
+document.addEventListener('keydown',e=>{if(e.key==='ArrowRight'||e.key==='ArrowDown')nextSlide();if(e.key==='ArrowLeft'||e.key==='ArrowUp')prevSlide();});
+let secs=0;setInterval(()=>{secs++;const m=String(Math.floor(secs/60)).padStart(2,'0'),s=String(secs%60).padStart(2,'0');document.getElementById('timerBadge').textContent=`⏱ ${m}:${s}`;if(secs>=840)document.getElementById('timerBadge').style.color='#c1121f';},1000);
+function delay(ms){return new Promise(r=>setTimeout(r,ms));}
+
+// Lead form sim
+let leadRunning=false;
+async function runLeadSim(){
+  if(leadRunning)return;leadRunning=true;
+  const fields=[['lf-name','Oluwaseun Adeyemi'],['lf-email','o.adeyemi@techventure.io'],['lf-company','TechVenture Ltd'],['lf-msg','We need to automate our operations workflows — everything is manual and costing us time']];
+  for(const[id,val]of fields){
+    const el=document.getElementById(id);if(!el)continue;
+    el.style.borderColor='#e63946';let i=0;
+    await new Promise(r=>{const iv=setInterval(()=>{el.textContent=val.slice(0,++i);if(i>=val.length){clearInterval(iv);el.style.borderColor='#2a9d4e';r();}},22);});
+    await delay(150);
+  }
+  const btn=document.getElementById('lf-submit');btn.textContent='Submitting...';btn.style.background='#f4722b';
+  await delay(700);
+  btn.style.display='none';document.getElementById('lf-success').style.display='block';
+  const steps=['ls1','ls2','ls3','ls4','ls5','ls6','ls7'];
+  for(let i=0;i<steps.length;i++){
+    await delay(450);
+    steps.forEach(s=>{const el=document.getElementById(s);if(el){el.style.opacity='0.3';el.querySelector('.ps-num').style.background='var(--border)';}});
+    const el=document.getElementById(steps[i]);
+    if(el){el.style.opacity='1';el.style.color='var(--coral)';el.querySelector('.ps-num').style.background='var(--coral)';}
+  }
+  document.getElementById('lead-score-reveal').style.display='block';
+  const bar=document.getElementById('scoreBarFill'),num=document.getElementById('scoreNum');
+  let score=0;const iv=setInterval(()=>{score++;bar.style.width=score+'%';num.textContent=score;if(score>=84)clearInterval(iv);},18);
+  document.getElementById('leadBtn').textContent='↺ Reset & Run Again';leadRunning=false;
+}
+
+// Board sim
+const boardData=[
+  {id:'sc1',sv:'sv1',st:'st1',score:84,cls:'hot',tag:'HOT 🔥',tagCls:'st-hot'},
+  {id:'sc2',sv:'sv2',st:'st2',score:91,cls:'hot',tag:'HOT 🔥',tagCls:'st-hot'},
+  {id:'sc3',sv:'sv3',st:'st3',score:61,cls:'warm',tag:'WARM 🌡️',tagCls:'st-warm'},
+  {id:'sc4',sv:'sv4',st:'st4',score:28,cls:'cold',tag:'COLD ❄️',tagCls:'st-cold'},
+  {id:'sc5',sv:'sv5',st:'st5',score:78,cls:'hot',tag:'HOT 🔥',tagCls:'st-hot'},
+  {id:'sc6',sv:'sv6',st:'st6',score:55,cls:'warm',tag:'WARM 🌡️',tagCls:'st-warm'},
+];
+let boardRunning=false;
+async function runBoardSim(){
+  if(boardRunning)return;boardRunning=true;
+  boardData.forEach(d=>{const el=document.getElementById(d.id);const sv=document.getElementById(d.sv);const st=document.getElementById(d.st);if(el)el.className='score-card';if(sv)sv.textContent='—';if(st){st.className='score-tag st-new';st.textContent='Incoming';}});
+  const btn=document.getElementById('boardBtn');btn.textContent='Scoring...';
+  for(const d of boardData){
+    await delay(500);
+    const card=document.getElementById(d.id);
+    const sv=document.getElementById(d.sv);
+    const st=document.getElementById(d.st);
+    if(card)card.classList.add('qualifying');
+    if(sv)sv.textContent='…';
+    await delay(400);
+    if(card){card.className='score-card '+d.cls;}
+    if(sv)sv.textContent=d.score;
+    if(st){st.className='score-tag '+d.tagCls;st.textContent=d.tag;}
+  }
+  btn.textContent='↺ Reset & Run Again';boardRunning=false;
+}
+</script>
+</body>
+</html>
