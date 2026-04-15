@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Education — Parent Communications Automation</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#faf8f2;--surface:#fff;--surface2:#f5f0e4;--border:#e4dcc8;
+  --ink:#180e04;--teal:#0a6878;--teal2:#074858;--warm:#c87828;
+  --cream:#fef8e8;--green:#1a6030;--red:#c02020;--amber:#c07018;
+  --slate:#2a4058;--text:#201008;--muted:#7a6048;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-serif;overflow-x:hidden;}
+.top-bar{position:fixed;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,var(--teal2),var(--teal),var(--warm),var(--teal),var(--teal2));z-index:200;}
+nav{position:fixed;top:4px;left:0;right:0;z-index:100;background:rgba(250,248,242,0.97);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 2.5rem;height:54px;}
+.nav-brand{font-family:'IBM Plex Mono',monospace;font-size:0.7rem;color:var(--teal2);letter-spacing:0.06em;}
+.nav-dots{display:flex;gap:0.3rem;}
+.nav-dot{width:7px;height:7px;border-radius:50%;background:var(--border);cursor:pointer;transition:all 0.2s;}
+.nav-dot.active{background:var(--teal);transform:scale(1.5);}
+.nav-dot.done{background:var(--green);}
+.timer{font-size:0.67rem;color:var(--teal);background:rgba(10,104,120,0.07);border:1px solid rgba(10,104,120,0.18);padding:0.2rem 0.75rem;border-radius:4px;font-family:'IBM Plex Mono',monospace;}
+.slide{min-height:100vh;padding:78px 0 50px;display:none;flex-direction:column;align-items:center;justify-content:center;position:relative;overflow:hidden;}
+.slide.active{display:flex;}
+.slide-inner{width:100%;max-width:1140px;padding:0 2.5rem;position:relative;z-index:2;}
+.hero-bg{position:absolute;inset:0;background:radial-gradient(ellipse at 80% 30%,rgba(10,104,120,0.04) 0%,transparent 55%);pointer-events:none;}
+.hero-badge{display:inline-flex;align-items:center;gap:0.5rem;background:var(--cream);border:1px solid rgba(10,104,120,0.2);color:var(--teal2);font-size:0.67rem;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;padding:0.28rem 0.9rem;border-radius:4px;margin-bottom:1.5rem;font-family:'IBM Plex Mono',monospace;}
+h1.hero-title{font-family:'DM Serif Display',serif;font-size:clamp(2.9rem,5.5vw,4.9rem);font-weight:400;line-height:1.05;letter-spacing:-0.01em;color:var(--ink);margin-bottom:1.5rem;}
+h1.hero-title em{font-style:italic;color:var(--teal);}
+.hero-desc{font-size:0.97rem;color:var(--muted);max-width:510px;line-height:1.78;margin-bottom:2.5rem;font-weight:300;}
+.kpi-strip{display:flex;gap:1px;background:var(--border);border-radius:6px;overflow:hidden;max-width:640px;box-shadow:0 2px 10px rgba(10,104,120,0.07);}
+.kpi{background:white;padding:1.1rem 1.4rem;flex:1;}
+.kpi-val{font-family:'DM Serif Display',serif;font-size:2rem;font-weight:400;color:var(--teal);line-height:1;}
+.kpi-lbl{font-size:0.59rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);margin-top:0.2rem;font-family:'IBM Plex Mono',monospace;}
+.sec-tag{font-size:0.61rem;letter-spacing:0.22em;text-transform:uppercase;color:var(--teal);margin-bottom:0.4rem;font-weight:600;font-family:'IBM Plex Mono',monospace;}
+.sec-title{font-family:'DM Serif Display',serif;font-size:clamp(2rem,3.8vw,3.1rem);font-weight:400;line-height:1.08;margin-bottom:0.5rem;color:var(--ink);}
+.sec-title em{font-style:italic;color:var(--teal);}
+.sec-desc{font-size:0.87rem;color:var(--muted);margin-bottom:1.85rem;max-width:540px;line-height:1.78;font-weight:300;}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;}
+.lr{display:grid;grid-template-columns:1.1fr 1fr;gap:2rem;align-items:start;}
+.card{background:white;border:1px solid var(--border);border-radius:8px;padding:1.25rem;transition:all 0.2s;box-shadow:0 1px 4px rgba(0,0,0,0.04);}
+.card:hover{border-color:var(--teal);transform:translateY(-2px);box-shadow:0 6px 18px rgba(10,104,120,0.09);}
+.card-icon{font-size:1.4rem;margin-bottom:0.5rem;}
+.card-title{font-family:'DM Serif Display',serif;font-size:1.05rem;font-weight:400;margin-bottom:0.3rem;color:var(--ink);}
+.card-desc{font-size:0.72rem;color:var(--muted);line-height:1.65;}
+.panel{background:white;border:1px solid var(--border);border-radius:8px;padding:1.4rem;}
+.panel h3{font-family:'DM Serif Display',serif;font-size:1rem;font-weight:400;color:var(--teal2);margin-bottom:0.9rem;}
+.wf-canvas{background:var(--ink);border-radius:10px;padding:2rem;position:relative;overflow:hidden;}
+.wf-pattern{position:absolute;inset:0;background-image:radial-gradient(circle,rgba(10,104,120,0.18) 1px,transparent 1px);background-size:28px 28px;opacity:0.5;}
+.wf-label{position:absolute;top:0.75rem;left:1rem;font-size:0.57rem;letter-spacing:0.18em;text-transform:uppercase;color:rgba(255,255,255,0.3);display:flex;align-items:center;gap:0.4rem;z-index:3;font-family:'IBM Plex Mono',monospace;}
+.wf-label::before{content:'';width:7px;height:7px;border-radius:50%;background:var(--teal);box-shadow:0 0 8px var(--teal);animation:tpulse 2s infinite;}
+@keyframes tpulse{0%,100%{opacity:1}50%{opacity:0.2}}
+.wf-nodes{display:flex;align-items:flex-start;gap:0;padding-top:1.5rem;position:relative;z-index:2;flex-wrap:wrap;}
+.wf-stage{display:flex;flex-direction:column;align-items:center;}
+.wf-slbl{font-size:0.51rem;letter-spacing:0.14em;text-transform:uppercase;color:rgba(255,255,255,0.28);margin-bottom:0.3rem;font-family:'IBM Plex Mono',monospace;}
+.wf-node{display:flex;flex-direction:column;align-items:center;gap:0.3rem;cursor:pointer;position:relative;}
+.wf-box{width:58px;height:58px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.25rem;border:2px solid transparent;transition:all 0.3s;}
+.wf-node:hover .wf-box{transform:scale(1.1);box-shadow:0 0 20px rgba(10,104,120,0.4);}
+.wf-nlbl{font-size:0.52rem;text-align:center;color:rgba(255,255,255,0.42);max-width:66px;line-height:1.3;font-family:'IBM Plex Mono',monospace;}
+.wf-arr{color:rgba(255,255,255,0.18);padding:0 0.2rem;font-size:0.85rem;align-self:flex-start;margin-top:19px;flex-shrink:0;}
+.ttw{position:relative;}
+.tti{position:absolute;bottom:calc(100%+8px);left:50%;transform:translateX(-50%);background:white;border:1px solid var(--border);border-radius:6px;padding:0.6rem 0.9rem;font-size:0.67rem;opacity:0;pointer-events:none;transition:opacity 0.2s;z-index:50;color:var(--ink);line-height:1.5;max-width:200px;white-space:normal;text-align:left;box-shadow:0 4px 12px rgba(0,0,0,0.1);}
+.ttw:hover .tti{opacity:1;}
+/* Communication log */
+.comm-row{background:white;border:1px solid var(--border);border-radius:8px;padding:0.7rem 1rem;margin-bottom:0.4rem;display:flex;gap:0.75rem;align-items:flex-start;transition:all 0.3s;font-size:0.72rem;}
+.cr-icon{font-size:1rem;flex-shrink:0;}
+.cr-title{font-weight:600;color:var(--ink);}
+.cr-detail{font-size:0.63rem;color:var(--muted);margin-top:0.1rem;}
+.cr-time{font-family:'IBM Plex Mono',monospace;font-size:0.6rem;color:var(--muted);flex-shrink:0;align-self:center;}
+.cr-badge{margin-left:0.5rem;font-size:0.58rem;padding:0.1rem 0.42rem;border-radius:4px;font-weight:600;font-family:'IBM Plex Mono',monospace;white-space:nowrap;}
+.crb-sent{background:rgba(10,104,120,0.1);color:var(--teal);border:1px solid rgba(10,104,120,0.2);}
+.crb-urg{background:rgba(192,32,32,0.1);color:var(--red);border:1px solid rgba(192,32,32,0.2);}
+.crb-info{background:rgba(122,96,72,0.1);color:var(--muted);border:1px solid rgba(122,96,72,0.18);}
+/* PS list */
+.ps-list{list-style:none;}
+.ps-list li{display:flex;gap:0.75rem;padding:0.45rem 0;border-bottom:1px solid var(--border);font-size:0.74rem;line-height:1.5;}
+.ps-list li:last-child{border-bottom:none;}
+.ps-num{width:20px;height:20px;border-radius:50%;background:var(--teal);color:white;font-size:0.6rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.info-teal{padding:0.75rem 1rem;border-radius:6px;font-size:0.77rem;line-height:1.6;background:rgba(10,104,120,0.06);border:1px solid rgba(10,104,120,0.15);color:var(--teal2);}
+.ba-bad{padding:0.6rem 0.9rem;border-radius:6px;font-size:0.76rem;line-height:1.5;background:rgba(192,32,32,0.04);border:1px solid rgba(192,32,32,0.12);}
+.ba-good{padding:0.6rem 0.9rem;border-radius:6px;font-size:0.76rem;line-height:1.5;background:rgba(26,96,48,0.05);border:1px solid rgba(26,96,48,0.14);}
+.quote-block{background:var(--ink);border-radius:10px;padding:1.75rem 2rem;color:white;border-top:3px solid var(--teal);}
+.quote-text{font-family:'DM Serif Display',serif;font-style:italic;font-size:1.15rem;line-height:1.75;margin-bottom:0.75rem;}
+.quote-text strong{color:#7dd3fc;font-style:normal;}
+.slide-counter{position:fixed;bottom:1.5rem;left:2rem;font-size:0.62rem;color:var(--muted);z-index:100;font-family:'IBM Plex Mono',monospace;}
+.slide-nav{position:fixed;bottom:1.5rem;right:2rem;display:flex;gap:0.5rem;z-index:100;}
+.nav-btn{background:white;border:1px solid var(--border);color:var(--text);padding:0.55rem 1.2rem;border-radius:6px;font-family:'IBM Plex Mono',monospace;font-size:0.7rem;cursor:pointer;transition:all 0.2s;}
+.nav-btn:hover{border-color:var(--teal);color:var(--teal);}
+.nav-btn.primary{background:var(--teal);border-color:var(--teal);color:white;}
+.nav-btn.primary:hover{background:var(--teal2);}
+.run-btn{background:var(--teal);color:white;border:none;border-radius:6px;padding:0.7rem 1.5rem;font-family:'IBM Plex Mono',monospace;font-size:0.72rem;cursor:pointer;transition:all 0.2s;width:100%;text-align:center;}
+.run-btn:hover{background:var(--teal2);}
+.animate-in{opacity:0;animation:fadeUp 0.5s ease-out forwards;}
+.slide.active .animate-in:nth-child(1){animation-delay:0.05s;}
+.slide.active .animate-in:nth-child(2){animation-delay:0.15s;}
+.slide.active .animate-in:nth-child(3){animation-delay:0.25s;}
+.slide.active .animate-in:nth-child(4){animation-delay:0.35s;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+</style>
+</head>
+<body>
+<div class="top-bar"></div>
+<nav>
+  <div class="nav-brand">EDUCATION · Parent Communications</div>
+  <div class="nav-dots" id="navDots"></div>
+  <div class="timer" id="timerBadge">⏱ 00:00</div>
+</nav>
+
+<section class="slide active" id="slide-0">
+  <div class="hero-bg"></div>
+  <div class="slide-inner">
+    <div class="animate-in"><div class="hero-badge">🎓 n8n AI Automation · Education & EdTech</div></div>
+    <div class="animate-in"><h1 class="hero-title">Every Parent<br><em>Informed.</em><br>Every Time.</h1></div>
+    <div class="animate-in"><p class="hero-desc">Automated parent communications for attendance alerts, event reminders, school notices, and term updates — keeping every family connected to their child's school life without overwhelming staff with broadcasting tasks.</p></div>
+    <div class="animate-in">
+      <div class="kpi-strip">
+        <div class="kpi"><div class="kpi-val">100%</div><div class="kpi-lbl">Parents Reached</div></div>
+        <div class="kpi"><div class="kpi-val">Auto</div><div class="kpi-lbl">Attendance Alerts</div></div>
+        <div class="kpi"><div class="kpi-val">0</div><div class="kpi-lbl">Missed Notices</div></div>
+        <div class="kpi"><div class="kpi-val">Multi</div><div class="kpi-lbl">Language Support</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="slide-1">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">01 — The Problem</div><div class="sec-title">Parents Left<br><em>in the Dark</em></div><p class="sec-desc">Poor parent communication is consistently the top complaint in school surveys. Parents only hear about problems when they're serious. Events are missed. Absence goes unacknowledged. The school-home relationship suffers.</p></div>
+    <div class="animate-in two-col" style="margin-bottom:1.5rem">
+      <div class="card"><div class="card-icon">🚫</div><div class="card-title">Absent Without Notice</div><div class="card-desc">Child absent on Monday. School doesn't call. Parent thinks the child is in school. Child is somewhere else. A same-morning attendance alert would prevent this entirely — and potentially protect a child's safety.</div></div>
+      <div class="card"><div class="card-icon">📢</div><div class="card-title">Event Notices Lost</div><div class="card-desc">Sports day notice sent home in child's bag. Never arrives. Parent shows up to pick up child on sports day to find the school half-empty — everybody went home early. One WhatsApp message prevents this every time.</div></div>
+      <div class="card"><div class="card-icon">👥</div><div class="card-title">Inconsistent Broadcasting</div><div class="card-desc">Important notice sent by some class teachers but not others. Some parents get the PTA meeting reminder, others miss it. No central communication system = inconsistent experience across the school.</div></div>
+      <div class="card"><div class="card-icon">📊</div><div class="card-title">No Parent Engagement Data</div><div class="card-desc">Which parents consistently don't respond to communications? Which channels work best? Which classes have most absent students? Without data, pastoral and safeguarding decisions lack the information they need.</div></div>
+    </div>
+    <div class="animate-in"><div class="info-teal">✅ n8n automates all routine parent communications: daily attendance alerts, event reminders, school notices, emergency broadcasts, and weekly progress digests — reaching every parent on their preferred channel.</div></div>
+  </div>
+</section>
+
+<section class="slide" id="slide-2">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">02 — The Blueprint</div><div class="sec-title">n8n Parent Comms<br><em>Automation</em></div><p class="sec-desc">Attendance logged → absent alert to parent within 10 minutes. Event created → reminders sent 7 days, 1 day, and 2 hours before. School notice approved → all parents notified simultaneously.</p></div>
+    <div class="animate-in wf-canvas">
+      <div class="wf-pattern"></div>
+      <div class="wf-label">n8n canvas — parent communications pipeline</div>
+      <div class="wf-nodes">
+        <div class="wf-stage"><div class="wf-slbl">Trigger</div>
+          <div style="display:flex;flex-direction:column;gap:0.35rem">
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a0a0a,#7f1d1d);color:#fca5a5;border-color:#7f1d1d;">📵</div><div class="wf-nlbl">Absence<br>Alert</div><div class="tti">Morning register marked by 8:30am. Any absent student: parent receives WhatsApp immediately — "Tunde has been marked absent today. If this is unexpected, please contact us." Response tracked.</div></div>
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#0a1a2a,#1d4ed8);color:#93c5fd;border-color:#1d4ed8;">📅</div><div class="wf-nlbl">Event<br>Reminders</div><div class="tti">Event entered in school calendar → n8n automatically schedules 3 reminders to all relevant parents: T-7 days, T-1 day, T-2 hours. No staff manual sending needed.</div></div>
+          </div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-stage"><div class="wf-slbl">Craft</div>
+          <div style="display:flex;flex-direction:column;gap:0.35rem">
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a0a0a,#991b1b);color:#fca5a5;border-color:#991b1b;">🧠</div><div class="wf-nlbl">GPT-4o<br>Write</div><div class="tti">GPT-4o writes all communications: clear, professional, appropriate tone per message type. School notice — formal. Absence alert — caring but informative. Event reminder — friendly and encouraging.</div></div>
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a0a1a,#7c3aed);color:#d8b4fe;border-color:#7c3aed;">🌍</div><div class="wf-nlbl">Language<br>Adapt</div><div class="tti">Parents with Yoruba, Hausa, or Igbo language preference receive messages in their language. GPT-4o translates while maintaining the professional tone and all key details.</div></div>
+          </div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-stage"><div class="wf-slbl">Deliver</div>
+          <div style="display:flex;flex-direction:column;gap:0.35rem">
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a3a1a,#166534);color:#4ade80;border-color:#166534;">📱</div><div class="wf-nlbl">WhatsApp<br>Broadcast</div><div class="tti">All messages sent via WhatsApp Business API to individual parent numbers. Not a group broadcast — individual messages that feel personal. Read receipts tracked.</div></div>
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#0a1a2a,#0369a1);color:#7dd3fc;border-color:#0369a1;">📧</div><div class="wf-nlbl">Email<br>Backup</div><div class="tti">WhatsApp undelivered after 2 hours → email fallback. SMS fallback if email undelivered. Every parent reached through whatever channel works for them.</div></div>
+          </div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-stage"><div class="wf-slbl">Track</div>
+          <div style="display:flex;flex-direction:column;gap:0.35rem">
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#0a1a1a,#065f46);color:#6ee7b7;border-color:#065f46;">📊</div><div class="wf-nlbl">Engagement<br>Dashboard</div><div class="tti">Open rates, response rates, and delivery rates tracked per message type and per parent. Parents who consistently don't respond flagged for pastoral team follow-up.</div></div>
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a1a0a,#78350f);color:#fde68a;border-color:#78350f;">📈</div><div class="wf-nlbl">Weekly<br>Digest</div><div class="tti">Friday afternoon: parents receive weekly digest for their child — attendance summary, any commendations, upcoming events next week. Keeps families connected even between formal report periods.</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="slide-3">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">03 — Simulation</div><div class="sec-title">Today's Communications<br><em>Log</em></div><p class="sec-desc">Monday morning at St. Mark's Academy. Attendance taken. Events scheduled. Weekly digest due. Watch the full communication flow for today — all automated, all professional, all tracked.</p></div>
+    <div class="animate-in lr">
+      <div style="display:flex;flex-direction:column;gap:1rem">
+        <div class="panel">
+          <h3>Automation — Today</h3>
+          <ul class="ps-list">
+            <li><div class="ps-num">1</div><div>8:30am register marked — 3 absences detected</div></li>
+            <li><div class="ps-num">2</div><div>3 absence alerts sent to parents by 8:40am</div></li>
+            <li><div class="ps-num">3</div><div>Sports day T-7 reminder sent to all 180 families</div></li>
+            <li><div class="ps-num">4</div><div>New school policy notice approved — broadcast sent</div></li>
+            <li><div class="ps-num">5</div><div>Friday digest auto-scheduled for 3pm ✅</div></li>
+          </ul>
+        </div>
+        <div class="info-teal">📊 Before automation, Monday morning communications required 1.5 hours of admin staff time. Today: zero. All 180 families relevant to today's communications were reached by 9am without a single manual action.</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:0.4rem">
+        <div style="font-size:0.61rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);font-family:'IBM Plex Mono',monospace;margin-bottom:0.25rem">Communications Log — Today</div>
+        <div class="comm-row"><div class="cr-icon">📵</div><div><div class="cr-title">Absence Alert — Tunde Fashola</div><div class="cr-detail">Sent to Mrs. Fashola (mother) · WhatsApp</div></div><div class="cr-time">8:41am</div><span class="cr-badge crb-urg">Read ✓</span></div>
+        <div class="comm-row"><div class="cr-icon">📵</div><div><div class="cr-title">Absence Alert — Amaka Ibrahim</div><div class="cr-detail">Sent to Mr. Ibrahim (father) · WhatsApp</div></div><div class="cr-time">8:41am</div><span class="cr-badge crb-urg">Read ✓</span></div>
+        <div class="comm-row"><div class="cr-icon">🏃</div><div><div class="cr-title">Sports Day — 7-day reminder</div><div class="cr-detail">Sent to all 180 families · Saturday 19 Apr</div></div><div class="cr-time">8:45am</div><span class="cr-badge crb-sent">Sent ✓</span></div>
+        <div class="comm-row"><div class="cr-icon">📋</div><div><div class="cr-title">New Phone Policy Notice</div><div class="cr-detail">Principal approved · All parents notified</div></div><div class="cr-time">9:02am</div><span class="cr-badge crb-info">Sent ✓</span></div>
+        <div class="comm-row"><div class="cr-icon">📊</div><div><div class="cr-title">Weekly Digest — Scheduled</div><div class="cr-detail">Friday 3pm · All 180 families</div></div><div class="cr-time">Scheduled</div><span class="cr-badge crb-info">3pm Fri</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="slide-4">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">04 — Impact</div><div class="sec-title">Informed Parents.<br><em>Engaged Families.</em></div></div>
+    <div class="animate-in two-col" style="margin-bottom:1.5rem">
+      <div>
+        <div style="font-size:0.62rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--red);margin-bottom:0.75rem;font-weight:600;font-family:'IBM Plex Mono',monospace">❌ BEFORE</div>
+        <div style="display:flex;flex-direction:column;gap:0.5rem">
+          <div class="ba-bad">Absent child not noticed until parent calls hours later</div>
+          <div class="ba-bad">Event notices go home in bags — 30% never reach parents</div>
+          <div class="ba-bad">1.5 hrs Monday morning admin just to send routine notices</div>
+          <div class="ba-bad">Inconsistent comms — some classes informed, others not</div>
+          <div class="ba-bad">Parents only hear bad news — no positive engagement</div>
+        </div>
+      </div>
+      <div>
+        <div style="font-size:0.62rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--green);margin-bottom:0.75rem;font-weight:600;font-family:'IBM Plex Mono',monospace">✅ AFTER</div>
+        <div style="display:flex;flex-direction:column;gap:0.5rem">
+          <div class="ba-good">Absence alert within 10 minutes — safety and accountability</div>
+          <div class="ba-good">WhatsApp reaches 99% of parents — events never missed</div>
+          <div class="ba-good">Zero admin time — all routine comms fully automated</div>
+          <div class="ba-good">Consistent comms across all classes — fair, equal experience</div>
+          <div class="ba-good">Weekly digest builds positive relationship with every family</div>
+        </div>
+      </div>
+    </div>
+    <div class="animate-in">
+      <div class="quote-block">
+        <div class="quote-text">"Parents who feel informed and connected are your <strong>strongest advocates</strong>. Automated communications don't replace the human relationship — they protect the time and energy needed to build it."</div>
+        <div style="font-size:0.62rem;color:rgba(255,255,255,0.3);font-family:'IBM Plex Mono',monospace">STACK: n8n · GPT-4o · WhatsApp API · Gmail · School Management System · Google Sheets · Twilio SMS</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="slide-counter" id="slideCounter">Slide 1 of 5</div>
+<div class="slide-nav">
+  <button class="nav-btn" onclick="prevSlide()">← Prev</button>
+  <button class="nav-btn primary" onclick="nextSlide()">Next →</button>
+</div>
+<script>
+const slides=document.querySelectorAll('.slide'),total=slides.length;let cur=0;
+const dots=document.getElementById('navDots');
+for(let i=0;i<total;i++){const d=document.createElement('div');d.className='nav-dot'+(i===0?' active':'');d.onclick=()=>goTo(i);dots.appendChild(d);}
+function goTo(n){slides[cur].classList.remove('active');dots.children[cur].classList.remove('active');if(cur<n)dots.children[cur].classList.add('done');cur=n;slides[cur].classList.add('active');dots.children[cur].classList.add('active');document.getElementById('slideCounter').textContent=`Slide ${cur+1} of ${total}`;}
+function nextSlide(){if(cur<total-1)goTo(cur+1);}function prevSlide(){if(cur>0)goTo(cur-1);}
+document.addEventListener('keydown',e=>{if(e.key==='ArrowRight'||e.key==='ArrowDown')nextSlide();if(e.key==='ArrowLeft'||e.key==='ArrowUp')prevSlide();});
+let secs=0;setInterval(()=>{secs++;const m=String(Math.floor(secs/60)).padStart(2,'0'),s=String(secs%60).padStart(2,'0');document.getElementById('timerBadge').textContent=`⏱ ${m}:${s}`;if(secs>=840)document.getElementById('timerBadge').style.color='#c02020';},1000);
+</script>
+</body>
+</html>
