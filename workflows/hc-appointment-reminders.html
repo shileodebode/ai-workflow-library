@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Healthcare — Appointment Reminders Automation</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f5fef8;--surface:#ffffff;--surface2:#e8faf0;--border:#c8ead8;
+  --ink:#041810;--sage:#2a6a48;--sage2:#1e5038;--green:#1a7a3a;
+  --coral:#e05a3a;--amber:#d07820;--blue:#1a4a8a;--purple:#5a2898;
+  --foam:#e0faf0;--text:#0a2018;--muted:#507860;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'Nunito',sans-serif;overflow-x:hidden;}
+.top-wave{position:fixed;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,var(--sage),#34d399,var(--sage));z-index:200;}
+nav{position:fixed;top:4px;left:0;right:0;z-index:100;background:rgba(245,254,248,0.97);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 2.5rem;height:54px;}
+.nav-brand{font-family:'Fira Code',monospace;font-size:0.7rem;color:var(--sage2);letter-spacing:0.05em;}
+.nav-dots{display:flex;gap:0.3rem;}
+.nav-dot{width:7px;height:7px;border-radius:50%;background:var(--border);cursor:pointer;transition:all 0.2s;}
+.nav-dot.active{background:var(--sage);transform:scale(1.5);}
+.nav-dot.done{background:var(--green);}
+.timer{font-size:0.67rem;color:var(--sage);background:rgba(42,106,72,0.08);border:1px solid rgba(42,106,72,0.2);padding:0.2rem 0.75rem;border-radius:20px;font-family:'Fira Code',monospace;}
+.slide{min-height:100vh;padding:78px 0 50px;display:none;flex-direction:column;align-items:center;justify-content:center;position:relative;overflow:hidden;}
+.slide.active{display:flex;}
+.slide-inner{width:100%;max-width:1140px;padding:0 2.5rem;position:relative;z-index:2;}
+.hero-orb{position:absolute;top:-60px;right:-60px;width:480px;height:480px;border-radius:50%;background:radial-gradient(circle,rgba(42,106,72,0.06) 0%,transparent 65%);pointer-events:none;}
+.hero-badge{display:inline-flex;align-items:center;gap:0.5rem;background:var(--foam);border:1px solid rgba(42,106,72,0.2);color:var(--sage2);font-size:0.67rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;padding:0.28rem 0.85rem;border-radius:20px;margin-bottom:1.5rem;font-family:'Fira Code',monospace;}
+h1.hero-title{font-family:'Nunito',sans-serif;font-size:clamp(2.8rem,5.5vw,4.8rem);font-weight:800;line-height:1.0;letter-spacing:-0.02em;color:var(--ink);margin-bottom:1.5rem;}
+h1.hero-title span{color:var(--sage);}
+.hero-desc{font-size:0.97rem;color:var(--muted);max-width:510px;line-height:1.78;margin-bottom:2.5rem;font-weight:300;}
+.kpi-strip{display:flex;gap:1px;background:var(--border);border-radius:12px;overflow:hidden;max-width:640px;box-shadow:0 2px 10px rgba(42,106,72,0.07);}
+.kpi{background:white;padding:1.1rem 1.4rem;flex:1;}
+.kpi-val{font-family:'Nunito',sans-serif;font-size:1.9rem;font-weight:800;color:var(--sage);line-height:1;}
+.kpi-lbl{font-size:0.59rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);margin-top:0.2rem;font-family:'Fira Code',monospace;}
+.sec-tag{font-size:0.61rem;letter-spacing:0.22em;text-transform:uppercase;color:var(--sage);margin-bottom:0.4rem;font-weight:700;font-family:'Fira Code',monospace;}
+.sec-title{font-family:'Nunito',sans-serif;font-size:clamp(1.9rem,3.8vw,3rem);font-weight:800;line-height:1.05;margin-bottom:0.5rem;color:var(--ink);letter-spacing:-0.02em;}
+.sec-title span{color:var(--sage);}
+.sec-desc{font-size:0.87rem;color:var(--muted);margin-bottom:1.85rem;max-width:540px;line-height:1.78;font-weight:300;}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;}
+.three-col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;}
+.lr{display:grid;grid-template-columns:1.1fr 1fr;gap:2rem;align-items:start;}
+.lr-rev{display:grid;grid-template-columns:1fr 1.15fr;gap:2rem;align-items:start;}
+.card{background:white;border:1px solid var(--border);border-radius:14px;padding:1.25rem;transition:all 0.2s;box-shadow:0 1px 4px rgba(0,0,0,0.04);}
+.card:hover{border-color:var(--sage);transform:translateY(-2px);box-shadow:0 6px 20px rgba(42,106,72,0.1);}
+.card-icon{font-size:1.4rem;margin-bottom:0.5rem;}
+.card-title{font-family:'Nunito',sans-serif;font-size:0.97rem;font-weight:700;margin-bottom:0.3rem;color:var(--ink);}
+.card-desc{font-size:0.72rem;color:var(--muted);line-height:1.65;}
+.panel{background:white;border:1px solid var(--border);border-radius:14px;padding:1.4rem;}
+.panel h3{font-family:'Nunito',sans-serif;font-size:0.9rem;font-weight:700;color:var(--sage2);margin-bottom:0.9rem;display:flex;align-items:center;gap:0.5rem;}
+.panel h3::before{content:'✦';color:var(--sage);font-size:0.65rem;}
+.steps{list-style:none;}
+.steps li{display:flex;gap:0.75rem;padding:0.45rem 0;border-bottom:1px solid var(--border);font-size:0.76rem;line-height:1.6;}
+.steps li:last-child{border-bottom:none;}
+.step-n{width:22px;height:22px;border-radius:50%;background:var(--sage);color:white;font-size:0.62rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+/* Workflow */
+.wf-canvas{background:var(--ink);border-radius:16px;padding:2rem;position:relative;overflow:hidden;}
+.wf-dots{position:absolute;inset:0;background-image:radial-gradient(circle,rgba(52,211,153,0.15) 1px,transparent 1px);background-size:28px 28px;opacity:0.5;}
+.wf-label{position:absolute;top:0.75rem;left:1rem;font-size:0.57rem;letter-spacing:0.18em;text-transform:uppercase;color:rgba(255,255,255,0.3);display:flex;align-items:center;gap:0.4rem;z-index:3;font-family:'Fira Code',monospace;}
+.wf-label::before{content:'';width:7px;height:7px;border-radius:50%;background:#34d399;box-shadow:0 0 8px #34d399;animation:gpulse 2s infinite;}
+@keyframes gpulse{0%,100%{opacity:1}50%{opacity:0.2}}
+.wf-nodes{display:flex;align-items:flex-start;gap:0;padding-top:1.5rem;position:relative;z-index:2;flex-wrap:wrap;}
+.wf-stage{display:flex;flex-direction:column;align-items:center;}
+.wf-slbl{font-size:0.51rem;letter-spacing:0.14em;text-transform:uppercase;color:rgba(255,255,255,0.28);margin-bottom:0.3rem;font-family:'Fira Code',monospace;}
+.wf-node{display:flex;flex-direction:column;align-items:center;gap:0.3rem;cursor:pointer;position:relative;}
+.wf-box{width:58px;height:58px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:1.25rem;border:2px solid transparent;transition:all 0.3s;}
+.wf-node:hover .wf-box{transform:scale(1.1);box-shadow:0 0 20px rgba(42,106,72,0.4);}
+.wf-nlbl{font-size:0.52rem;text-align:center;color:rgba(255,255,255,0.42);max-width:66px;line-height:1.3;font-family:'Fira Code',monospace;}
+.wf-arr{color:rgba(255,255,255,0.18);padding:0 0.2rem;font-size:0.85rem;align-self:flex-start;margin-top:19px;flex-shrink:0;}
+.ttw{position:relative;}
+.tti{position:absolute;bottom:calc(100%+8px);left:50%;transform:translateX(-50%);background:white;border:1px solid var(--border);border-radius:10px;padding:0.6rem 0.9rem;font-size:0.67rem;opacity:0;pointer-events:none;transition:opacity 0.2s;z-index:50;color:var(--ink);line-height:1.5;max-width:200px;white-space:normal;text-align:left;box-shadow:0 4px 16px rgba(0,0,0,0.08);}
+.ttw:hover .tti{opacity:1;}
+/* Appointment card */
+.appt-card{background:white;border:1px solid var(--border);border-radius:12px;padding:0.85rem 1rem;margin-bottom:0.5rem;display:flex;gap:0.85rem;align-items:flex-start;transition:all 0.3s;}
+.appt-card.reminded{border-color:var(--sage);background:rgba(42,106,72,0.03);}
+.appt-card.confirmed{border-color:var(--green);background:rgba(26,122,58,0.04);}
+.appt-card.no-show-risk{border-color:var(--coral);background:rgba(224,90,58,0.03);}
+.ac-time{background:var(--sage);color:white;border-radius:6px;padding:0.2rem 0.5rem;font-size:0.65rem;font-weight:700;flex-shrink:0;font-family:'Fira Code',monospace;}
+.ac-name{font-weight:700;font-size:0.78rem;color:var(--ink);}
+.ac-detail{font-size:0.63rem;color:var(--muted);margin-top:0.1rem;}
+.ac-badge{margin-left:auto;font-size:0.59rem;padding:0.1rem 0.42rem;border-radius:20px;font-weight:700;font-family:'Fira Code',monospace;white-space:nowrap;}
+.ab-reminded{background:rgba(42,106,72,0.1);color:var(--sage);border:1px solid rgba(42,106,72,0.2);}
+.ab-confirmed{background:rgba(26,122,58,0.1);color:var(--green);border:1px solid rgba(26,122,58,0.2);}
+.ab-risk{background:rgba(224,90,58,0.1);color:var(--coral);border:1px solid rgba(224,90,58,0.2);}
+.ab-new{background:rgba(80,120,96,0.1);color:var(--muted);border:1px solid rgba(80,120,96,0.18);}
+/* WhatsApp bubble */
+.wa-bubble{background:#dcf8c6;border-radius:12px;border-bottom-right-radius:4px;padding:0.75rem 1rem;font-size:0.73rem;line-height:1.7;max-width:90%;align-self:flex-end;position:relative;}
+.wa-time{font-size:0.58rem;color:var(--muted);text-align:right;margin-top:0.2rem;}
+.wa-reply{background:white;border:1px solid var(--border);border-radius:12px;border-bottom-left-radius:4px;padding:0.75rem 1rem;font-size:0.73rem;line-height:1.7;max-width:90%;align-self:flex-start;}
+/* PS list */
+.ps-list{list-style:none;}
+.ps-list li{display:flex;gap:0.75rem;padding:0.45rem 0;border-bottom:1px solid var(--border);font-size:0.74rem;line-height:1.5;transition:all 0.3s;}
+.ps-list li:last-child{border-bottom:none;}
+.ps-num{width:20px;height:20px;border-radius:50%;background:var(--border);color:white;font-size:0.6rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;transition:background 0.3s;}
+/* Info */
+.info-sage{padding:0.75rem 1rem;border-radius:10px;font-size:0.77rem;line-height:1.6;background:rgba(42,106,72,0.06);border:1px solid rgba(42,106,72,0.15);color:var(--sage2);}
+.info-green{padding:0.75rem 1rem;border-radius:10px;font-size:0.77rem;line-height:1.6;background:rgba(26,122,58,0.06);border:1px solid rgba(26,122,58,0.15);color:var(--green);}
+.ba-bad{padding:0.6rem 0.9rem;border-radius:8px;font-size:0.76rem;line-height:1.5;background:rgba(224,90,58,0.04);border:1px solid rgba(224,90,58,0.15);}
+.ba-good{padding:0.6rem 0.9rem;border-radius:8px;font-size:0.76rem;line-height:1.5;background:rgba(26,122,58,0.05);border:1px solid rgba(26,122,58,0.14);}
+.quote-block{background:var(--ink);border-radius:16px;padding:1.75rem 2rem;color:white;}
+.quote-text{font-size:1.05rem;line-height:1.78;margin-bottom:0.75rem;font-weight:300;}
+.quote-text strong{color:#6ee7b7;}
+.slide-counter{position:fixed;bottom:1.5rem;left:2rem;font-size:0.62rem;color:var(--muted);z-index:100;font-family:'Fira Code',monospace;}
+.slide-nav{position:fixed;bottom:1.5rem;right:2rem;display:flex;gap:0.5rem;z-index:100;}
+.nav-btn{background:white;border:1px solid var(--border);color:var(--text);padding:0.55rem 1.2rem;border-radius:10px;font-family:'Fira Code',monospace;font-size:0.7rem;cursor:pointer;transition:all 0.2s;}
+.nav-btn:hover{border-color:var(--sage);color:var(--sage);}
+.nav-btn.primary{background:var(--sage);border-color:var(--sage);color:white;}
+.nav-btn.primary:hover{background:var(--sage2);}
+.run-btn{background:var(--sage);color:white;border:none;border-radius:10px;padding:0.7rem 1.5rem;font-family:'Fira Code',monospace;font-size:0.72rem;cursor:pointer;transition:all 0.2s;width:100%;text-align:center;}
+.run-btn:hover{background:var(--sage2);}
+.animate-in{opacity:0;animation:fadeUp 0.5s ease-out forwards;}
+.slide.active .animate-in:nth-child(1){animation-delay:0.05s;}
+.slide.active .animate-in:nth-child(2){animation-delay:0.15s;}
+.slide.active .animate-in:nth-child(3){animation-delay:0.25s;}
+.slide.active .animate-in:nth-child(4){animation-delay:0.35s;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+</style>
+</head>
+<body>
+<div class="top-wave"></div>
+<nav>
+  <div class="nav-brand">HEALTHCARE · Appointment Reminders</div>
+  <div class="nav-dots" id="navDots"></div>
+  <div class="timer" id="timerBadge">⏱ 00:00</div>
+</nav>
+
+<!-- SLIDE 1: HERO -->
+<section class="slide active" id="slide-0">
+  <div class="hero-orb"></div>
+  <div class="slide-inner">
+    <div class="animate-in"><div class="hero-badge">🏥 n8n AI Automation · Healthcare & Hospitals</div></div>
+    <div class="animate-in"><h1 class="hero-title">No More<br><span>No-Shows.</span><br>Every Slot Filled.</h1></div>
+    <div class="animate-in"><p class="hero-desc">Automated appointment reminders via WhatsApp, SMS, and voice call — in English, Yoruba, Hausa, or Igbo. Patients confirm, reschedule, or cancel. Doctors see full clinics, not empty slots.</p></div>
+    <div class="animate-in">
+      <div class="kpi-strip">
+        <div class="kpi"><div class="kpi-val">60%</div><div class="kpi-lbl">Fewer No-Shows</div></div>
+        <div class="kpi"><div class="kpi-val">100%</div><div class="kpi-lbl">Appointments Reminded</div></div>
+        <div class="kpi"><div class="kpi-val">Multi</div><div class="kpi-lbl">Language Support</div></div>
+        <div class="kpi"><div class="kpi-val">Auto</div><div class="kpi-lbl">Slot Backfill</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 2: PROBLEM -->
+<section class="slide" id="slide-1">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">01 — The Problem</div><div class="sec-title">Empty Slots Cost<br><span>Real Money</span></div><p class="sec-desc">Every no-show is a lost consultation fee, a wasted doctor hour, and potentially a patient whose condition deteriorated between the cancelled and rescheduled appointment. The cost is clinical and financial.</p></div>
+    <div class="animate-in two-col" style="margin-bottom:1.5rem">
+      <div class="card"><div class="card-icon">🚫</div><div class="card-title">30–40% No-Show Rate</div><div class="card-desc">Nigerian hospitals report no-show rates of 30–40% for outpatient appointments. Primary cause: patients forget. Secondary cause: unable to cancel easily. Both are completely solvable with automation.</div></div>
+      <div class="card"><div class="card-icon">💸</div><div class="card-title">Revenue Lost</div><div class="card-desc">A 50-consultation-per-day clinic with 35% no-show rate loses ~17 appointments daily. At ₦5,000 per consultation: ₦85,000/day · ₦1.7M/month of pure revenue evaporation.</div></div>
+      <div class="card"><div class="card-icon">📞</div><div class="card-title">Manual Reminder Calls</div><div class="card-desc">Receptionist calls every patient the day before. 40 calls, 30 minutes each to get through. Half go unanswered. Receptionist has time for little else. This is the wrong use of trained clinical admin staff.</div></div>
+      <div class="card"><div class="card-icon">🔄</div><div class="card-title">No Waitlist Management</div><div class="card-desc">Patient cancels at 8am. Receptionist doesn't know who to call for the 10am slot. Appointment sits empty. A waitlist management system would have backfilled it automatically.</div></div>
+    </div>
+    <div class="animate-in"><div class="info-sage">✅ n8n sends personalised WhatsApp/SMS reminders 48hrs and 2hrs before every appointment — in the patient's preferred language — with one-tap confirm, reschedule, or cancel.</div></div>
+  </div>
+</section>
+
+<!-- SLIDE 3: WORKFLOW -->
+<section class="slide" id="slide-2">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">02 — The Blueprint</div><div class="sec-title">n8n Appointment<br><span>Reminder System</span></div><p class="sec-desc">From booking to clinic day — every touchpoint automated. Reminders sent, responses captured, cancellations backfilled, and doctors briefed. Zero receptionist involvement.</p></div>
+    <div class="animate-in wf-canvas">
+      <div class="wf-dots"></div>
+      <div class="wf-label">n8n canvas — appointment reminder pipeline</div>
+      <div class="wf-nodes">
+        <div class="wf-stage"><div class="wf-slbl">Schedule</div>
+          <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#0a1a2a,#1d4ed8);color:#93c5fd;border-color:#1d4ed8;">📅</div><div class="wf-nlbl">Appointment<br>Booked</div><div class="tti">New appointment in HMS/Google Calendar triggers n8n. Patient details, appointment time, doctor, and department captured. Reminder schedule set immediately.</div></div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-stage"><div class="wf-slbl">Remind</div>
+          <div style="display:flex;flex-direction:column;gap:0.35rem">
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a0a0a,#991b1b);color:#fca5a5;border-color:#991b1b;">🧠</div><div class="wf-nlbl">GPT-4o<br>Personalise</div><div class="tti">GPT-4o writes reminder in patient's language preference (English/Yoruba/Hausa/Igbo). Includes doctor name, preparation instructions (e.g. fasting for blood tests), and location details.</div></div>
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a3a1a,#166534);color:#4ade80;border-color:#166534;">📱</div><div class="wf-nlbl">WhatsApp<br>+ SMS</div><div class="tti">48hr reminder sent via WhatsApp with confirm/reschedule/cancel buttons. 2hr reminder via SMS. Missed WhatsApp delivery → fallback to voice call.</div></div>
+          </div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-stage"><div class="wf-slbl">Respond</div>
+          <div style="display:flex;flex-direction:column;gap:0.35rem">
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#0a1a1a,#065f46);color:#6ee7b7;border-color:#065f46;">✅</div><div class="wf-nlbl">Confirm<br>Logic</div><div class="tti">Patient taps "Confirm" → appointment marked confirmed, no further reminders. Taps "Reschedule" → self-service rescheduling bot. Taps "Cancel" → cancellation flow triggers.</div></div>
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a1a0a,#78350f);color:#fde68a;border-color:#78350f;">🔄</div><div class="wf-nlbl">Waitlist<br>Backfill</div><div class="tti">Cancellation received → n8n checks waitlist for same doctor/time slot. First waitlisted patient gets WhatsApp: "A slot opened for Dr. X tomorrow at 10am — would you like it?" One-tap accept.</div></div>
+          </div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-stage"><div class="wf-slbl">Day-Of</div>
+          <div style="display:flex;flex-direction:column;gap:0.35rem">
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#0a1a2a,#0369a1);color:#7dd3fc;border-color:#0369a1;">⏰</div><div class="wf-nlbl">Morning<br>Brief</div><div class="tti">7am on clinic day: doctor receives confirmed appointment list with patient summaries. Unconfirmed slots flagged. Preparation items highlighted (fasting, bringing prior results etc.).</div></div>
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a0a2e,#6d28d9);color:#c4b5fd;border-color:#6d28d9;">📊</div><div class="wf-nlbl">Attendance<br>Analytics</div><div class="tti">Daily, weekly, monthly attendance reports: show-up rate by doctor, department, and patient demographic. Identifies patterns for operational planning.</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 4: SIM 1 — REMINDER FLOW -->
+<section class="slide" id="slide-3">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">03 — Simulation 1</div><div class="sec-title">Live: Reminder Sent<br><span>Patient Confirms</span></div><p class="sec-desc">Tunde has an appointment tomorrow at 10am with Dr. Eze. His 48-hour WhatsApp reminder fires now. Watch him confirm — and the system update instantly.</p></div>
+    <div class="animate-in lr">
+      <div style="display:flex;flex-direction:column;gap:1rem">
+        <div class="panel">
+          <h3>Reminder Pipeline</h3>
+          <ul class="ps-list" id="reminderSteps">
+            <li id="rs1" style="opacity:0.3"><div class="ps-num">1</div><div>48-hour cron fires — appointment detected</div></li>
+            <li id="rs2" style="opacity:0.3"><div class="ps-num">2</div><div>GPT-4o writes personalised WhatsApp message</div></li>
+            <li id="rs3" style="opacity:0.3"><div class="ps-num">3</div><div>WhatsApp message sent with confirm button</div></li>
+            <li id="rs4" style="opacity:0.3"><div class="ps-num">4</div><div>Patient confirms — appointment status updated</div></li>
+            <li id="rs5" style="opacity:0.3"><div class="ps-num">5</div><div>2-hour reminder scheduled for tomorrow ✅</div></li>
+          </ul>
+        </div>
+        <div class="info-sage">📊 Facilities using automated WhatsApp reminders see no-show rates drop from 35–40% to under 12% within the first month. One message = one filled consultation slot.</div>
+        <button class="run-btn" id="reminderBtn" onclick="runReminderSim()">▶ SEND REMINDER & CONFIRM</button>
+      </div>
+      <div style="background:#f0f0f0;border-radius:14px;padding:1rem;display:flex;flex-direction:column;gap:0.65rem;min-height:320px">
+        <div style="font-size:0.65rem;color:var(--muted);text-align:center;font-family:'Fira Code',monospace;padding:0.25rem">WhatsApp — Tunde Fashola</div>
+        <div id="waContainer" style="display:flex;flex-direction:column;gap:0.65rem">
+          <!-- messages injected by JS -->
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 5: SIM 2 — APPOINTMENT BOARD -->
+<section class="slide" id="slide-4">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">04 — Simulation 2</div><div class="sec-title">Tomorrow's Clinic —<br><span>Reminder Status Board</span></div><p class="sec-desc">All of tomorrow's appointments in one view — confirmed, reminded, at-risk, and one slot that was cancelled and automatically backfilled from the waitlist.</p></div>
+    <div class="animate-in lr-rev">
+      <div style="display:flex;flex-direction:column;gap:1rem">
+        <div class="panel">
+          <h3>Automation Actions</h3>
+          <ul class="steps">
+            <li><div class="step-n">1</div><div><strong>Confirmed:</strong> No further reminders — doctor briefed for morning</div></li>
+            <li><div class="step-n">2</div><div><strong>Reminded:</strong> 2-hour SMS reminder still scheduled for tomorrow</div></li>
+            <li><div class="step-n">3</div><div><strong>At-risk:</strong> No response in 24hrs → escalate to voice call</div></li>
+            <li><div class="step-n">4</div><div><strong>Backfilled:</strong> Cancellation → waitlist patient offered and accepted slot</div></li>
+          </ul>
+        </div>
+        <div class="info-green">✅ This clinic is operating at 95% capacity tomorrow — up from a typical 65% without the reminder system. The backfill alone recovered one consultation slot that would have been lost.</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:0">
+        <div style="font-size:0.61rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);font-family:'Fira Code',monospace;margin-bottom:0.4rem">Dr. Ngozi Eze — Tomorrow's Appointments</div>
+        <div class="appt-card confirmed"><div class="ac-time">09:00</div><div><div class="ac-name">Tunde Fashola</div><div class="ac-detail">Diabetes follow-up · Confirmed via WhatsApp</div></div><span class="ac-badge ab-confirmed">Confirmed ✓</span></div>
+        <div class="appt-card confirmed"><div class="ac-time">09:30</div><div><div class="ac-name">Amaka Obi</div><div class="ac-detail">Hypertension review · Confirmed via SMS</div></div><span class="ac-badge ab-confirmed">Confirmed ✓</span></div>
+        <div class="appt-card reminded"><div class="ac-time">10:00</div><div><div class="ac-name">Fatima Ibrahim</div><div class="ac-detail">New patient · Reminded — no reply yet</div></div><span class="ac-badge ab-reminded">Reminded</span></div>
+        <div class="appt-card no-show-risk"><div class="ac-time">10:30</div><div><div class="ac-name">Ngozi Eze</div><div class="ac-detail">Follow-up · No response in 36hrs</div></div><span class="ac-badge ab-risk">At Risk ⚠</span></div>
+        <div class="appt-card confirmed"><div class="ac-time">11:00</div><div><div class="ac-name">Seun Bello</div><div class="ac-detail">Waitlist backfill · Cancellation recovered</div></div><span class="ac-badge ab-confirmed">Backfilled ✓</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 6: BEFORE/AFTER -->
+<section class="slide" id="slide-5">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">05 — Clinical & Financial Impact</div><div class="sec-title">Full Clinics.<br><span>Better Care.</span></div></div>
+    <div class="animate-in two-col" style="margin-bottom:1.5rem">
+      <div>
+        <div style="font-size:0.62rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--coral);margin-bottom:0.75rem;font-weight:700">❌ BEFORE</div>
+        <div style="display:flex;flex-direction:column;gap:0.5rem">
+          <div class="ba-bad">35–40% no-show rate — doctors waiting, revenue lost</div>
+          <div class="ba-bad">Receptionist calls 40 patients every afternoon — 2 hrs lost</div>
+          <div class="ba-bad">Cancellations not filled — empty slots wasted</div>
+          <div class="ba-bad">Patients forget prep instructions — blood test wasted, revisit needed</div>
+          <div class="ba-bad">No multi-language support — rural patients miss appointments</div>
+        </div>
+      </div>
+      <div>
+        <div style="font-size:0.62rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--green);margin-bottom:0.75rem;font-weight:700">✅ AFTER</div>
+        <div style="display:flex;flex-direction:column;gap:0.5rem">
+          <div class="ba-good">No-show rate drops to under 12% — clinics run at 90%+ capacity</div>
+          <div class="ba-good">Zero receptionist reminder calls — WhatsApp/SMS handles everything</div>
+          <div class="ba-good">Cancellations backfilled from waitlist automatically within 30 minutes</div>
+          <div class="ba-good">Preparation instructions included in reminder — results valid, time saved</div>
+          <div class="ba-good">Yoruba / Hausa / Igbo language support — higher response from all demographics</div>
+        </div>
+      </div>
+    </div>
+    <div class="animate-in">
+      <div class="quote-block">
+        <div class="quote-text">"A missed appointment isn't just lost revenue — it's a patient whose condition may worsen before they're seen again. <strong>Reliable reminders keep patients engaged with their care.</strong> That's a clinical outcome, not just an operational one."</div>
+        <div style="font-size:0.62rem;color:rgba(255,255,255,0.3);font-family:'Fira Code',monospace">STACK: n8n · GPT-4o · WhatsApp Business API · Twilio SMS · HMS/Google Calendar · Termii · Google Sheets</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="slide-counter" id="slideCounter">Slide 1 of 6</div>
+<div class="slide-nav">
+  <button class="nav-btn" onclick="prevSlide()">← Prev</button>
+  <button class="nav-btn primary" onclick="nextSlide()">Next →</button>
+</div>
+<script>
+const slides=document.querySelectorAll('.slide'),total=slides.length;let cur=0;
+const dots=document.getElementById('navDots');
+for(let i=0;i<total;i++){const d=document.createElement('div');d.className='nav-dot'+(i===0?' active':'');d.onclick=()=>goTo(i);dots.appendChild(d);}
+function goTo(n){slides[cur].classList.remove('active');dots.children[cur].classList.remove('active');if(cur<n)dots.children[cur].classList.add('done');cur=n;slides[cur].classList.add('active');dots.children[cur].classList.add('active');document.getElementById('slideCounter').textContent=`Slide ${cur+1} of ${total}`;}
+function nextSlide(){if(cur<total-1)goTo(cur+1);}function prevSlide(){if(cur>0)goTo(cur-1);}
+document.addEventListener('keydown',e=>{if(e.key==='ArrowRight'||e.key==='ArrowDown')nextSlide();if(e.key==='ArrowLeft'||e.key==='ArrowUp')prevSlide();});
+let secs=0;setInterval(()=>{secs++;const m=String(Math.floor(secs/60)).padStart(2,'0'),s=String(secs%60).padStart(2,'0');document.getElementById('timerBadge').textContent=`⏱ ${m}:${s}`;if(secs>=840)document.getElementById('timerBadge').style.color='#c02828';},1000);
+function delay(ms){return new Promise(r=>setTimeout(r,ms));}
+let reminderRunning=false;
+async function runReminderSim(){
+  if(reminderRunning)return;reminderRunning=true;
+  const btn=document.getElementById('reminderBtn');btn.textContent='Sending...';
+  const container=document.getElementById('waContainer');container.innerHTML='';
+  const steps=['rs1','rs2','rs3','rs4','rs5'];
+  steps.forEach(id=>{const el=document.getElementById(id);if(el){el.style.opacity='0.3';el.querySelector('.ps-num').style.background='var(--border)';}});
+  const light=(i)=>{steps.forEach(id=>{const el=document.getElementById(id);if(el){el.style.opacity='0.3';el.querySelector('.ps-num').style.background='var(--border)';}});const el=document.getElementById(steps[i]);if(el){el.style.opacity='1';el.style.color='var(--sage)';el.querySelector('.ps-num').style.background='var(--sage)';}};
+  light(0);await delay(600);light(1);await delay(600);
+  light(2);
+  const waMsg=document.createElement('div');
+  waMsg.className='wa-bubble';
+  waMsg.innerHTML=`<strong>🏥 Lagos Community Hospital</strong><br><br>Hello Tunde 👋<br><br>This is a reminder that you have an appointment with <strong>Dr. Ngozi Eze (Internal Medicine)</strong> tomorrow, <strong>Wednesday April 10 at 10:00am</strong>.<br><br>📍 Room 4, Outpatient Block<br>💊 Please bring your current medications<br><br>Please reply:<br><strong>1</strong> to Confirm ✅<br><strong>2</strong> to Reschedule<br><strong>3</strong> to Cancel<div class="wa-time">Now · Delivered ✓✓</div>`;
+  container.appendChild(waMsg);
+  await delay(1500);light(3);
+  const reply=document.createElement('div');
+  reply.className='wa-reply';
+  reply.textContent='1';
+  container.appendChild(reply);
+  await delay(800);
+  const confirm=document.createElement('div');
+  confirm.className='wa-bubble';
+  confirm.innerHTML=`✅ <strong>Confirmed!</strong> We look forward to seeing you tomorrow at 10am, Tunde. If anything changes, just reply to this message.<div class="wa-time">Now · Delivered ✓✓</div>`;
+  container.appendChild(confirm);
+  light(4);
+  btn.textContent='↺ Reset & Run Again';reminderRunning=false;
+}
+</script>
+</body>
+</html>
