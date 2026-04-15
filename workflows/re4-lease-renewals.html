@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Real Estate — Lease Renewals Automation</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,700;1,400;1,500&family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#faf7f5;--surface:#ffffff;--surface2:#f4ede8;--border:#e8ddd8;
+  --ink:#180a08;--wine:#7a1828;--wine2:#5a0f1c;--navy:#1a2a5c;
+  --rose:#a82838;--blush:#fdf0ec;--green:#1a6038;--red:#c02020;
+  --amber:#c07810;--text:#281010;--muted:#8a6060;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-serif;overflow-x:hidden;}
+.top-rule{position:fixed;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,var(--navy),var(--wine),var(--rose),var(--wine),var(--navy));z-index:200;}
+nav{position:fixed;top:4px;left:0;right:0;z-index:100;background:rgba(250,247,245,0.97);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 2.5rem;height:54px;}
+.nav-brand{font-family:'IBM Plex Mono',monospace;font-size:0.7rem;color:var(--wine2);letter-spacing:0.06em;}
+.nav-dots{display:flex;gap:0.3rem;}
+.nav-dot{width:7px;height:7px;border-radius:50%;background:var(--border);cursor:pointer;transition:all 0.2s;}
+.nav-dot.active{background:var(--wine);transform:scale(1.5);}
+.nav-dot.done{background:var(--green);}
+.timer{font-size:0.67rem;color:var(--wine);background:rgba(122,24,40,0.07);border:1px solid rgba(122,24,40,0.18);padding:0.2rem 0.75rem;border-radius:4px;font-family:'IBM Plex Mono',monospace;}
+.slide{min-height:100vh;padding:78px 0 50px;display:none;flex-direction:column;align-items:center;justify-content:center;position:relative;overflow:hidden;}
+.slide.active{display:flex;}
+.slide-inner{width:100%;max-width:1140px;padding:0 2.5rem;position:relative;z-index:2;}
+.hero-bg{position:absolute;inset:0;background:radial-gradient(ellipse at 78% 35%,rgba(122,24,40,0.04) 0%,transparent 55%);pointer-events:none;}
+.hero-badge{display:inline-flex;align-items:center;gap:0.5rem;background:var(--blush);border:1px solid rgba(122,24,40,0.2);color:var(--wine2);font-size:0.67rem;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;padding:0.28rem 0.9rem;border-radius:4px;margin-bottom:1.5rem;font-family:'IBM Plex Mono',monospace;}
+h1.hero-title{font-family:'Playfair Display',serif;font-size:clamp(2.8rem,5.2vw,4.6rem);font-weight:700;line-height:1.05;letter-spacing:-0.01em;color:var(--ink);margin-bottom:1.5rem;}
+h1.hero-title em{font-style:italic;color:var(--wine);}
+.hero-desc{font-size:0.97rem;color:var(--muted);max-width:510px;line-height:1.78;margin-bottom:2.5rem;font-weight:300;}
+.kpi-strip{display:flex;gap:1px;background:var(--border);border-radius:6px;overflow:hidden;max-width:640px;box-shadow:0 2px 10px rgba(122,24,40,0.07);}
+.kpi{background:white;padding:1.1rem 1.4rem;flex:1;}
+.kpi-val{font-family:'Playfair Display',serif;font-size:2rem;font-weight:700;color:var(--wine);line-height:1;}
+.kpi-lbl{font-size:0.59rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);margin-top:0.2rem;font-family:'IBM Plex Mono',monospace;}
+.sec-tag{font-size:0.61rem;letter-spacing:0.22em;text-transform:uppercase;color:var(--wine);margin-bottom:0.4rem;font-weight:500;font-family:'IBM Plex Mono',monospace;}
+.sec-title{font-family:'Playfair Display',serif;font-size:clamp(1.9rem,3.6vw,2.9rem);font-weight:700;line-height:1.08;margin-bottom:0.5rem;color:var(--ink);}
+.sec-title em{font-style:italic;color:var(--wine);}
+.sec-desc{font-size:0.87rem;color:var(--muted);margin-bottom:1.85rem;max-width:540px;line-height:1.78;font-weight:300;}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;}
+.lr{display:grid;grid-template-columns:1.1fr 1fr;gap:2rem;align-items:start;}
+.card{background:white;border:1px solid var(--border);border-radius:8px;padding:1.25rem;transition:all 0.2s;box-shadow:0 1px 4px rgba(0,0,0,0.04);}
+.card:hover{border-color:var(--wine);transform:translateY(-2px);box-shadow:0 6px 18px rgba(122,24,40,0.09);}
+.card-icon{font-size:1.4rem;margin-bottom:0.5rem;}
+.card-title{font-family:'Playfair Display',serif;font-size:1rem;font-weight:700;margin-bottom:0.3rem;color:var(--ink);}
+.card-desc{font-size:0.72rem;color:var(--muted);line-height:1.65;}
+.panel{background:white;border:1px solid var(--border);border-radius:8px;padding:1.4rem;}
+.panel h3{font-family:'Playfair Display',serif;font-size:0.95rem;font-weight:700;color:var(--wine2);margin-bottom:0.9rem;font-style:italic;}
+/* Workflow */
+.wf-canvas{background:var(--ink);border-radius:10px;padding:2rem;position:relative;overflow:hidden;}
+.wf-texture{position:absolute;inset:0;background-image:repeating-linear-gradient(45deg,transparent,transparent 20px,rgba(122,24,40,0.05) 20px,rgba(122,24,40,0.05) 21px);}
+.wf-label{position:absolute;top:0.75rem;left:1rem;font-size:0.57rem;letter-spacing:0.18em;text-transform:uppercase;color:rgba(255,255,255,0.3);display:flex;align-items:center;gap:0.4rem;z-index:3;font-family:'IBM Plex Mono',monospace;}
+.wf-label::before{content:'';width:7px;height:7px;border-radius:50%;background:var(--rose);box-shadow:0 0 8px var(--rose);animation:rpulse 2s infinite;}
+@keyframes rpulse{0%,100%{opacity:1}50%{opacity:0.2}}
+.wf-nodes{display:flex;align-items:flex-start;gap:0;padding-top:1.5rem;position:relative;z-index:2;flex-wrap:wrap;}
+.wf-stage{display:flex;flex-direction:column;align-items:center;}
+.wf-slbl{font-size:0.51rem;letter-spacing:0.14em;text-transform:uppercase;color:rgba(255,255,255,0.28);margin-bottom:0.3rem;font-family:'IBM Plex Mono',monospace;}
+.wf-node{display:flex;flex-direction:column;align-items:center;gap:0.3rem;cursor:pointer;position:relative;}
+.wf-box{width:58px;height:58px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.25rem;border:2px solid transparent;transition:all 0.3s;}
+.wf-node:hover .wf-box{transform:scale(1.1);box-shadow:0 0 20px rgba(168,40,56,0.4);}
+.wf-nlbl{font-size:0.52rem;text-align:center;color:rgba(255,255,255,0.42);max-width:66px;line-height:1.3;font-family:'IBM Plex Mono',monospace;}
+.wf-arr{color:rgba(255,255,255,0.18);padding:0 0.2rem;font-size:0.85rem;align-self:flex-start;margin-top:19px;flex-shrink:0;}
+.ttw{position:relative;}
+.tti{position:absolute;bottom:calc(100%+8px);left:50%;transform:translateX(-50%);background:white;border:1px solid var(--border);border-radius:6px;padding:0.6rem 0.9rem;font-size:0.67rem;opacity:0;pointer-events:none;transition:opacity 0.2s;z-index:50;color:var(--ink);line-height:1.5;max-width:200px;white-space:normal;text-align:left;box-shadow:0 4px 12px rgba(0,0,0,0.1);}
+.ttw:hover .tti{opacity:1;}
+/* Lease row */
+.lease-row{background:white;border:1px solid var(--border);border-radius:8px;padding:0.75rem 1rem;margin-bottom:0.45rem;display:flex;gap:0.85rem;align-items:flex-start;transition:all 0.3s;font-size:0.72rem;}
+.lease-row.expiring-soon{border-color:var(--amber);background:rgba(192,120,16,0.03);}
+.lease-row.expiring-urgent{border-color:var(--red);background:rgba(192,32,32,0.03);}
+.lease-row.renewed{border-color:var(--green);background:rgba(26,96,56,0.03);}
+.lr2-date{font-family:'IBM Plex Mono',monospace;font-size:0.64rem;font-weight:700;flex-shrink:0;min-width:55px;}
+.lr2-name{font-weight:600;color:var(--ink);}
+.lr2-prop{font-size:0.63rem;color:var(--muted);margin-top:0.1rem;}
+.lr2-badge{margin-left:auto;font-size:0.58rem;padding:0.1rem 0.42rem;border-radius:4px;font-weight:600;font-family:'IBM Plex Mono',monospace;white-space:nowrap;}
+.lrb-urgent{background:rgba(192,32,32,0.1);color:var(--red);border:1px solid rgba(192,32,32,0.2);}
+.lrb-soon{background:rgba(192,120,16,0.1);color:var(--amber);border:1px solid rgba(192,120,16,0.2);}
+.lrb-renewed{background:rgba(26,96,56,0.1);color:var(--green);border:1px solid rgba(26,96,56,0.2);}
+.lrb-new{background:rgba(138,96,96,0.1);color:var(--muted);border:1px solid rgba(138,96,96,0.18);}
+/* PS list */
+.ps-list{list-style:none;}
+.ps-list li{display:flex;gap:0.75rem;padding:0.45rem 0;border-bottom:1px solid var(--border);font-size:0.74rem;line-height:1.5;transition:all 0.3s;}
+.ps-list li:last-child{border-bottom:none;}
+.ps-num{width:20px;height:20px;border-radius:50%;background:var(--border);color:white;font-size:0.6rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;transition:background 0.3s;font-family:'IBM Plex Mono',monospace;}
+.info-wine{padding:0.75rem 1rem;border-radius:6px;font-size:0.77rem;line-height:1.6;background:rgba(122,24,40,0.06);border:1px solid rgba(122,24,40,0.15);color:var(--wine2);}
+.ba-bad{padding:0.6rem 0.9rem;border-radius:6px;font-size:0.76rem;line-height:1.5;background:rgba(192,32,32,0.04);border:1px solid rgba(192,32,32,0.12);}
+.ba-good{padding:0.6rem 0.9rem;border-radius:6px;font-size:0.76rem;line-height:1.5;background:rgba(26,96,56,0.05);border:1px solid rgba(26,96,56,0.14);}
+.quote-block{background:var(--ink);border-radius:10px;padding:1.75rem 2rem;color:white;border-top:3px solid var(--rose);}
+.quote-text{font-family:'Playfair Display',serif;font-style:italic;font-size:1.1rem;line-height:1.75;margin-bottom:0.75rem;}
+.quote-text strong{color:#fca5a5;font-style:normal;}
+.slide-counter{position:fixed;bottom:1.5rem;left:2rem;font-size:0.62rem;color:var(--muted);z-index:100;font-family:'IBM Plex Mono',monospace;}
+.slide-nav{position:fixed;bottom:1.5rem;right:2rem;display:flex;gap:0.5rem;z-index:100;}
+.nav-btn{background:white;border:1px solid var(--border);color:var(--text);padding:0.55rem 1.2rem;border-radius:6px;font-family:'IBM Plex Mono',monospace;font-size:0.7rem;cursor:pointer;transition:all 0.2s;}
+.nav-btn:hover{border-color:var(--wine);color:var(--wine);}
+.nav-btn.primary{background:var(--wine);border-color:var(--wine);color:white;}
+.nav-btn.primary:hover{background:var(--wine2);}
+.run-btn{background:var(--wine);color:white;border:none;border-radius:6px;padding:0.7rem 1.5rem;font-family:'IBM Plex Mono',monospace;font-size:0.72rem;cursor:pointer;transition:all 0.2s;width:100%;text-align:center;}
+.run-btn:hover{background:var(--wine2);}
+.animate-in{opacity:0;animation:fadeUp 0.5s ease-out forwards;}
+.slide.active .animate-in:nth-child(1){animation-delay:0.05s;}
+.slide.active .animate-in:nth-child(2){animation-delay:0.15s;}
+.slide.active .animate-in:nth-child(3){animation-delay:0.25s;}
+.slide.active .animate-in:nth-child(4){animation-delay:0.35s;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+</style>
+</head>
+<body>
+<div class="top-rule"></div>
+<nav>
+  <div class="nav-brand">REAL ESTATE · Lease Renewals</div>
+  <div class="nav-dots" id="navDots"></div>
+  <div class="timer" id="timerBadge">⏱ 00:00</div>
+</nav>
+
+<!-- SLIDE 1: HERO -->
+<section class="slide active" id="slide-0">
+  <div class="hero-bg"></div>
+  <div class="slide-inner">
+    <div class="animate-in"><div class="hero-badge">🏠 n8n AI Automation · Real Estate</div></div>
+    <div class="animate-in"><h1 class="hero-title">No Lease Expires<br><em>Unmanaged.</em><br>No Tenant Lost.</h1></div>
+    <div class="animate-in"><p class="hero-desc">Every lease tracked. Renewal conversations started 90 days before expiry. New agreements auto-generated and e-signed. Rent reviews applied. Landlords protected, tenants retained.</p></div>
+    <div class="animate-in">
+      <div class="kpi-strip">
+        <div class="kpi"><div class="kpi-val">90d</div><div class="kpi-lbl">Renewal Warning</div></div>
+        <div class="kpi"><div class="kpi-val">100%</div><div class="kpi-lbl">Leases Tracked</div></div>
+        <div class="kpi"><div class="kpi-val">Auto</div><div class="kpi-lbl">Agreement Renewal</div></div>
+        <div class="kpi"><div class="kpi-val">0</div><div class="kpi-lbl">Surprise Vacancies</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 2: PROBLEM -->
+<section class="slide" id="slide-1">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">01 — The Problem</div><div class="sec-title">Leases That<br><em>Expire Unmanaged</em></div><p class="sec-desc">For property managers handling 20+ units, lease expiry management becomes a constant game of catch-up. Leases lapse, tenants go month-to-month, rent reviews are missed, and surprise vacancies create cash flow gaps.</p></div>
+    <div class="animate-in two-col" style="margin-bottom:1.5rem">
+      <div class="card"><div class="card-icon">📅</div><div class="card-title">The Spreadsheet Problem</div><div class="card-desc">Lease expiry dates in a spreadsheet nobody checks until it's too late. Manager discovers a lease expired 3 months ago, tenant is now month-to-month without a rent review. Revenue opportunity missed.</div></div>
+      <div class="card"><div class="card-icon">📤</div><div class="card-title">Reactive, Not Proactive</div><div class="card-desc">Renewal conversation started when the tenant gives notice to leave — not 90 days before when there's still time to negotiate, retain them, and plan for replacement if they're leaving. Too late = too expensive.</div></div>
+      <div class="card"><div class="card-icon">💸</div><div class="card-title">Missed Rent Reviews</div><div class="card-desc">Tenancy agreement includes an annual rent review clause. Manager forgets to apply it. Tenant has been paying the same rent for 3 years while market rates increased 25%. ₦200k/year in lost revenue per unit.</div></div>
+      <div class="card"><div class="card-icon">📝</div><div class="card-title">Manual Agreement Renewal</div><div class="card-desc">New agreement typed up every renewal. Same template, same clauses, different names and dates. 45 minutes per renewal. For a portfolio of 30 units, that's 22 hours of annual admin that automation handles in seconds.</div></div>
+    </div>
+    <div class="animate-in"><div class="info-wine">✅ n8n monitors every lease, starts the renewal process 90 days before expiry, applies rent reviews at the right date, auto-generates new agreements, and tracks the entire pipeline.</div></div>
+  </div>
+</section>
+
+<!-- SLIDE 3: WORKFLOW -->
+<section class="slide" id="slide-2">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">02 — The Blueprint</div><div class="sec-title">n8n Lease Renewal<br><em>Pipeline</em></div><p class="sec-desc">90 days before expiry → renewal conversation initiated → rent review calculated → new agreement generated → signed → rent updated. Every lease actively managed.</p></div>
+    <div class="animate-in wf-canvas">
+      <div class="wf-texture"></div>
+      <div class="wf-label">n8n canvas — lease renewal pipeline</div>
+      <div class="wf-nodes">
+        <div class="wf-stage"><div class="wf-slbl">Monitor</div>
+          <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a1a0a,#78350f);color:#fde68a;border-color:#78350f;">📅</div><div class="wf-nlbl">Expiry<br>Watch</div><div class="tti">n8n cron checks all leases daily. Identifies leases expiring in 90, 60, 30, and 14 days. Escalating alerts based on urgency. No lease goes unnoticed.</div></div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-stage"><div class="wf-slbl">Engage</div>
+          <div style="display:flex;flex-direction:column;gap:0.35rem">
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a0a0a,#991b1b);color:#fca5a5;border-color:#991b1b;">🧠</div><div class="wf-nlbl">GPT-4o<br>Personalise</div><div class="tti">GPT-4o writes a warm, personalised renewal letter to the tenant. References their tenancy duration, thanks them for being good tenants, and presents the renewal offer professionally.</div></div>
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#0a1a1a,#065f46);color:#6ee7b7;border-color:#065f46;">💰</div><div class="wf-nlbl">Rent<br>Review</div><div class="tti">Market rate comparison pulled (from database or GPT-4o market analysis). New rent calculated per lease agreement terms. Manager reviews and approves before tenant sees it.</div></div>
+          </div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-stage"><div class="wf-slbl">Offer</div>
+          <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#0a1a2a,#1d4ed8);color:#93c5fd;border-color:#1d4ed8;">📱</div><div class="wf-nlbl">Renewal<br>Offer</div><div class="tti">Tenant receives WhatsApp message with renewal offer: new rent, new term, any updated terms. Reply YES to renew. Reply QUERY for discussion. No response in 7 days → reminder sent.</div></div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-stage"><div class="wf-slbl">Sign</div>
+          <div style="display:flex;flex-direction:column;gap:0.35rem">
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a0a1a,#7c3aed);color:#d8b4fe;border-color:#7c3aed;">📝</div><div class="wf-nlbl">New<br>Agreement</div><div class="tti">On tenant acceptance: new tenancy agreement auto-generated with updated rent and dates. Sent via DocuSign to tenant then landlord. Both receive countersigned copy.</div></div>
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#0a1a1a,#065f46);color:#6ee7b7;border-color:#065f46;">💰</div><div class="wf-nlbl">Rent<br>Update</div><div class="tti">Payment reminders updated to new rent amount from the start of new lease period. Accounting system updated. Landlord informed of new terms.</div></div>
+          </div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-stage"><div class="wf-slbl">Vacate</div>
+          <div style="display:flex;flex-direction:column;gap:0.35rem">
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a0a0a,#7f1d1d);color:#fca5a5;border-color:#7f1d1d;">🚚</div><div class="wf-nlbl">Move-out<br>Process</div><div class="tti">If tenant declines renewal: vacate checklist triggered. Property inspection booked. Deposit release process started. Re-listing workflow launched for new tenant search.</div></div>
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#0a1a2a,#0369a1);color:#7dd3fc;border-color:#0369a1;">📊</div><div class="wf-nlbl">Portfolio<br>Dashboard</div><div class="tti">All leases tracked on one dashboard: expiry dates, renewal status, new rent amounts, vacant units, and occupancy rate. Landlord and manager both have full visibility.</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 4: SIM 1 — RENEWAL BOARD -->
+<section class="slide" id="slide-3">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">03 — Simulation 1</div><div class="sec-title">Live: Portfolio<br><em>Lease Renewal Board</em></div><p class="sec-desc">Monday morning scan. n8n has checked all 18 leases in the portfolio overnight and flagged the ones requiring action — renewal conversations initiated automatically for each.</p></div>
+    <div class="animate-in lr">
+      <div style="display:flex;flex-direction:column;gap:1rem">
+        <div class="panel">
+          <h3>Renewal Pipeline — Today</h3>
+          <ul class="ps-list" id="renewSteps">
+            <li id="rn1" style="opacity:0.3"><div class="ps-num">1</div><div>Daily lease scan — 18 units checked</div></li>
+            <li id="rn2" style="opacity:0.3"><div class="ps-num">2</div><div>5 units flagged — renewal action required</div></li>
+            <li id="rn3" style="opacity:0.3"><div class="ps-num">3</div><div>Renewal offers auto-drafted with rent reviews</div></li>
+            <li id="rn4" style="opacity:0.3"><div class="ps-num">4</div><div>WhatsApp renewal letters sent to tenants</div></li>
+            <li id="rn5" style="opacity:0.3"><div class="ps-num">5</div><div>Manager briefed — 2 urgent require call ✅</div></li>
+          </ul>
+        </div>
+        <div class="info-wine">📊 Without this system, the manager would need to check 18 lease expiry dates manually every Monday. That's 18 spreadsheet lookups, 5 letters to draft, and 2 urgent calls to remember. n8n does all of it in 4 minutes at 6am.</div>
+        <button class="run-btn" id="renewBtn" onclick="runRenewSim()">▶ RUN LEASE SCAN NOW</button>
+      </div>
+      <div id="leaseBoard" style="display:flex;flex-direction:column;gap:0">
+        <div style="font-size:0.61rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);font-family:'IBM Plex Mono',monospace;margin-bottom:0.4rem">Portfolio Lease Status — April 2025</div>
+        <div class="lease-row" id="lr1"><div class="lr2-date" style="color:var(--red)" id="lrd1">—</div><div><div class="lr2-name">Tunde & Amaka Bello</div><div class="lr2-prop">4BR Duplex · Lekki Ph1 · ₦480k/mo</div></div><span class="lr2-badge lrb-new" id="lrb1">Scanning...</span></div>
+        <div class="lease-row" id="lr2"><div class="lr2-date" style="color:var(--amber)" id="lrd2">—</div><div><div class="lr2-name">Ngozi Fashola</div><div class="lr2-prop">2BR Flat · Ikoyi · ₦320k/mo</div></div><span class="lr2-badge lrb-new" id="lrb2">Scanning...</span></div>
+        <div class="lease-row" id="lr3"><div class="lr2-date" style="color:var(--amber)" id="lrd3">—</div><div><div class="lr2-name">Babatunde Ibrahim</div><div class="lr2-prop">3BR · Victoria Island · ₦550k/mo</div></div><span class="lr2-badge lrb-new" id="lrb3">Scanning...</span></div>
+        <div class="lease-row" id="lr4"><div class="lr2-date" style="color:var(--green)" id="lrd4">—</div><div><div class="lr2-name">Kemi Adeyemi</div><div class="lr2-prop">2BR Flat · Ikeja GRA · ₦180k/mo</div></div><span class="lr2-badge lrb-new" id="lrb4">Scanning...</span></div>
+        <div class="lease-row" id="lr5"><div class="lr2-date" style="color:var(--green)" id="lrd5">—</div><div><div class="lr2-name">Seun Okafor</div><div class="lr2-prop">3BR Terrace · Lekki · ₦280k/mo</div></div><span class="lr2-badge lrb-new" id="lrb5">Scanning...</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 5: BEFORE/AFTER -->
+<section class="slide" id="slide-4">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">04 — Business Impact</div><div class="sec-title">A Portfolio That<br><em>Manages Itself</em></div></div>
+    <div class="animate-in two-col" style="margin-bottom:1.5rem">
+      <div>
+        <div style="font-size:0.62rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--red);margin-bottom:0.75rem;font-weight:500;font-family:'IBM Plex Mono',monospace">❌ BEFORE</div>
+        <div style="display:flex;flex-direction:column;gap:0.5rem">
+          <div class="ba-bad">Lease expiry discovered after the fact — tenant already month-to-month</div>
+          <div class="ba-bad">Renewal conversation starts when tenant gives notice — too late</div>
+          <div class="ba-bad">Annual rent review missed — ₦200k+ per unit per year lost</div>
+          <div class="ba-bad">New agreement typed manually — 45 mins per renewal</div>
+          <div class="ba-bad">Vacancy a surprise — no pipeline, no advance marketing</div>
+        </div>
+      </div>
+      <div>
+        <div style="font-size:0.62rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--green);margin-bottom:0.75rem;font-weight:500;font-family:'IBM Plex Mono',monospace">✅ AFTER</div>
+        <div style="display:flex;flex-direction:column;gap:0.5rem">
+          <div class="ba-good">90-day renewal alert — manager in full control well in advance</div>
+          <div class="ba-good">Renewal offer sent proactively — tenant retained before considering leaving</div>
+          <div class="ba-good">Rent review calculated and applied automatically at renewal</div>
+          <div class="ba-good">New agreement auto-generated and e-signed in hours</div>
+          <div class="ba-good">Non-renewal triggers vacancy workflow — re-listing starts immediately</div>
+        </div>
+      </div>
+    </div>
+    <div class="animate-in">
+      <div class="quote-block">
+        <div class="quote-text">"For property managers, <strong>lease expiry is either a managed event or a crisis</strong>. The difference is a system that tracks every date and acts 90 days before it matters."</div>
+        <div style="font-size:0.62rem;color:rgba(255,255,255,0.3);font-family:'IBM Plex Mono',monospace">STACK: n8n · GPT-4o · DocuSign · WhatsApp API · Google Sheets · Gmail · Slack · Paystack</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="slide-counter" id="slideCounter">Slide 1 of 5</div>
+<div class="slide-nav">
+  <button class="nav-btn" onclick="prevSlide()">← Prev</button>
+  <button class="nav-btn primary" onclick="nextSlide()">Next →</button>
+</div>
+<script>
+const slides=document.querySelectorAll('.slide'),total=slides.length;let cur=0;
+const dots=document.getElementById('navDots');
+for(let i=0;i<total;i++){const d=document.createElement('div');d.className='nav-dot'+(i===0?' active':'');d.onclick=()=>goTo(i);dots.appendChild(d);}
+function goTo(n){slides[cur].classList.remove('active');dots.children[cur].classList.remove('active');if(cur<n)dots.children[cur].classList.add('done');cur=n;slides[cur].classList.add('active');dots.children[cur].classList.add('active');document.getElementById('slideCounter').textContent=`Slide ${cur+1} of ${total}`;}
+function nextSlide(){if(cur<total-1)goTo(cur+1);}function prevSlide(){if(cur>0)goTo(cur-1);}
+document.addEventListener('keydown',e=>{if(e.key==='ArrowRight'||e.key==='ArrowDown')nextSlide();if(e.key==='ArrowLeft'||e.key==='ArrowUp')prevSlide();});
+let secs=0;setInterval(()=>{secs++;const m=String(Math.floor(secs/60)).padStart(2,'0'),s=String(secs%60).padStart(2,'0');document.getElementById('timerBadge').textContent=`⏱ ${m}:${s}`;if(secs>=840)document.getElementById('timerBadge').style.color='#c02020';},1000);
+function delay(ms){return new Promise(r=>setTimeout(r,ms));}
+const leaseData=[
+  {id:'lr1',d:'lrd1',b:'lrb1',cls:'expiring-urgent',dval:'14 Apr',bval:'🚨 14 days',bcls:'lrb-urgent'},
+  {id:'lr2',d:'lrd2',b:'lrb2',cls:'expiring-soon',dval:'30 Apr',bval:'⚠ 46 days',bcls:'lrb-soon'},
+  {id:'lr3',d:'lrd3',b:'lrb3',cls:'expiring-soon',dval:'15 May',bval:'⚠ 61 days',bcls:'lrb-soon'},
+  {id:'lr4',d:'lrd4',b:'lrb4',cls:'renewed',dval:'Aug 25',bval:'Renewed ✓',bcls:'lrb-renewed'},
+  {id:'lr5',d:'lrd5',b:'lrb5',cls:'renewed',dval:'Sep 25',bval:'Renewed ✓',bcls:'lrb-renewed'},
+];
+let renewRunning=false;
+async function runRenewSim(){
+  if(renewRunning)return;renewRunning=true;
+  const btn=document.getElementById('renewBtn');btn.textContent='Scanning...';
+  leaseData.forEach(d=>{const el=document.getElementById(d.id);const dv=document.getElementById(d.d);const b=document.getElementById(d.b);if(el)el.className='lease-row';if(dv)dv.textContent='—';if(b){b.className='lr2-badge lrb-new';b.textContent='Scanning...';}});
+  const steps=['rn1','rn2','rn3','rn4','rn5'];
+  steps.forEach(id=>{const el=document.getElementById(id);if(el){el.style.opacity='0.3';el.querySelector('.ps-num').style.background='var(--border)';}});
+  const light=(i)=>{steps.forEach(id=>{const el=document.getElementById(id);if(el){el.style.opacity='0.3';el.querySelector('.ps-num').style.background='var(--border)';}});const el=document.getElementById(steps[i]);if(el){el.style.opacity='1';el.style.color='var(--wine)';el.querySelector('.ps-num').style.background='var(--wine)';}};
+  light(0);await delay(500);light(1);
+  for(let i=0;i<leaseData.length;i++){
+    await delay(450);
+    const d=leaseData[i];
+    const el=document.getElementById(d.id);const dv=document.getElementById(d.d);const b=document.getElementById(d.b);
+    if(el)el.classList.add(d.cls);
+    if(dv)dv.textContent=d.dval;
+    if(b){b.className='lr2-badge '+d.bcls;b.textContent=d.bval;}
+  }
+  light(2);await delay(400);light(3);await delay(400);light(4);
+  btn.textContent='↺ Reset & Run Again';renewRunning=false;
+}
+</script>
+</body>
+</html>
