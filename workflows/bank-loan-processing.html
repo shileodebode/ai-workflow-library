@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Banking — Loan Processing Automation</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f3f8f5;--surface:#fff;--surface2:#e8f4ec;--border:#c8e0d0;
+  --ink:#041410;--forest:#0b5c38;--forest2:#084428;--green:#16a34a;
+  --mint:#22c55e;--foam:#e0f5ea;--red:#c02020;--amber:#b07010;
+  --blue:#1a3a6a;--text:#081c10;--muted:#4a7860;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;overflow-x:hidden;}
+.top-bar{position:fixed;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,var(--forest),var(--green),var(--mint));z-index:200;}
+nav{position:fixed;top:4px;left:0;right:0;z-index:100;background:rgba(243,248,245,0.97);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 2.5rem;height:54px;}
+.nav-brand{font-family:'IBM Plex Mono',monospace;font-size:0.7rem;color:var(--forest2);letter-spacing:0.06em;}
+.nav-dots{display:flex;gap:0.3rem;}
+.nav-dot{width:7px;height:7px;border-radius:50%;background:var(--border);cursor:pointer;transition:all 0.2s;}
+.nav-dot.active{background:var(--forest);transform:scale(1.5);}
+.nav-dot.done{background:var(--green);}
+.timer{font-size:0.67rem;color:var(--forest);background:rgba(11,92,56,0.08);border:1px solid rgba(11,92,56,0.2);padding:0.2rem 0.75rem;border-radius:20px;font-family:'IBM Plex Mono',monospace;}
+.slide{min-height:100vh;padding:78px 0 50px;display:none;flex-direction:column;align-items:center;justify-content:center;position:relative;overflow:hidden;}
+.slide.active{display:flex;}
+.slide-inner{width:100%;max-width:1140px;padding:0 2.5rem;position:relative;z-index:2;}
+.hero-orb{position:absolute;top:-60px;right:-60px;width:500px;height:500px;border-radius:50%;background:radial-gradient(circle,rgba(11,92,56,0.06) 0%,transparent 65%);pointer-events:none;}
+.hero-badge{display:inline-flex;align-items:center;gap:0.5rem;background:var(--foam);border:1px solid rgba(11,92,56,0.2);color:var(--forest2);font-size:0.67rem;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;padding:0.28rem 0.9rem;border-radius:20px;margin-bottom:1.5rem;font-family:'IBM Plex Mono',monospace;}
+h1.hero-title{font-family:'Outfit',sans-serif;font-size:clamp(2.8rem,5.5vw,4.8rem);font-weight:800;line-height:1.0;letter-spacing:-0.03em;color:var(--ink);margin-bottom:1.5rem;}
+h1.hero-title span{color:var(--forest);}
+.hero-desc{font-size:0.97rem;color:var(--muted);max-width:510px;line-height:1.78;margin-bottom:2.5rem;font-weight:300;}
+.kpi-strip{display:flex;gap:1px;background:var(--border);border-radius:12px;overflow:hidden;max-width:640px;box-shadow:0 2px 10px rgba(11,92,56,0.07);}
+.kpi{background:white;padding:1.1rem 1.4rem;flex:1;}
+.kpi-val{font-family:'Outfit',sans-serif;font-size:1.9rem;font-weight:800;color:var(--forest);line-height:1;}
+.kpi-lbl{font-size:0.59rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);margin-top:0.2rem;font-family:'IBM Plex Mono',monospace;}
+.sec-tag{font-size:0.61rem;letter-spacing:0.22em;text-transform:uppercase;color:var(--forest);margin-bottom:0.4rem;font-weight:600;font-family:'IBM Plex Mono',monospace;}
+.sec-title{font-family:'Outfit',sans-serif;font-size:clamp(1.9rem,3.8vw,3rem);font-weight:800;line-height:1.05;margin-bottom:0.5rem;color:var(--ink);letter-spacing:-0.02em;}
+.sec-title span{color:var(--forest);}
+.sec-desc{font-size:0.87rem;color:var(--muted);margin-bottom:1.85rem;max-width:540px;line-height:1.78;font-weight:300;}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;}
+.lr{display:grid;grid-template-columns:1.1fr 1fr;gap:2rem;align-items:start;}
+.card{background:white;border:1px solid var(--border);border-radius:12px;padding:1.25rem;transition:all 0.2s;box-shadow:0 1px 4px rgba(0,0,0,0.04);}
+.card:hover{border-color:var(--forest);transform:translateY(-2px);box-shadow:0 6px 20px rgba(11,92,56,0.1);}
+.card-icon{font-size:1.4rem;margin-bottom:0.5rem;}
+.card-title{font-family:'Outfit',sans-serif;font-size:0.95rem;font-weight:700;margin-bottom:0.3rem;color:var(--ink);}
+.card-desc{font-size:0.72rem;color:var(--muted);line-height:1.65;}
+.panel{background:white;border:1px solid var(--border);border-radius:12px;padding:1.4rem;}
+.panel h3{font-family:'Outfit',sans-serif;font-size:0.88rem;font-weight:700;color:var(--forest2);margin-bottom:0.9rem;display:flex;align-items:center;gap:0.5rem;}
+.panel h3::before{content:'▸';color:var(--mint);}
+.wf-canvas{background:var(--ink);border-radius:14px;padding:2rem;position:relative;overflow:hidden;}
+.wf-dots{position:absolute;inset:0;background-image:radial-gradient(circle,rgba(34,197,94,0.16) 1px,transparent 1px);background-size:28px 28px;opacity:0.5;}
+.wf-label{position:absolute;top:0.75rem;left:1rem;font-size:0.57rem;letter-spacing:0.18em;text-transform:uppercase;color:rgba(255,255,255,0.3);display:flex;align-items:center;gap:0.4rem;z-index:3;font-family:'IBM Plex Mono',monospace;}
+.wf-label::before{content:'';width:7px;height:7px;border-radius:50%;background:var(--mint);box-shadow:0 0 8px var(--mint);animation:mpulse 2s infinite;}
+@keyframes mpulse{0%,100%{opacity:1}50%{opacity:0.2}}
+.wf-nodes{display:flex;align-items:flex-start;gap:0;padding-top:1.5rem;position:relative;z-index:2;flex-wrap:wrap;}
+.wf-stage{display:flex;flex-direction:column;align-items:center;}
+.wf-slbl{font-size:0.51rem;letter-spacing:0.14em;text-transform:uppercase;color:rgba(255,255,255,0.28);margin-bottom:0.3rem;font-family:'IBM Plex Mono',monospace;}
+.wf-node{display:flex;flex-direction:column;align-items:center;gap:0.3rem;cursor:pointer;position:relative;}
+.wf-box{width:58px;height:58px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.25rem;border:2px solid transparent;transition:all 0.3s;}
+.wf-node:hover .wf-box{transform:scale(1.1);box-shadow:0 0 20px rgba(11,92,56,0.4);}
+.wf-nlbl{font-size:0.52rem;text-align:center;color:rgba(255,255,255,0.42);max-width:66px;line-height:1.3;font-family:'IBM Plex Mono',monospace;}
+.wf-arr{color:rgba(255,255,255,0.18);padding:0 0.2rem;font-size:0.85rem;align-self:flex-start;margin-top:19px;flex-shrink:0;}
+.ttw{position:relative;}
+.tti{position:absolute;bottom:calc(100%+8px);left:50%;transform:translateX(-50%);background:white;border:1px solid var(--border);border-radius:8px;padding:0.6rem 0.9rem;font-size:0.67rem;opacity:0;pointer-events:none;transition:opacity 0.2s;z-index:50;color:var(--ink);line-height:1.5;max-width:200px;white-space:normal;text-align:left;box-shadow:0 4px 16px rgba(0,0,0,0.08);}
+.ttw:hover .tti{opacity:1;}
+/* Loan card */
+.loan-card{background:white;border:1px solid var(--border);border-radius:10px;padding:0.85rem 1rem;margin-bottom:0.45rem;display:flex;gap:0.85rem;align-items:flex-start;transition:all 0.3s;font-size:0.72rem;}
+.loan-card.approved-l{border-color:var(--green);background:rgba(22,163,74,0.03);}
+.loan-card.review-l{border-color:var(--amber);background:rgba(176,112,16,0.03);}
+.loan-card.declined-l{border-color:var(--red);background:rgba(192,32,32,0.03);}
+.lc-score{font-family:'Outfit',sans-serif;font-weight:800;font-size:1.1rem;flex-shrink:0;min-width:40px;}
+.lc-name{font-weight:600;color:var(--ink);}
+.lc-detail{font-size:0.63rem;color:var(--muted);margin-top:0.1rem;}
+.lc-badge{margin-left:auto;font-size:0.58rem;padding:0.1rem 0.42rem;border-radius:20px;font-weight:600;font-family:'IBM Plex Mono',monospace;white-space:nowrap;}
+.lb-app{background:rgba(22,163,74,0.1);color:var(--green);border:1px solid rgba(22,163,74,0.2);}
+.lb-rev{background:rgba(176,112,16,0.1);color:var(--amber);border:1px solid rgba(176,112,16,0.2);}
+.lb-dec{background:rgba(192,32,32,0.1);color:var(--red);border:1px solid rgba(192,32,32,0.2);}
+.lb-new{background:rgba(74,120,96,0.1);color:var(--muted);border:1px solid rgba(74,120,96,0.18);}
+.ps-list{list-style:none;}
+.ps-list li{display:flex;gap:0.75rem;padding:0.45rem 0;border-bottom:1px solid var(--border);font-size:0.74rem;line-height:1.5;transition:all 0.3s;}
+.ps-list li:last-child{border-bottom:none;}
+.ps-num{width:20px;height:20px;border-radius:50%;background:var(--border);color:white;font-size:0.6rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;transition:background 0.3s;}
+.info-forest{padding:0.75rem 1rem;border-radius:8px;font-size:0.77rem;line-height:1.6;background:rgba(11,92,56,0.06);border:1px solid rgba(11,92,56,0.15);color:var(--forest2);}
+.ba-bad{padding:0.6rem 0.9rem;border-radius:8px;font-size:0.76rem;line-height:1.5;background:rgba(192,32,32,0.04);border:1px solid rgba(192,32,32,0.12);}
+.ba-good{padding:0.6rem 0.9rem;border-radius:8px;font-size:0.76rem;line-height:1.5;background:rgba(22,163,74,0.05);border:1px solid rgba(22,163,74,0.14);}
+.quote-block{background:var(--ink);border-radius:14px;padding:1.75rem 2rem;color:white;}
+.quote-text{font-size:1.05rem;line-height:1.78;margin-bottom:0.75rem;font-weight:300;}
+.quote-text strong{color:#86efac;}
+.slide-counter{position:fixed;bottom:1.5rem;left:2rem;font-size:0.62rem;color:var(--muted);z-index:100;font-family:'IBM Plex Mono',monospace;}
+.slide-nav{position:fixed;bottom:1.5rem;right:2rem;display:flex;gap:0.5rem;z-index:100;}
+.nav-btn{background:white;border:1px solid var(--border);color:var(--text);padding:0.55rem 1.2rem;border-radius:8px;font-family:'IBM Plex Mono',monospace;font-size:0.7rem;cursor:pointer;transition:all 0.2s;}
+.nav-btn:hover{border-color:var(--forest);color:var(--forest);}
+.nav-btn.primary{background:var(--forest);border-color:var(--forest);color:white;}
+.nav-btn.primary:hover{background:var(--forest2);}
+.run-btn{background:var(--forest);color:white;border:none;border-radius:8px;padding:0.7rem 1.5rem;font-family:'IBM Plex Mono',monospace;font-size:0.72rem;cursor:pointer;transition:all 0.2s;width:100%;text-align:center;}
+.run-btn:hover{background:var(--forest2);}
+.animate-in{opacity:0;animation:fadeUp 0.5s ease-out forwards;}
+.slide.active .animate-in:nth-child(1){animation-delay:0.05s;}
+.slide.active .animate-in:nth-child(2){animation-delay:0.15s;}
+.slide.active .animate-in:nth-child(3){animation-delay:0.25s;}
+.slide.active .animate-in:nth-child(4){animation-delay:0.35s;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+</style>
+</head>
+<body>
+<div class="top-bar"></div>
+<nav>
+  <div class="nav-brand">BANKING · Loan Processing</div>
+  <div class="nav-dots" id="navDots"></div>
+  <div class="timer" id="timerBadge">⏱ 00:00</div>
+</nav>
+
+<section class="slide active" id="slide-0">
+  <div class="hero-orb"></div>
+  <div class="slide-inner">
+    <div class="animate-in"><div class="hero-badge">🏦 n8n AI Automation · Banking & Financial Services</div></div>
+    <div class="animate-in"><h1 class="hero-title">Loan Applied.<br><span>Decided.</span><br>Disbursed.</h1></div>
+    <div class="animate-in"><p class="hero-desc">End-to-end loan processing automation — from application to credit scoring to disbursement. Creditworthy applicants approved in hours. Portfolio risk managed automatically. No manual underwriting backlogs.</p></div>
+    <div class="animate-in">
+      <div class="kpi-strip">
+        <div class="kpi"><div class="kpi-val">4hr</div><div class="kpi-lbl">Loan Decision</div></div>
+        <div class="kpi"><div class="kpi-val">Auto</div><div class="kpi-lbl">Credit Scoring</div></div>
+        <div class="kpi"><div class="kpi-val">24hr</div><div class="kpi-lbl">Disbursement</div></div>
+        <div class="kpi"><div class="kpi-val">Live</div><div class="kpi-lbl">Portfolio Dashboard</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="slide-1">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">01 — The Problem</div><div class="sec-title">Loan Decisions That<br><span>Take Two Weeks</span></div><p class="sec-desc">Manual loan processing is the growth ceiling for every lending institution. Backlogs, inconsistent decisions, and slow disbursements drive creditworthy borrowers to competitors who answer in hours.</p></div>
+    <div class="animate-in two-col" style="margin-bottom:1.5rem">
+      <div class="card"><div class="card-icon">📚</div><div class="card-title">Manual Underwriting Backlog</div><div class="card-desc">Each application takes 2–3 hours of analyst time: verifying income, calculating DTI ratio, checking credit bureau, assessing collateral. 50 applications per week = two full-time analysts doing nothing else.</div></div>
+      <div class="card"><div class="card-icon">⏰</div><div class="card-title">Slow Decisions Lose Customers</div><div class="card-desc">Applicant applies for ₦500k business loan. Decision promised in 5 business days. Competitor fintech approves in 2 hours. Customer takes the faster offer. Your institution loses the loan and the customer relationship.</div></div>
+      <div class="card"><div class="card-icon">🎭</div><div class="card-title">Inconsistent Decisions</div><div class="card-desc">Analyst A approves a 35% DTI ratio on a Friday. Analyst B declines the same profile on Monday. Subjective underwriting creates inconsistency, regulatory exposure, and potential discrimination risk.</div></div>
+      <div class="card"><div class="card-icon">📊</div><div class="card-title">No Real-time Portfolio View</div><div class="card-desc">NPL rate unknown until month-end. Sector concentration risk invisible. Which loan officer has the highest default rate in their book? Manual tracking makes these questions unanswerable in real time.</div></div>
+    </div>
+    <div class="animate-in"><div class="info-forest">✅ n8n automates the entire lending pipeline: application ingestion, bureau pull, credit scoring, offer generation, agreement execution, disbursement, and repayment tracking.</div></div>
+  </div>
+</section>
+
+<section class="slide" id="slide-2">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">02 — The Blueprint</div><div class="sec-title">n8n Loan Processing<br><span>Pipeline</span></div><p class="sec-desc">Application received → scored → decisioned → offered → signed → disbursed → repayment monitored. Every step automated. Humans involved only for borderline cases.</p></div>
+    <div class="animate-in wf-canvas">
+      <div class="wf-dots"></div>
+      <div class="wf-label">n8n canvas — loan processing pipeline</div>
+      <div class="wf-nodes">
+        <div class="wf-stage"><div class="wf-slbl">Apply</div>
+          <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#0a1a2a,#1d4ed8);color:#93c5fd;border-color:#1d4ed8;">📱</div><div class="wf-nlbl">Digital<br>Application</div><div class="tti">Borrower completes mobile loan application: amount, purpose, repayment period, income details. Uploads: pay slips, bank statements, employer letter. All stored and structured by n8n.</div></div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-stage"><div class="wf-slbl">Assess</div>
+          <div style="display:flex;flex-direction:column;gap:0.35rem">
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a0a0a,#991b1b);color:#fca5a5;border-color:#991b1b;">🧠</div><div class="wf-nlbl">GPT-4o<br>Income Parse</div><div class="tti">GPT-4o reads bank statements: calculates average monthly income, identifies salary credits, flags irregular income. Calculates DTI (debt-to-income) ratio automatically.</div></div>
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#0a1a1a,#065f46);color:#6ee7b7;border-color:#065f46;">📊</div><div class="wf-nlbl">Bureau<br>Pull</div><div class="tti">Credit bureau (CRC/FirstCentral) queried via API. Score, existing loans, payment history, and defaults all pulled automatically. Adds to credit decision model.</div></div>
+          </div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-stage"><div class="wf-slbl">Score</div>
+          <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a0a1a,#7c3aed);color:#d8b4fe;border-color:#7c3aed;">🎯</div><div class="wf-nlbl">Credit<br>Score</div><div class="tti">Proprietary scoring model: weights bureau score, DTI, income stability, tenure, purpose of loan, and collateral if any. Score 0–1000. Approve / Review / Decline thresholds set by risk team.</div></div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-stage"><div class="wf-slbl">Decide</div>
+          <div style="display:flex;flex-direction:column;gap:0.35rem">
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a3a1a,#166534);color:#4ade80;border-color:#166534;">✅</div><div class="wf-nlbl">Auto<br>Approve</div><div class="tti">Score ≥680: auto-approved. Offer letter generated: loan amount, interest rate, tenure, repayment schedule. Sent to borrower via WhatsApp for e-signature acceptance.</div></div>
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a1a0a,#78350f);color:#fde68a;border-color:#78350f;">👤</div><div class="wf-nlbl">Officer<br>Review</div><div class="tti">Score 550–679: routed to loan officer with full analysis pre-populated. Officer reviews and decides. No manual data gathering — everything ready when they open the case.</div></div>
+          </div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-stage"><div class="wf-slbl">Disburse</div>
+          <div style="display:flex;flex-direction:column;gap:0.35rem">
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#0a1a2a,#0369a1);color:#7dd3fc;border-color:#0369a1;">💰</div><div class="wf-nlbl">Auto<br>Disburse</div><div class="tti">E-signature received → loan agreement executed → disbursement initiated via Paystack/bank transfer within 2 hours. Borrower receives SMS confirmation with repayment schedule.</div></div>
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a0a2e,#6d28d9);color:#c4b5fd;border-color:#6d28d9;">📊</div><div class="wf-nlbl">Repayment<br>Monitor</div><div class="tti">Daily repayment monitoring. 3 days before due: WhatsApp reminder. Missed payment: escalation to collections workflow. Portfolio NPL tracked in real time dashboard.</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="slide-3">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">03 — Simulation</div><div class="sec-title">Loan Pipeline —<br><span>5 Applications Today</span></div><p class="sec-desc">Five applications processed simultaneously. Credit scores calculated, decisions made, offers sent — all within 4 hours of submission. Loan officer reviews only the two borderline cases.</p></div>
+    <div class="animate-in" style="display:flex;flex-direction:column;gap:0.45rem;margin-bottom:1.25rem">
+      <div class="loan-card approved-l"><div class="lc-score" style="color:var(--green)">742</div><div><div class="lc-name">Amaka Okafor</div><div class="lc-detail">₦850,000 · Business expansion · 12 months · DTI 28%</div></div><span class="lc-badge lb-app">Auto-approved ✓</span></div>
+      <div class="loan-card approved-l"><div class="lc-score" style="color:var(--green)">698</div><div><div class="lc-name">Tunde Fashola</div><div class="lc-detail">₦450,000 · Personal · 6 months · DTI 31%</div></div><span class="lc-badge lb-app">Auto-approved ✓</span></div>
+      <div class="loan-card review-l"><div class="lc-score" style="color:var(--amber)">612</div><div><div class="lc-name">Ngozi Ibrahim</div><div class="lc-detail">₦1.2M · Vehicle purchase · 24 months · DTI 42%</div></div><span class="lc-badge lb-rev">Officer Review</span></div>
+      <div class="loan-card review-l"><div class="lc-score" style="color:var(--amber)">571</div><div><div class="lc-name">Babatunde Eze</div><div class="lc-detail">₦300,000 · Education · 9 months · Prior late payment</div></div><span class="lc-badge lb-rev">Officer Review</span></div>
+      <div class="loan-card declined-l"><div class="lc-score" style="color:var(--red)">348</div><div><div class="lc-name">Kemi Adeyemi</div><div class="lc-detail">₦2M · Unspecified · DTI 78% · Existing default</div></div><span class="lc-badge lb-dec">Auto-declined ✗</span></div>
+    </div>
+    <div class="animate-in two-col">
+      <div class="panel"><h3>Decision Summary</h3>
+        <div style="font-size:0.73rem;line-height:1.8">
+          <div style="display:flex;justify-content:space-between;padding:0.2rem 0;border-bottom:1px solid var(--border)"><span style="color:var(--muted)">Auto-approved</span><span style="font-weight:700;color:var(--green)">2 (₦1.3M)</span></div>
+          <div style="display:flex;justify-content:space-between;padding:0.2rem 0;border-bottom:1px solid var(--border)"><span style="color:var(--muted)">Officer review</span><span style="font-weight:700;color:var(--amber)">2 (₦1.5M)</span></div>
+          <div style="display:flex;justify-content:space-between;padding:0.2rem 0"><span style="color:var(--muted)">Auto-declined</span><span style="font-weight:700;color:var(--red)">1 (₦2M)</span></div>
+        </div>
+      </div>
+      <div class="info-forest">✅ Loan officer only needs to review 2 cases — not all 5. The clear approvals and clear declines are handled automatically, freeing the officer for nuanced judgement where it's actually needed.</div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="slide-4">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">04 — Impact</div><div class="sec-title">Faster Lending.<br><span>Better Credit.</span></div></div>
+    <div class="animate-in two-col" style="margin-bottom:1.5rem">
+      <div>
+        <div style="font-size:0.62rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--red);margin-bottom:0.75rem;font-weight:600;font-family:'IBM Plex Mono',monospace">❌ BEFORE</div>
+        <div style="display:flex;flex-direction:column;gap:0.5rem">
+          <div class="ba-bad">5-day loan decision — borrower takes competitor's offer</div>
+          <div class="ba-bad">Manual underwriting — inconsistent decisions, regulatory risk</div>
+          <div class="ba-bad">50 applications/week = 2 full-time analysts on data gathering</div>
+          <div class="ba-bad">NPL rate unknown until month-end report</div>
+          <div class="ba-bad">Manual repayment reminders — collections reactive not proactive</div>
+        </div>
+      </div>
+      <div>
+        <div style="font-size:0.62rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--green);margin-bottom:0.75rem;font-weight:600;font-family:'IBM Plex Mono',monospace">✅ AFTER</div>
+        <div style="display:flex;flex-direction:column;gap:0.5rem">
+          <div class="ba-good">4-hour decision — disbursement within 24 hours of approval</div>
+          <div class="ba-good">Consistent scoring model — objective, auditable, fair</div>
+          <div class="ba-good">Analysts handle only borderline cases — 80% time saved</div>
+          <div class="ba-good">Live portfolio dashboard — NPL, concentration risk, officer performance</div>
+          <div class="ba-good">Automated repayment reminders — collections catch defaults early</div>
+        </div>
+      </div>
+    </div>
+    <div class="animate-in">
+      <div class="quote-block">
+        <div class="quote-text">"Speed is a competitive advantage in lending. <strong>The institution that decides first wins the customer.</strong> Automated underwriting doesn't just save time — it changes which customers you can serve."</div>
+        <div style="font-size:0.62rem;color:rgba(255,255,255,0.3);font-family:'IBM Plex Mono',monospace">STACK: n8n · GPT-4o · CRC/FirstCentral API · Paystack · DocuSign · WhatsApp API · Google Sheets · Slack</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="slide-counter" id="slideCounter">Slide 1 of 5</div>
+<div class="slide-nav">
+  <button class="nav-btn" onclick="prevSlide()">← Prev</button>
+  <button class="nav-btn primary" onclick="nextSlide()">Next →</button>
+</div>
+<script>
+const slides=document.querySelectorAll('.slide'),total=slides.length;let cur=0;
+const dots=document.getElementById('navDots');
+for(let i=0;i<total;i++){const d=document.createElement('div');d.className='nav-dot'+(i===0?' active':'');d.onclick=()=>goTo(i);dots.appendChild(d);}
+function goTo(n){slides[cur].classList.remove('active');dots.children[cur].classList.remove('active');if(cur<n)dots.children[cur].classList.add('done');cur=n;slides[cur].classList.add('active');dots.children[cur].classList.add('active');document.getElementById('slideCounter').textContent=`Slide ${cur+1} of ${total}`;}
+function nextSlide(){if(cur<total-1)goTo(cur+1);}function prevSlide(){if(cur>0)goTo(cur-1);}
+document.addEventListener('keydown',e=>{if(e.key==='ArrowRight'||e.key==='ArrowDown')nextSlide();if(e.key==='ArrowLeft'||e.key==='ArrowUp')prevSlide();});
+let secs=0;setInterval(()=>{secs++;const m=String(Math.floor(secs/60)).padStart(2,'0'),s=String(secs%60).padStart(2,'0');document.getElementById('timerBadge').textContent=`⏱ ${m}:${s}`;if(secs>=840)document.getElementById('timerBadge').style.color='#c02020';},1000);
+</script>
+</body>
+</html>
