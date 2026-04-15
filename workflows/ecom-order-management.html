@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>E-commerce — Order Management Automation</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#fff8f4;--surface:#fff;--surface2:#fff0e8;--border:#f0d8c8;
+  --ink:#180800;--coral:#d44820;--coral2:#b03810;--orange:#e86030;
+  --peach:#ffe8d8;--green:#1a6830;--red:#c02020;--amber:#b87010;
+  --blue:#1a3a7a;--text:#201008;--muted:#7a5838;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'Plus Jakarta Sans',sans-serif;overflow-x:hidden;}
+.top-bar{position:fixed;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,var(--coral),var(--orange),var(--coral));z-index:200;}
+nav{position:fixed;top:4px;left:0;right:0;z-index:100;background:rgba(255,248,244,0.97);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 2.5rem;height:54px;}
+.nav-brand{font-family:'Space Mono',monospace;font-size:0.7rem;color:var(--coral2);letter-spacing:0.06em;}
+.nav-dots{display:flex;gap:0.3rem;}
+.nav-dot{width:7px;height:7px;border-radius:50%;background:var(--border);cursor:pointer;transition:all 0.2s;}
+.nav-dot.active{background:var(--coral);transform:scale(1.5);}
+.nav-dot.done{background:var(--green);}
+.timer{font-size:0.67rem;color:var(--coral);background:rgba(212,72,32,0.08);border:1px solid rgba(212,72,32,0.2);padding:0.2rem 0.75rem;border-radius:20px;font-family:'Space Mono',monospace;}
+.slide{min-height:100vh;padding:78px 0 50px;display:none;flex-direction:column;align-items:center;justify-content:center;position:relative;overflow:hidden;}
+.slide.active{display:flex;}
+.slide-inner{width:100%;max-width:1140px;padding:0 2.5rem;position:relative;z-index:2;}
+.hero-orb{position:absolute;top:-60px;right:-60px;width:500px;height:500px;border-radius:50%;background:radial-gradient(circle,rgba(212,72,32,0.06) 0%,transparent 65%);pointer-events:none;}
+.hero-badge{display:inline-flex;align-items:center;gap:0.5rem;background:var(--peach);border:1px solid rgba(212,72,32,0.2);color:var(--coral2);font-size:0.67rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;padding:0.28rem 0.9rem;border-radius:20px;margin-bottom:1.5rem;font-family:'Space Mono',monospace;}
+h1.hero-title{font-family:'Plus Jakarta Sans',sans-serif;font-size:clamp(2.8rem,5.5vw,4.8rem);font-weight:800;line-height:1.0;letter-spacing:-0.03em;color:var(--ink);margin-bottom:1.5rem;}
+h1.hero-title span{color:var(--coral);}
+.hero-desc{font-size:0.97rem;color:var(--muted);max-width:510px;line-height:1.78;margin-bottom:2.5rem;font-weight:300;}
+.kpi-strip{display:flex;gap:1px;background:var(--border);border-radius:12px;overflow:hidden;max-width:640px;box-shadow:0 2px 10px rgba(212,72,32,0.07);}
+.kpi{background:white;padding:1.1rem 1.4rem;flex:1;}
+.kpi-val{font-family:'Plus Jakarta Sans',sans-serif;font-size:1.9rem;font-weight:800;color:var(--coral);line-height:1;}
+.kpi-lbl{font-size:0.59rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);margin-top:0.2rem;font-family:'Space Mono',monospace;}
+.sec-tag{font-size:0.61rem;letter-spacing:0.22em;text-transform:uppercase;color:var(--coral);margin-bottom:0.4rem;font-weight:700;font-family:'Space Mono',monospace;display:flex;align-items:center;gap:0.4rem;}
+.sec-tag::before{content:'→';}
+.sec-title{font-family:'Plus Jakarta Sans',sans-serif;font-size:clamp(1.9rem,3.8vw,3rem);font-weight:800;line-height:1.05;margin-bottom:0.5rem;color:var(--ink);letter-spacing:-0.02em;}
+.sec-title span{color:var(--coral);}
+.sec-desc{font-size:0.87rem;color:var(--muted);margin-bottom:1.85rem;max-width:540px;line-height:1.78;font-weight:300;}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;}
+.three-col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;}
+.lr{display:grid;grid-template-columns:1.1fr 1fr;gap:2rem;align-items:start;}
+.card{background:white;border:1px solid var(--border);border-radius:14px;padding:1.25rem;transition:all 0.2s;box-shadow:0 1px 4px rgba(0,0,0,0.04);}
+.card:hover{border-color:var(--coral);transform:translateY(-2px);box-shadow:0 6px 20px rgba(212,72,32,0.1);}
+.card-icon{font-size:1.4rem;margin-bottom:0.5rem;}
+.card-title{font-family:'Plus Jakarta Sans',sans-serif;font-size:0.95rem;font-weight:700;margin-bottom:0.3rem;color:var(--ink);}
+.card-desc{font-size:0.72rem;color:var(--muted);line-height:1.65;}
+.panel{background:white;border:1px solid var(--border);border-radius:14px;padding:1.4rem;}
+.panel h3{font-family:'Plus Jakarta Sans',sans-serif;font-size:0.88rem;font-weight:700;color:var(--coral2);margin-bottom:0.9rem;display:flex;align-items:center;gap:0.5rem;}
+.panel h3::before{content:'▸';color:var(--orange);}
+.steps{list-style:none;}
+.steps li{display:flex;gap:0.75rem;padding:0.45rem 0;border-bottom:1px solid var(--border);font-size:0.76rem;line-height:1.6;}
+.steps li:last-child{border-bottom:none;}
+.step-n{width:22px;height:22px;border-radius:50%;background:var(--coral);color:white;font-size:0.62rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.wf-canvas{background:var(--ink);border-radius:16px;padding:2rem;position:relative;overflow:hidden;}
+.wf-dots{position:absolute;inset:0;background-image:radial-gradient(circle,rgba(212,72,32,0.2) 1px,transparent 1px);background-size:28px 28px;opacity:0.5;}
+.wf-label{position:absolute;top:0.75rem;left:1rem;font-size:0.57rem;letter-spacing:0.18em;text-transform:uppercase;color:rgba(255,255,255,0.3);display:flex;align-items:center;gap:0.4rem;z-index:3;font-family:'Space Mono',monospace;}
+.wf-label::before{content:'';width:7px;height:7px;border-radius:50%;background:var(--orange);box-shadow:0 0 8px var(--orange);animation:opulse 2s infinite;}
+@keyframes opulse{0%,100%{opacity:1}50%{opacity:0.2}}
+.wf-nodes{display:flex;align-items:flex-start;gap:0;padding-top:1.5rem;position:relative;z-index:2;flex-wrap:wrap;}
+.wf-stage{display:flex;flex-direction:column;align-items:center;}
+.wf-slbl{font-size:0.51rem;letter-spacing:0.14em;text-transform:uppercase;color:rgba(255,255,255,0.28);margin-bottom:0.3rem;font-family:'Space Mono',monospace;}
+.wf-node{display:flex;flex-direction:column;align-items:center;gap:0.3rem;cursor:pointer;position:relative;}
+.wf-box{width:58px;height:58px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:1.25rem;border:2px solid transparent;transition:all 0.3s;}
+.wf-node:hover .wf-box{transform:scale(1.1);box-shadow:0 0 20px rgba(212,72,32,0.4);}
+.wf-nlbl{font-size:0.52rem;text-align:center;color:rgba(255,255,255,0.42);max-width:66px;line-height:1.3;font-family:'Space Mono',monospace;}
+.wf-arr{color:rgba(255,255,255,0.18);padding:0 0.2rem;font-size:0.85rem;align-self:flex-start;margin-top:19px;flex-shrink:0;}
+.ttw{position:relative;}
+.tti{position:absolute;bottom:calc(100%+8px);left:50%;transform:translateX(-50%);background:white;border:1px solid var(--border);border-radius:10px;padding:0.6rem 0.9rem;font-size:0.67rem;opacity:0;pointer-events:none;transition:opacity 0.2s;z-index:50;color:var(--ink);line-height:1.5;max-width:200px;white-space:normal;text-align:left;box-shadow:0 4px 16px rgba(0,0,0,0.08);}
+.ttw:hover .tti{opacity:1;}
+/* Order row */
+.order-row{background:white;border:1px solid var(--border);border-radius:12px;padding:0.75rem 1rem;margin-bottom:0.4rem;display:flex;gap:0.85rem;align-items:center;transition:all 0.3s;font-size:0.72rem;}
+.order-row.processing{border-color:var(--amber);}
+.order-row.shipped{border-color:var(--blue);}
+.order-row.delivered{border-color:var(--green);}
+.order-row.issue{border-color:var(--red);}
+.or-id{font-family:'Space Mono',monospace;font-size:0.62rem;color:var(--muted);flex-shrink:0;min-width:80px;}
+.or-item{font-weight:600;color:var(--ink);}
+.or-detail{font-size:0.63rem;color:var(--muted);}
+.or-amount{font-weight:700;color:var(--coral);flex-shrink:0;font-family:'Plus Jakarta Sans',sans-serif;}
+.or-badge{font-size:0.58rem;padding:0.1rem 0.42rem;border-radius:20px;font-weight:700;font-family:'Space Mono',monospace;white-space:nowrap;margin-left:0.5rem;}
+.ob-proc{background:rgba(184,112,16,0.1);color:var(--amber);border:1px solid rgba(184,112,16,0.2);}
+.ob-ship{background:rgba(26,58,122,0.1);color:var(--blue);border:1px solid rgba(26,58,122,0.2);}
+.ob-del{background:rgba(26,104,48,0.1);color:var(--green);border:1px solid rgba(26,104,48,0.2);}
+.ob-iss{background:rgba(192,32,32,0.1);color:var(--red);border:1px solid rgba(192,32,32,0.2);}
+.ob-new{background:rgba(122,88,56,0.1);color:var(--muted);border:1px solid rgba(122,88,56,0.18);}
+/* Order confirmation */
+.order-conf{background:white;border:1px solid var(--border);border-radius:14px;overflow:hidden;}
+.oc-header{background:linear-gradient(135deg,var(--coral),var(--orange));color:white;padding:0.85rem 1.1rem;display:flex;align-items:center;justify-content:space-between;}
+.oc-title{font-family:'Plus Jakarta Sans',sans-serif;font-size:0.9rem;font-weight:700;}
+.oc-body{padding:1rem;font-size:0.73rem;line-height:1.75;}
+.oc-item{display:flex;justify-content:space-between;padding:0.22rem 0;border-bottom:1px solid rgba(240,216,200,0.5);}
+.oc-item:last-child{border-bottom:none;}
+.oc-label{color:var(--muted);font-size:0.65rem;font-family:'Space Mono',monospace;}
+.oc-val{font-weight:500;color:var(--ink);}
+/* PS list */
+.ps-list{list-style:none;}
+.ps-list li{display:flex;gap:0.75rem;padding:0.45rem 0;border-bottom:1px solid var(--border);font-size:0.74rem;line-height:1.5;transition:all 0.3s;}
+.ps-list li:last-child{border-bottom:none;}
+.ps-num{width:20px;height:20px;border-radius:50%;background:var(--border);color:white;font-size:0.6rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;transition:background 0.3s;}
+.info-coral{padding:0.75rem 1rem;border-radius:10px;font-size:0.77rem;line-height:1.6;background:rgba(212,72,32,0.06);border:1px solid rgba(212,72,32,0.18);color:var(--coral2);}
+.ba-bad{padding:0.6rem 0.9rem;border-radius:10px;font-size:0.76rem;line-height:1.5;background:rgba(192,32,32,0.04);border:1px solid rgba(192,32,32,0.12);}
+.ba-good{padding:0.6rem 0.9rem;border-radius:10px;font-size:0.76rem;line-height:1.5;background:rgba(26,104,48,0.05);border:1px solid rgba(26,104,48,0.14);}
+.quote-block{background:var(--ink);border-radius:16px;padding:1.75rem 2rem;color:white;}
+.quote-text{font-size:1.05rem;line-height:1.78;margin-bottom:0.75rem;font-weight:300;}
+.quote-text strong{color:#fdba74;}
+.slide-counter{position:fixed;bottom:1.5rem;left:2rem;font-size:0.62rem;color:var(--muted);z-index:100;font-family:'Space Mono',monospace;}
+.slide-nav{position:fixed;bottom:1.5rem;right:2rem;display:flex;gap:0.5rem;z-index:100;}
+.nav-btn{background:white;border:1px solid var(--border);color:var(--text);padding:0.55rem 1.2rem;border-radius:10px;font-family:'Space Mono',monospace;font-size:0.7rem;cursor:pointer;transition:all 0.2s;}
+.nav-btn:hover{border-color:var(--coral);color:var(--coral);}
+.nav-btn.primary{background:var(--coral);border-color:var(--coral);color:white;}
+.nav-btn.primary:hover{background:var(--coral2);}
+.run-btn{background:var(--coral);color:white;border:none;border-radius:10px;padding:0.7rem 1.5rem;font-family:'Space Mono',monospace;font-size:0.72rem;cursor:pointer;transition:all 0.2s;width:100%;text-align:center;}
+.run-btn:hover{background:var(--coral2);}
+.animate-in{opacity:0;animation:fadeUp 0.5s ease-out forwards;}
+.slide.active .animate-in:nth-child(1){animation-delay:0.05s;}
+.slide.active .animate-in:nth-child(2){animation-delay:0.15s;}
+.slide.active .animate-in:nth-child(3){animation-delay:0.25s;}
+.slide.active .animate-in:nth-child(4){animation-delay:0.35s;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+</style>
+</head>
+<body>
+<div class="top-bar"></div>
+<nav>
+  <div class="nav-brand">E-COMMERCE · Order Management</div>
+  <div class="nav-dots" id="navDots"></div>
+  <div class="timer" id="timerBadge">⏱ 00:00</div>
+</nav>
+
+<section class="slide active" id="slide-0">
+  <div class="hero-orb"></div>
+  <div class="slide-inner">
+    <div class="animate-in"><div class="hero-badge">🛒 n8n AI Automation · E-commerce & Retail</div></div>
+    <div class="animate-in"><h1 class="hero-title">Order Placed.<br><span>Fulfilled.</span><br>Customer Delighted.</h1></div>
+    <div class="animate-in"><p class="hero-desc">Every order processed, confirmed, packed, shipped, and tracked — automatically. Customers receive real-time updates at every stage. Your team focuses on growth, not fulfilment logistics.</p></div>
+    <div class="animate-in">
+      <div class="kpi-strip">
+        <div class="kpi"><div class="kpi-val">2min</div><div class="kpi-lbl">Order Confirmation</div></div>
+        <div class="kpi"><div class="kpi-val">100%</div><div class="kpi-lbl">Orders Tracked</div></div>
+        <div class="kpi"><div class="kpi-val">Auto</div><div class="kpi-lbl">Multi-Channel Sync</div></div>
+        <div class="kpi"><div class="kpi-val">Live</div><div class="kpi-lbl">Fulfilment Dashboard</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="slide-1">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">01 — The Problem</div><div class="sec-title">Orders Across<br><span>5 Channels</span></div><p class="sec-desc">Modern Nigerian e-commerce runs across website, Instagram, WhatsApp, Jumia, and Konga simultaneously. Without automation, orders get missed, confirmations are late, and fulfilment is chaos.</p></div>
+    <div class="animate-in two-col" style="margin-bottom:1.5rem">
+      <div class="card"><div class="card-icon">📱</div><div class="card-title">Channel Chaos</div><div class="card-desc">Website order in one system. WhatsApp order in DMs. Jumia order in their dashboard. Konga in theirs. Instagram in comments. No unified view. Orders processed in whatever order someone happens to check each platform.</div></div>
+      <div class="card"><div class="card-icon">⏰</div><div class="card-title">Slow Confirmations</div><div class="card-desc">Customer orders at 8pm. Business owner sees it at 10am next day. Sends confirmation at 11am. Customer has already reordered from a competitor who confirmed in 5 minutes. Speed of confirmation = trust signal.</div></div>
+      <div class="card"><div class="card-icon">📦</div><div class="card-title">Fulfilment Errors</div><div class="card-desc">Order details manually passed to the warehouse team via WhatsApp. Wrong item sent. Wrong address. No barcode scan, no packing checklist, no double-check. Returns and refunds cost 3× the original transaction.</div></div>
+      <div class="card"><div class="card-icon">📊</div><div class="card-title">No Order Analytics</div><div class="card-desc">Which products are selling fastest? Which channel has highest AOV? Which courier has best delivery rate? Without unified order data, inventory decisions and marketing spend are pure guesswork.</div></div>
+    </div>
+    <div class="animate-in"><div class="info-coral">✅ n8n unifies orders from all channels into one pipeline, sends instant confirmation, generates packing slips, coordinates dispatch, and keeps customers updated from click to delivery.</div></div>
+  </div>
+</section>
+
+<section class="slide" id="slide-2">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">02 — The Blueprint</div><div class="sec-title">n8n Order Management<br><span>Pipeline</span></div><p class="sec-desc">Order arrives from any channel → confirmed in 2 minutes → warehouse briefed → dispatched → customer updated at every stage → delivery confirmed. All automatic.</p></div>
+    <div class="animate-in wf-canvas">
+      <div class="wf-dots"></div>
+      <div class="wf-label">n8n canvas — order management pipeline</div>
+      <div class="wf-nodes">
+        <div class="wf-stage"><div class="wf-slbl">Capture</div>
+          <div style="display:flex;flex-direction:column;gap:0.35rem">
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#0a1a2a,#1d4ed8);color:#93c5fd;border-color:#1d4ed8;">🌐</div><div class="wf-nlbl">Website<br>& Jumia</div><div class="tti">WooCommerce/Shopify webhook + Jumia/Konga API integration. All orders unified into single n8n pipeline regardless of channel. Duplicate detection built in.</div></div>
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a3a1a,#166534);color:#4ade80;border-color:#166534;">📱</div><div class="wf-nlbl">WhatsApp<br>& Insta</div><div class="tti">WhatsApp orders parsed by GPT-4o from chat messages. Instagram DM orders extracted from comments/DMs. All structured into standard order format.</div></div>
+          </div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-stage"><div class="wf-slbl">Confirm</div>
+          <div style="display:flex;flex-direction:column;gap:0.35rem">
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a0a0a,#991b1b);color:#fca5a5;border-color:#991b1b;">🧠</div><div class="wf-nlbl">GPT-4o<br>Validate</div><div class="tti">Order validated: stock check, address verification, payment confirmed. GPT-4o writes personalised confirmation message with estimated delivery date and order summary.</div></div>
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#0a1a2a,#0369a1);color:#7dd3fc;border-color:#0369a1;">📧</div><div class="wf-nlbl">Confirm<br>SMS/WA</div><div class="tti">Customer receives WhatsApp confirmation within 2 minutes: order number, items, total, estimated delivery, and tracking link. Order reference sent for future queries.</div></div>
+          </div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-stage"><div class="wf-slbl">Fulfil</div>
+          <div style="display:flex;flex-direction:column;gap:0.35rem">
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a1a0a,#78350f);color:#fde68a;border-color:#78350f;">📋</div><div class="wf-nlbl">Packing<br>Slip</div><div class="tti">Packing slip auto-generated with: barcode, item list, quantity, customer details, delivery address, special instructions. Printed at warehouse. Picker follows checklist.</div></div>
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#0a1a1a,#065f46);color:#6ee7b7;border-color:#065f46;">📦</div><div class="wf-nlbl">Inventory<br>Deduct</div><div class="tti">Stock deducted from inventory system on order confirmation — not on packing. Real-time stock visibility. Low stock alerts triggered automatically.</div></div>
+          </div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-stage"><div class="wf-slbl">Ship</div>
+          <div style="display:flex;flex-direction:column;gap:0.35rem">
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a0a1a,#7c3aed);color:#d8b4fe;border-color:#7c3aed;">🚚</div><div class="wf-nlbl">Courier<br>Book</div><div class="tti">Optimal courier selected based on: delivery location, weight, speed requirement. Waybill auto-generated. Courier collection booked. Customer receives tracking number.</div></div>
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a3a1a,#166534);color:#4ade80;border-color:#166534;">📍</div><div class="wf-nlbl">Track<br>Updates</div><div class="tti">GPS milestone updates pushed to customer WhatsApp: "Dispatched", "In transit", "Out for delivery", "Delivered". Customer always knows where their order is.</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="slide-3">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">03 — Simulation</div><div class="sec-title">Live: Order Placed<br><span>& Confirmed in 2 min</span></div><p class="sec-desc">Amaka just ordered 3 items on Instagram at 10:47pm. Watch n8n process, confirm, brief the warehouse, and book the courier — all before she puts down her phone.</p></div>
+    <div class="animate-in lr">
+      <div style="display:flex;flex-direction:column;gap:1rem">
+        <div class="panel">
+          <h3>Order Pipeline Steps</h3>
+          <ul class="ps-list" id="ordSteps">
+            <li id="os1" style="opacity:0.3"><div class="ps-num">1</div><div>Instagram DM order captured — 10:47pm</div></li>
+            <li id="os2" style="opacity:0.3"><div class="ps-num">2</div><div>GPT-4o parses items + address from message</div></li>
+            <li id="os3" style="opacity:0.3"><div class="ps-num">3</div><div>Stock confirmed — all 3 items available</div></li>
+            <li id="os4" style="opacity:0.3"><div class="ps-num">4</div><div>WhatsApp confirmation sent — 10:49pm</div></li>
+            <li id="os5" style="opacity:0.3"><div class="ps-num">5</div><div>Packing slip generated + courier booked ✅</div></li>
+          </ul>
+        </div>
+        <div class="info-coral">📊 Competitors sending confirmation 10–12 hours later lose 23% of customers to reorders elsewhere. A 2-minute confirmation is the single biggest trust signal in e-commerce.</div>
+        <button class="run-btn" id="ordBtn" onclick="runOrdSim()">▶ PROCESS ORDER NOW</button>
+      </div>
+      <div id="ordReveal" style="display:none">
+        <div class="order-conf">
+          <div class="oc-header"><div class="oc-title">🛒 Order Confirmed — ORD-2025-4821</div><span style="font-size:0.6rem;opacity:0.75;font-family:'Space Mono',monospace">10:49pm</span></div>
+          <div class="oc-body">
+            <div class="oc-item"><span class="oc-label">Customer</span><span class="oc-val">Amaka Obi</span></div>
+            <div class="oc-item"><span class="oc-label">Items</span><span class="oc-val">Ankara Top (M) × 1 · Palazzos × 2</span></div>
+            <div class="oc-item"><span class="oc-label">Total</span><span class="oc-val" style="color:var(--coral);font-weight:700">₦24,500</span></div>
+            <div class="oc-item"><span class="oc-label">Delivery</span><span class="oc-val">Yaba, Lagos · 2–3 days</span></div>
+            <div class="oc-item"><span class="oc-label">Courier</span><span class="oc-val">GIG Logistics — booked ✓</span></div>
+            <div class="oc-item"><span class="oc-label">Channel</span><span class="oc-val">Instagram DM</span></div>
+            <div style="background:rgba(212,72,32,0.06);border-radius:8px;padding:0.5rem 0.7rem;margin-top:0.6rem;font-size:0.7rem;color:var(--coral2)">
+              ✅ WhatsApp confirmation sent · Packing slip printed · Warehouse notified
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="slide-4">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">04 — Impact</div><div class="sec-title">Sell More.<br><span>Fulfil Faster.</span></div></div>
+    <div class="animate-in two-col" style="margin-bottom:1.5rem">
+      <div>
+        <div style="font-size:0.62rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--red);margin-bottom:0.75rem;font-weight:700;font-family:'Space Mono',monospace">❌ BEFORE</div>
+        <div style="display:flex;flex-direction:column;gap:0.5rem">
+          <div class="ba-bad">Orders across 5 platforms — missed, late, duplicated</div>
+          <div class="ba-bad">Confirmation sent next morning — customer already reordered elsewhere</div>
+          <div class="ba-bad">Manual warehouse instructions via WhatsApp — wrong items shipped</div>
+          <div class="ba-bad">Customer calls to track — CS team overwhelmed</div>
+          <div class="ba-bad">No analytics — inventory and channel decisions are guesswork</div>
+        </div>
+      </div>
+      <div>
+        <div style="font-size:0.62rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--green);margin-bottom:0.75rem;font-weight:700;font-family:'Space Mono',monospace">✅ AFTER</div>
+        <div style="display:flex;flex-direction:column;gap:0.5rem">
+          <div class="ba-good">All channels unified — every order captured, zero missed</div>
+          <div class="ba-good">2-minute confirmation — customers know they're in safe hands</div>
+          <div class="ba-good">Barcode packing slips — fulfilment accuracy near 100%</div>
+          <div class="ba-good">Proactive tracking updates — no customer needs to call</div>
+          <div class="ba-good">Live dashboard — channel performance, AOV, fulfilment rate all visible</div>
+        </div>
+      </div>
+    </div>
+    <div class="animate-in">
+      <div class="quote-block">
+        <div class="quote-text">"The fastest-growing e-commerce brands in Nigeria don't just sell better — they <strong>fulfil better</strong>. Instant confirmation, accurate packing, and proactive tracking turn one-time buyers into loyal repeat customers."</div>
+        <div style="font-size:0.62rem;color:rgba(255,255,255,0.3);font-family:'Space Mono',monospace">STACK: n8n · GPT-4o · Shopify/WooCommerce · WhatsApp API · Instagram API · GIG/DHL APIs · Google Sheets</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="slide-counter" id="slideCounter">Slide 1 of 5</div>
+<div class="slide-nav">
+  <button class="nav-btn" onclick="prevSlide()">← Prev</button>
+  <button class="nav-btn primary" onclick="nextSlide()">Next →</button>
+</div>
+<script>
+const slides=document.querySelectorAll('.slide'),total=slides.length;let cur=0;
+const dots=document.getElementById('navDots');
+for(let i=0;i<total;i++){const d=document.createElement('div');d.className='nav-dot'+(i===0?' active':'');d.onclick=()=>goTo(i);dots.appendChild(d);}
+function goTo(n){slides[cur].classList.remove('active');dots.children[cur].classList.remove('active');if(cur<n)dots.children[cur].classList.add('done');cur=n;slides[cur].classList.add('active');dots.children[cur].classList.add('active');document.getElementById('slideCounter').textContent=`Slide ${cur+1} of ${total}`;}
+function nextSlide(){if(cur<total-1)goTo(cur+1);}function prevSlide(){if(cur>0)goTo(cur-1);}
+document.addEventListener('keydown',e=>{if(e.key==='ArrowRight'||e.key==='ArrowDown')nextSlide();if(e.key==='ArrowLeft'||e.key==='ArrowUp')prevSlide();});
+let secs=0;setInterval(()=>{secs++;const m=String(Math.floor(secs/60)).padStart(2,'0'),s=String(secs%60).padStart(2,'0');document.getElementById('timerBadge').textContent=`⏱ ${m}:${s}`;if(secs>=840)document.getElementById('timerBadge').style.color='#c02020';},1000);
+function delay(ms){return new Promise(r=>setTimeout(r,ms));}
+let ordRunning=false;
+async function runOrdSim(){
+  if(ordRunning)return;ordRunning=true;
+  const btn=document.getElementById('ordBtn');btn.textContent='Processing...';
+  document.getElementById('ordReveal').style.display='none';
+  const steps=['os1','os2','os3','os4','os5'];
+  steps.forEach(id=>{const el=document.getElementById(id);if(el){el.style.opacity='0.3';el.querySelector('.ps-num').style.background='var(--border)';}});
+  for(let i=0;i<steps.length;i++){
+    await delay(520);
+    steps.forEach(id=>{const el=document.getElementById(id);if(el){el.style.opacity='0.3';el.querySelector('.ps-num').style.background='var(--border)';}});
+    const el=document.getElementById(steps[i]);
+    if(el){el.style.opacity='1';el.style.color='var(--coral)';el.querySelector('.ps-num').style.background='var(--coral)';}
+    if(i===3)document.getElementById('ordReveal').style.display='block';
+  }
+  btn.textContent='↺ Reset & Run Again';ordRunning=false;
+}
+</script>
+</body>
+</html>
