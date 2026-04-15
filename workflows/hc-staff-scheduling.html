@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Healthcare — Staff Scheduling Automation</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,300&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f6f5ff;--surface:#ffffff;--surface2:#eeecff;--border:#d8d4f8;
+  --ink:#0e0a28;--slate:#3a3878;--slate2:#282660;--purple:#5a38c8;
+  --violet:#7c5aee;--lavender:#ede9fe;--green:#0a6a3a;--red:#c02020;
+  --amber:#b07010;--text:#1a1640;--muted:#6860a8;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;overflow-x:hidden;}
+.top-bar{position:fixed;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,var(--slate),var(--purple),var(--violet));z-index:200;}
+nav{position:fixed;top:4px;left:0;right:0;z-index:100;background:rgba(246,245,255,0.97);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 2.5rem;height:54px;}
+.nav-brand{font-family:'Space Mono',monospace;font-size:0.7rem;color:var(--slate2);letter-spacing:0.05em;}
+.nav-dots{display:flex;gap:0.3rem;}
+.nav-dot{width:7px;height:7px;border-radius:50%;background:var(--border);cursor:pointer;transition:all 0.2s;}
+.nav-dot.active{background:var(--purple);transform:scale(1.5);}
+.nav-dot.done{background:var(--green);}
+.timer{font-size:0.67rem;color:var(--purple);background:rgba(90,56,200,0.08);border:1px solid rgba(90,56,200,0.2);padding:0.2rem 0.75rem;border-radius:20px;font-family:'Space Mono',monospace;}
+.slide{min-height:100vh;padding:78px 0 50px;display:none;flex-direction:column;align-items:center;justify-content:center;position:relative;overflow:hidden;}
+.slide.active{display:flex;}
+.slide-inner{width:100%;max-width:1140px;padding:0 2.5rem;position:relative;z-index:2;}
+.hero-bg{position:absolute;inset:0;background:radial-gradient(ellipse at 75% 40%,rgba(90,56,200,0.05) 0%,transparent 60%);pointer-events:none;}
+.hero-badge{display:inline-flex;align-items:center;gap:0.5rem;background:var(--lavender);border:1px solid rgba(90,56,200,0.2);color:var(--slate2);font-size:0.67rem;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;padding:0.28rem 0.9rem;border-radius:20px;margin-bottom:1.5rem;font-family:'Space Mono',monospace;}
+h1.hero-title{font-family:'DM Sans',sans-serif;font-size:clamp(2.8rem,5.5vw,4.8rem);font-weight:800;line-height:1.0;letter-spacing:-0.03em;color:var(--ink);margin-bottom:1.5rem;}
+h1.hero-title span{color:var(--purple);}
+.hero-desc{font-size:0.97rem;color:var(--muted);max-width:510px;line-height:1.78;margin-bottom:2.5rem;font-weight:300;}
+.kpi-strip{display:flex;gap:1px;background:var(--border);border-radius:12px;overflow:hidden;max-width:640px;box-shadow:0 2px 12px rgba(90,56,200,0.07);}
+.kpi{background:white;padding:1.1rem 1.4rem;flex:1;}
+.kpi-val{font-family:'DM Sans',sans-serif;font-size:1.9rem;font-weight:800;color:var(--purple);line-height:1;}
+.kpi-lbl{font-size:0.59rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);margin-top:0.2rem;font-family:'Space Mono',monospace;}
+.sec-tag{font-size:0.61rem;letter-spacing:0.22em;text-transform:uppercase;color:var(--purple);margin-bottom:0.4rem;font-weight:600;font-family:'Space Mono',monospace;}
+.sec-title{font-family:'DM Sans',sans-serif;font-size:clamp(1.9rem,3.8vw,3rem);font-weight:800;line-height:1.05;margin-bottom:0.5rem;color:var(--ink);letter-spacing:-0.02em;}
+.sec-title span{color:var(--slate);}
+.sec-desc{font-size:0.87rem;color:var(--muted);margin-bottom:1.85rem;max-width:540px;line-height:1.78;font-weight:300;}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;}
+.three-col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;}
+.lr{display:grid;grid-template-columns:1.1fr 1fr;gap:2rem;align-items:start;}
+.lr-rev{display:grid;grid-template-columns:1fr 1.15fr;gap:2rem;align-items:start;}
+.card{background:white;border:1px solid var(--border);border-radius:14px;padding:1.25rem;transition:all 0.2s;box-shadow:0 1px 6px rgba(90,56,200,0.05);}
+.card:hover{border-color:var(--purple);transform:translateY(-2px);box-shadow:0 6px 20px rgba(90,56,200,0.1);}
+.card-icon{font-size:1.4rem;margin-bottom:0.5rem;}
+.card-title{font-family:'DM Sans',sans-serif;font-size:0.97rem;font-weight:700;margin-bottom:0.3rem;color:var(--ink);}
+.card-desc{font-size:0.72rem;color:var(--muted);line-height:1.65;}
+.panel{background:white;border:1px solid var(--border);border-radius:14px;padding:1.4rem;}
+.panel h3{font-family:'DM Sans',sans-serif;font-size:0.9rem;font-weight:700;color:var(--slate2);margin-bottom:0.9rem;display:flex;align-items:center;gap:0.5rem;}
+.panel h3::before{content:'▸';color:var(--violet);}
+.steps{list-style:none;}
+.steps li{display:flex;gap:0.75rem;padding:0.45rem 0;border-bottom:1px solid var(--border);font-size:0.76rem;line-height:1.6;}
+.steps li:last-child{border-bottom:none;}
+.step-n{width:22px;height:22px;border-radius:50%;background:var(--purple);color:white;font-size:0.62rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+/* Workflow */
+.wf-canvas{background:var(--ink);border-radius:16px;padding:2rem;position:relative;overflow:hidden;}
+.wf-dots{position:absolute;inset:0;background-image:radial-gradient(circle,rgba(124,90,238,0.18) 1px,transparent 1px);background-size:28px 28px;opacity:0.5;}
+.wf-label{position:absolute;top:0.75rem;left:1rem;font-size:0.57rem;letter-spacing:0.18em;text-transform:uppercase;color:rgba(255,255,255,0.3);display:flex;align-items:center;gap:0.4rem;z-index:3;font-family:'Space Mono',monospace;}
+.wf-label::before{content:'';width:7px;height:7px;border-radius:50%;background:var(--violet);box-shadow:0 0 8px var(--violet);animation:vpulse 2s infinite;}
+@keyframes vpulse{0%,100%{opacity:1}50%{opacity:0.2}}
+.wf-nodes{display:flex;align-items:flex-start;gap:0;padding-top:1.5rem;position:relative;z-index:2;flex-wrap:wrap;}
+.wf-stage{display:flex;flex-direction:column;align-items:center;}
+.wf-slbl{font-size:0.51rem;letter-spacing:0.14em;text-transform:uppercase;color:rgba(255,255,255,0.28);margin-bottom:0.3rem;font-family:'Space Mono',monospace;}
+.wf-node{display:flex;flex-direction:column;align-items:center;gap:0.3rem;cursor:pointer;position:relative;}
+.wf-box{width:58px;height:58px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:1.25rem;border:2px solid transparent;transition:all 0.3s;}
+.wf-node:hover .wf-box{transform:scale(1.1);box-shadow:0 0 20px rgba(90,56,200,0.4);}
+.wf-nlbl{font-size:0.52rem;text-align:center;color:rgba(255,255,255,0.42);max-width:66px;line-height:1.3;font-family:'Space Mono',monospace;}
+.wf-arr{color:rgba(255,255,255,0.18);padding:0 0.2rem;font-size:0.85rem;align-self:flex-start;margin-top:19px;flex-shrink:0;}
+.ttw{position:relative;}
+.tti{position:absolute;bottom:calc(100%+8px);left:50%;transform:translateX(-50%);background:white;border:1px solid var(--border);border-radius:10px;padding:0.6rem 0.9rem;font-size:0.67rem;opacity:0;pointer-events:none;transition:opacity 0.2s;z-index:50;color:var(--ink);line-height:1.5;max-width:200px;white-space:normal;text-align:left;box-shadow:0 4px 16px rgba(0,0,0,0.1);}
+.ttw:hover .tti{opacity:1;}
+/* Rota grid */
+.rota-grid{background:white;border:1px solid var(--border);border-radius:12px;overflow:hidden;font-size:0.68rem;}
+.rota-head{background:var(--surface2);border-bottom:1px solid var(--border);display:grid;grid-template-columns:120px repeat(7,1fr);padding:0.5rem 0.75rem;gap:0.3rem;font-size:0.58rem;letter-spacing:0.07em;text-transform:uppercase;color:var(--purple);font-weight:600;font-family:'Space Mono',monospace;}
+.rota-row{display:grid;grid-template-columns:120px repeat(7,1fr);padding:0.45rem 0.75rem;gap:0.3rem;border-bottom:1px solid rgba(216,212,248,0.4);align-items:center;}
+.rota-row:last-child{border-bottom:none;}
+.rota-name{font-weight:600;color:var(--ink);font-size:0.7rem;}
+.rota-shift{text-align:center;padding:0.15rem 0.25rem;border-radius:4px;font-size:0.58rem;font-weight:600;}
+.rs-day{background:rgba(90,56,200,0.1);color:var(--purple);}
+.rs-night{background:rgba(14,10,40,0.12);color:var(--slate2);}
+.rs-off{background:rgba(104,96,168,0.07);color:var(--muted);}
+.rs-on-call{background:rgba(176,112,16,0.12);color:var(--amber);}
+.rs-leave{background:rgba(192,32,32,0.08);color:var(--red);}
+/* Staff card */
+.staff-card{background:white;border:1px solid var(--border);border-radius:10px;padding:0.75rem 1rem;margin-bottom:0.4rem;display:flex;gap:0.75rem;align-items:center;transition:all 0.3s;font-size:0.73rem;}
+.staff-card.conflict{border-color:var(--red);background:rgba(192,32,32,0.02);}
+.staff-card.resolved{border-color:var(--green);background:rgba(10,106,58,0.03);}
+.sc-avatar{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.85rem;font-weight:700;flex-shrink:0;}
+.sc-name{font-weight:600;color:var(--ink);}
+.sc-role{font-size:0.62rem;color:var(--muted);}
+.sc-status{margin-left:auto;font-size:0.58px;padding:0.1rem 0.42rem;border-radius:20px;font-weight:600;font-family:'Space Mono',monospace;font-size:0.58rem;}
+.scs-ok{background:rgba(10,106,58,0.1);color:var(--green);border:1px solid rgba(10,106,58,0.2);}
+.scs-conflict{background:rgba(192,32,32,0.1);color:var(--red);border:1px solid rgba(192,32,32,0.2);}
+.scs-oncall{background:rgba(176,112,16,0.1);color:var(--amber);border:1px solid rgba(176,112,16,0.2);}
+/* PS list */
+.ps-list{list-style:none;}
+.ps-list li{display:flex;gap:0.75rem;padding:0.45rem 0;border-bottom:1px solid var(--border);font-size:0.74rem;line-height:1.5;transition:all 0.3s;}
+.ps-list li:last-child{border-bottom:none;}
+.ps-num{width:20px;height:20px;border-radius:50%;background:var(--border);color:white;font-size:0.6rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;transition:background 0.3s;}
+.info-purple{padding:0.75rem 1rem;border-radius:10px;font-size:0.77rem;line-height:1.6;background:rgba(90,56,200,0.06);border:1px solid rgba(90,56,200,0.15);color:var(--slate2);}
+.info-green{padding:0.75rem 1rem;border-radius:10px;font-size:0.77rem;line-height:1.6;background:rgba(10,106,58,0.06);border:1px solid rgba(10,106,58,0.15);color:var(--green);}
+.ba-bad{padding:0.6rem 0.9rem;border-radius:8px;font-size:0.76rem;line-height:1.5;background:rgba(192,32,32,0.04);border:1px solid rgba(192,32,32,0.12);}
+.ba-good{padding:0.6rem 0.9rem;border-radius:8px;font-size:0.76rem;line-height:1.5;background:rgba(10,106,58,0.05);border:1px solid rgba(10,106,58,0.14);}
+.quote-block{background:var(--ink);border-radius:16px;padding:1.75rem 2rem;color:white;}
+.quote-text{font-size:1.05rem;line-height:1.78;margin-bottom:0.75rem;font-weight:300;}
+.quote-text strong{color:#c4b5fd;}
+.slide-counter{position:fixed;bottom:1.5rem;left:2rem;font-size:0.62rem;color:var(--muted);z-index:100;font-family:'Space Mono',monospace;}
+.slide-nav{position:fixed;bottom:1.5rem;right:2rem;display:flex;gap:0.5rem;z-index:100;}
+.nav-btn{background:white;border:1px solid var(--border);color:var(--text);padding:0.55rem 1.2rem;border-radius:10px;font-family:'Space Mono',monospace;font-size:0.7rem;cursor:pointer;transition:all 0.2s;}
+.nav-btn:hover{border-color:var(--purple);color:var(--purple);}
+.nav-btn.primary{background:var(--purple);border-color:var(--purple);color:white;}
+.nav-btn.primary:hover{background:var(--slate);}
+.run-btn{background:var(--purple);color:white;border:none;border-radius:10px;padding:0.7rem 1.5rem;font-family:'Space Mono',monospace;font-size:0.72rem;cursor:pointer;transition:all 0.2s;width:100%;text-align:center;}
+.run-btn:hover{background:var(--slate);}
+.animate-in{opacity:0;animation:fadeUp 0.5s ease-out forwards;}
+.slide.active .animate-in:nth-child(1){animation-delay:0.05s;}
+.slide.active .animate-in:nth-child(2){animation-delay:0.15s;}
+.slide.active .animate-in:nth-child(3){animation-delay:0.25s;}
+.slide.active .animate-in:nth-child(4){animation-delay:0.35s;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+</style>
+</head>
+<body>
+<div class="top-bar"></div>
+<nav>
+  <div class="nav-brand">HEALTHCARE · Staff Scheduling</div>
+  <div class="nav-dots" id="navDots"></div>
+  <div class="timer" id="timerBadge">⏱ 00:00</div>
+</nav>
+
+<!-- SLIDE 1: HERO -->
+<section class="slide active" id="slide-0">
+  <div class="hero-bg"></div>
+  <div class="slide-inner">
+    <div class="animate-in"><div class="hero-badge">🏥 n8n AI Automation · Healthcare & Hospitals</div></div>
+    <div class="animate-in"><h1 class="hero-title">Right Staff.<br><span>Right Shift.</span><br>Every Week.</h1></div>
+    <div class="animate-in"><p class="hero-desc">Automated rota generation that respects labour laws, leave requests, specialisation requirements, and minimum staffing ratios — published and confirmed with every team member in one workflow.</p></div>
+    <div class="animate-in">
+      <div class="kpi-strip">
+        <div class="kpi"><div class="kpi-val">3hr</div><div class="kpi-lbl">Rota Build Time → Auto</div></div>
+        <div class="kpi"><div class="kpi-val">0</div><div class="kpi-lbl">Scheduling Conflicts</div></div>
+        <div class="kpi"><div class="kpi-val">Auto</div><div class="kpi-lbl">Leave Management</div></div>
+        <div class="kpi"><div class="kpi-val">100%</div><div class="kpi-lbl">Ratio Compliance</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 2: PROBLEM -->
+<section class="slide" id="slide-1">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">01 — The Problem</div><div class="sec-title">The Rota That<br><span>Takes All Friday</span></div><p class="sec-desc">Hospital scheduling is one of the most complex operational puzzles in any organisation — balancing skills, hours, leave, ratios, and preferences simultaneously. Done manually, it takes hours, produces errors, and creates conflicts.</p></div>
+    <div class="animate-in two-col" style="margin-bottom:1.5rem">
+      <div class="card"><div class="card-icon">⏰</div><div class="card-title">3-Hour Weekly Exercise</div><div class="card-desc">Ward manager spends every Friday afternoon building next week's rota. Cross-checking leave requests, specialisation requirements, rest period rules, and staff preferences. Clinical management time spent on admin.</div></div>
+      <div class="card"><div class="card-icon">❌</div><div class="card-title">Scheduling Conflicts</div><div class="card-desc">Two senior nurses assigned to the same night shift when both requested it off. One doctor scheduled 14 days straight without a break. Minimum ratio not met on Sunday morning. Discovered by the staff, not the manager.</div></div>
+      <div class="card"><div class="card-icon">📱</div><div class="card-title">Last-Minute Sick Cover</div><div class="card-desc">Staff calls in sick. Ward manager calls around manually. Takes 45 minutes to find cover. Meanwhile a shift is understaffed. An automated on-call system would find a qualified, available replacement in 3 minutes.</div></div>
+      <div class="card"><div class="card-icon">📊</div><div class="card-title">No Overtime Tracking</div><div class="card-desc">Staff accumulate hours above contract without anyone noticing until the payroll discrepancy. Fatigue builds undetected. Both a financial risk and a patient safety risk.</div></div>
+    </div>
+    <div class="animate-in"><div class="info-purple">✅ n8n builds the weekly rota automatically — checking all constraints, sending to staff for confirmation, and managing sick cover requests with automated replacement finding.</div></div>
+  </div>
+</section>
+
+<!-- SLIDE 3: WORKFLOW -->
+<section class="slide" id="slide-2">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">02 — The Blueprint</div><div class="sec-title">n8n Staff Scheduling<br><span>Automation</span></div><p class="sec-desc">Monday morning the rota builds itself. Staff confirm or raise issues. Conflicts auto-resolved. Sick cover found automatically. Manager reviews, approves, moves on.</p></div>
+    <div class="animate-in wf-canvas">
+      <div class="wf-dots"></div>
+      <div class="wf-label">n8n canvas — staff scheduling pipeline</div>
+      <div class="wf-nodes">
+        <div class="wf-stage"><div class="wf-slbl">Collect</div>
+          <div style="display:flex;flex-direction:column;gap:0.35rem">
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#0a1a2a,#1d4ed8);color:#93c5fd;border-color:#1d4ed8;">📋</div><div class="wf-nlbl">Leave<br>Requests</div><div class="tti">Staff submit leave requests via WhatsApp or form. n8n logs all requests with dates, reason, and urgency. Approval workflow triggers for medical leave vs annual leave.</div></div>
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a0a1a,#7c3aed);color:#d8b4fe;border-color:#7c3aed;">📊</div><div class="wf-nlbl">Availability<br>Preferences</div><div class="tti">Weekly preference form sent to all staff. Captures: shift preferences, transport constraints, childcare days. GPT-4o tries to accommodate as many as possible within constraints.</div></div>
+          </div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-stage"><div class="wf-slbl">Generate</div>
+          <div style="display:flex;flex-direction:column;gap:0.35rem">
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a0a0a,#991b1b);color:#fca5a5;border-color:#991b1b;">🧠</div><div class="wf-nlbl">GPT-4o<br>Build Rota</div><div class="tti">GPT-4o generates rota respecting: minimum staffing ratios, rest period requirements (11hrs between shifts), specialisation matching per ward, and approved leave exclusions.</div></div>
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#0a1a1a,#065f46);color:#6ee7b7;border-color:#065f46;">⚖️</div><div class="wf-nlbl">Constraint<br>Check</div><div class="tti">Automated validation: no staff scheduled >48hrs/week without consent, no back-to-back night shifts, minimum ratio met every shift. Flags any violations before publication.</div></div>
+          </div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-stage"><div class="wf-slbl">Publish</div>
+          <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a1a0a,#78350f);color:#fde68a;border-color:#78350f;">📱</div><div class="wf-nlbl">WhatsApp<br>Notify</div><div class="tti">Each staff member receives their individual schedule via WhatsApp: days, shifts, ward, and any special notes. One-tap confirm or raise query. Google Calendar invite auto-sent.</div></div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-stage"><div class="wf-slbl">Manage</div>
+          <div style="display:flex;flex-direction:column;gap:0.35rem">
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#0a0a1a,#1e3a5f);color:#93c5fd;border-color:#1e3a5f;">🤒</div><div class="wf-nlbl">Sick Cover<br>Bot</div><div class="tti">Staff reports sick via WhatsApp. n8n identifies: qualified replacement for that ward/shift, currently on rest period, not scheduled that day. WhatsApp sent to top 3 matches simultaneously. First to confirm takes the shift.</div></div>
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a0a2e,#6d28d9);color:#c4b5fd;border-color:#6d28d9;">📊</div><div class="wf-nlbl">Hours<br>Tracker</div><div class="tti">Weekly hours tracked per staff member. Approaching overtime threshold → manager notified. Hours available for payroll integration — no separate time-tracking system needed.</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 4: SIM 1 — ROTA -->
+<section class="slide" id="slide-3">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">03 — Simulation 1</div><div class="sec-title">Auto-Generated Weekly<br><span>Rota — Ward C</span></div><p class="sec-desc">Monday morning. n8n has processed all leave requests and preferences, generated the rota, checked all constraints, and published to staff. This is what the ward manager sees — fully ready before 8am.</p></div>
+    <div class="animate-in" style="margin-bottom:1.25rem">
+      <div class="rota-grid">
+        <div class="rota-head"><div>Staff</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div><div>Sun</div></div>
+        <div class="rota-row"><div class="rota-name">Dr. Ngozi Eze</div><div><span class="rota-shift rs-day">Day</span></div><div><span class="rota-shift rs-day">Day</span></div><div><span class="rota-shift rs-off">Off</span></div><div><span class="rota-shift rs-day">Day</span></div><div><span class="rota-shift rs-day">Day</span></div><div><span class="rota-shift rs-off">Off</span></div><div><span class="rota-shift rs-on-call">On-call</span></div></div>
+        <div class="rota-row"><div class="rota-name">Nurse Amaka F.</div><div><span class="rota-shift rs-night">Night</span></div><div><span class="rota-shift rs-night">Night</span></div><div><span class="rota-shift rs-off">Off</span></div><div><span class="rota-shift rs-off">Off</span></div><div><span class="rota-shift rs-day">Day</span></div><div><span class="rota-shift rs-day">Day</span></div><div><span class="rota-shift rs-off">Off</span></div></div>
+        <div class="rota-row"><div class="rota-name">Nurse Tunde B.</div><div><span class="rota-shift rs-day">Day</span></div><div><span class="rota-shift rs-off">Off</span></div><div><span class="rota-shift rs-day">Day</span></div><div><span class="rota-shift rs-day">Day</span></div><div><span class="rota-shift rs-leave">Leave</span></div><div><span class="rota-shift rs-leave">Leave</span></div><div><span class="rota-shift rs-leave">Leave</span></div></div>
+        <div class="rota-row"><div class="rota-name">Dr. Kemi Adeyemi</div><div><span class="rota-shift rs-off">Off</span></div><div><span class="rota-shift rs-day">Day</span></div><div><span class="rota-shift rs-day">Day</span></div><div><span class="rota-shift rs-night">Night</span></div><div><span class="rota-shift rs-night">Night</span></div><div><span class="rota-shift rs-off">Off</span></div><div><span class="rota-shift rs-off">Off</span></div></div>
+        <div class="rota-row"><div class="rota-name">Nurse Fatima I.</div><div><span class="rota-shift rs-day">Day</span></div><div><span class="rota-shift rs-day">Day</span></div><div><span class="rota-shift rs-night">Night</span></div><div><span class="rota-shift rs-off">Off</span></div><div><span class="rota-shift rs-off">Off</span></div><div><span class="rota-shift rs-night">Night</span></div><div><span class="rota-shift rs-day">Day</span></div></div>
+      </div>
+    </div>
+    <div class="animate-in two-col">
+      <div class="info-purple">✅ All constraints satisfied: minimum 2 clinical staff per shift, no back-to-back nights, all approved leave honoured, no staff exceeding 48hr weekly threshold. Generated in 4 minutes.</div>
+      <div class="info-green">📱 All 5 staff members received their individual schedules via WhatsApp at 7:00am Monday. 4 confirmed immediately, 1 raised a swap request — resolved automatically within the hour.</div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 5: BEFORE/AFTER -->
+<section class="slide" id="slide-4">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">04 — Operational Impact</div><div class="sec-title">Clinical Teams<br><span>Always Covered</span></div></div>
+    <div class="animate-in two-col" style="margin-bottom:1.5rem">
+      <div>
+        <div style="font-size:0.62rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--red);margin-bottom:0.75rem;font-weight:600;font-family:'Space Mono',monospace">❌ BEFORE</div>
+        <div style="display:flex;flex-direction:column;gap:0.5rem">
+          <div class="ba-bad">Ward manager spends 3 hours every Friday building the rota manually</div>
+          <div class="ba-bad">Scheduling conflicts discovered by staff — morale damage</div>
+          <div class="ba-bad">Sick cover: 45 minutes of phone calls, ward understaffed meanwhile</div>
+          <div class="ba-bad">Overtime accumulates undetected — budget surprise at month end</div>
+          <div class="ba-bad">Minimum staffing ratios missed on weekends — patient safety risk</div>
+        </div>
+      </div>
+      <div>
+        <div style="font-size:0.62rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--green);margin-bottom:0.75rem;font-weight:600;font-family:'Space Mono',monospace">✅ AFTER</div>
+        <div style="display:flex;flex-direction:column;gap:0.5rem">
+          <div class="ba-good">Rota auto-generated Monday 7am — manager reviews, not builds</div>
+          <div class="ba-good">All constraints validated automatically — zero conflicts published</div>
+          <div class="ba-good">Sick cover found in 3 minutes — first qualified available person confirmed</div>
+          <div class="ba-good">Hours tracked in real time — overtime flagged before it accumulates</div>
+          <div class="ba-good">Minimum ratios enforced on every shift — patient safety guaranteed</div>
+        </div>
+      </div>
+    </div>
+    <div class="animate-in">
+      <div class="quote-block">
+        <div class="quote-text">"Healthcare staff scheduling isn't just an admin problem — it's a <strong>patient safety issue</strong>. Under-staffed shifts, fatigued doctors, and coverage gaps are all preventable. This automation prevents them systematically."</div>
+        <div style="font-size:0.62rem;color:rgba(255,255,255,0.3);font-family:'Space Mono',monospace">STACK: n8n · GPT-4o · WhatsApp Business API · Google Calendar · HMS · Google Sheets · Slack</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="slide-counter" id="slideCounter">Slide 1 of 5</div>
+<div class="slide-nav">
+  <button class="nav-btn" onclick="prevSlide()">← Prev</button>
+  <button class="nav-btn primary" onclick="nextSlide()">Next →</button>
+</div>
+<script>
+const slides=document.querySelectorAll('.slide'),total=slides.length;let cur=0;
+const dots=document.getElementById('navDots');
+for(let i=0;i<total;i++){const d=document.createElement('div');d.className='nav-dot'+(i===0?' active':'');d.onclick=()=>goTo(i);dots.appendChild(d);}
+function goTo(n){slides[cur].classList.remove('active');dots.children[cur].classList.remove('active');if(cur<n)dots.children[cur].classList.add('done');cur=n;slides[cur].classList.add('active');dots.children[cur].classList.add('active');document.getElementById('slideCounter').textContent=`Slide ${cur+1} of ${total}`;}
+function nextSlide(){if(cur<total-1)goTo(cur+1);}function prevSlide(){if(cur>0)goTo(cur-1);}
+document.addEventListener('keydown',e=>{if(e.key==='ArrowRight'||e.key==='ArrowDown')nextSlide();if(e.key==='ArrowLeft'||e.key==='ArrowUp')prevSlide();});
+let secs=0;setInterval(()=>{secs++;const m=String(Math.floor(secs/60)).padStart(2,'0'),s=String(secs%60).padStart(2,'0');document.getElementById('timerBadge').textContent=`⏱ ${m}:${s}`;if(secs>=840)document.getElementById('timerBadge').style.color='#c02020';},1000);
+</script>
+</body>
+</html>
