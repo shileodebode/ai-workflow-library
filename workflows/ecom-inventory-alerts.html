@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>E-commerce — Inventory Alerts & Management Automation</title>
+<link href="https://fonts.googleapis.com/css2?family=Epilogue:wght@300;400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f2f5f2;--surface:#fff;--surface2:#e8f0e8;--border:#ccdccc;
+  --ink:#060e06;--forest:#0c4c20;--forest2:#083816;--green:#16a34a;
+  --lime:#22c55e;--leaf:#e4f5e8;--red:#c02020;--amber:#b07010;
+  --blue:#1a3a6a;--text:#0a180a;--muted:#507050;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'Epilogue',sans-serif;overflow-x:hidden;}
+.top-bar{position:fixed;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,var(--forest),var(--green),var(--lime),var(--green),var(--forest));z-index:200;}
+nav{position:fixed;top:4px;left:0;right:0;z-index:100;background:rgba(242,245,242,0.97);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 2.5rem;height:54px;}
+.nav-brand{font-family:'IBM Plex Mono',monospace;font-size:0.7rem;color:var(--forest2);letter-spacing:0.06em;}
+.nav-dots{display:flex;gap:0.3rem;}
+.nav-dot{width:7px;height:7px;border-radius:2px;background:var(--border);cursor:pointer;transition:all 0.2s;}
+.nav-dot.active{background:var(--forest);transform:scale(1.4);}
+.nav-dot.done{background:var(--green);}
+.timer{font-size:0.67rem;color:var(--forest);background:rgba(12,76,32,0.07);border:1px solid rgba(12,76,32,0.18);padding:0.2rem 0.75rem;border-radius:4px;font-family:'IBM Plex Mono',monospace;}
+.slide{min-height:100vh;padding:78px 0 50px;display:none;flex-direction:column;align-items:center;justify-content:center;position:relative;overflow:hidden;}
+.slide.active{display:flex;}
+.slide-inner{width:100%;max-width:1140px;padding:0 2.5rem;position:relative;z-index:2;}
+.hero-bg{position:absolute;inset:0;background:radial-gradient(ellipse at 80% 30%,rgba(22,163,74,0.05) 0%,transparent 55%);pointer-events:none;}
+.hero-badge{display:inline-flex;align-items:center;gap:0.5rem;background:var(--leaf);border:1px solid rgba(12,76,32,0.2);color:var(--forest2);font-size:0.67rem;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;padding:0.28rem 0.9rem;border-radius:6px;margin-bottom:1.5rem;font-family:'IBM Plex Mono',monospace;}
+h1.hero-title{font-family:'Epilogue',sans-serif;font-size:clamp(2.8rem,5.5vw,4.8rem);font-weight:800;line-height:1.0;letter-spacing:-0.03em;color:var(--ink);margin-bottom:1.5rem;}
+h1.hero-title span{color:var(--forest);}
+.hero-desc{font-size:0.97rem;color:var(--muted);max-width:510px;line-height:1.78;margin-bottom:2.5rem;font-weight:300;}
+.kpi-strip{display:flex;gap:1px;background:var(--border);border-radius:8px;overflow:hidden;max-width:640px;box-shadow:0 2px 10px rgba(12,76,32,0.07);}
+.kpi{background:white;padding:1.1rem 1.4rem;flex:1;}
+.kpi-val{font-family:'Epilogue',sans-serif;font-size:1.9rem;font-weight:800;color:var(--forest);line-height:1;}
+.kpi-lbl{font-size:0.59rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);margin-top:0.2rem;font-family:'IBM Plex Mono',monospace;}
+.sec-tag{font-size:0.61rem;letter-spacing:0.22em;text-transform:uppercase;color:var(--forest);margin-bottom:0.4rem;font-weight:600;font-family:'IBM Plex Mono',monospace;display:flex;align-items:center;gap:0.4rem;}
+.sec-tag::before{content:'';width:16px;height:2px;background:var(--forest);}
+.sec-title{font-family:'Epilogue',sans-serif;font-size:clamp(1.9rem,3.8vw,3rem);font-weight:800;line-height:1.05;margin-bottom:0.5rem;color:var(--ink);letter-spacing:-0.02em;}
+.sec-title span{color:var(--forest);}
+.sec-desc{font-size:0.87rem;color:var(--muted);margin-bottom:1.85rem;max-width:540px;line-height:1.78;font-weight:300;}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;}
+.lr{display:grid;grid-template-columns:1.1fr 1fr;gap:2rem;align-items:start;}
+.card{background:white;border:1px solid var(--border);border-radius:8px;padding:1.25rem;transition:all 0.2s;box-shadow:0 1px 4px rgba(0,0,0,0.04);}
+.card:hover{border-color:var(--forest);transform:translateY(-2px);box-shadow:0 6px 18px rgba(12,76,32,0.09);}
+.card-icon{font-size:1.4rem;margin-bottom:0.5rem;}
+.card-title{font-family:'Epilogue',sans-serif;font-size:0.95rem;font-weight:700;margin-bottom:0.3rem;color:var(--ink);}
+.card-desc{font-size:0.72rem;color:var(--muted);line-height:1.65;}
+.panel{background:white;border:1px solid var(--border);border-radius:8px;padding:1.4rem;}
+.panel h3{font-family:'Epilogue',sans-serif;font-size:0.88rem;font-weight:700;color:var(--forest2);margin-bottom:0.9rem;display:flex;align-items:center;gap:0.5rem;}
+.panel h3::before{content:'//';color:var(--border);font-size:0.8rem;font-family:'IBM Plex Mono',monospace;}
+.wf-canvas{background:var(--ink);border-radius:10px;padding:2rem;position:relative;overflow:hidden;}
+.wf-grid{position:absolute;inset:0;background-image:radial-gradient(circle,rgba(34,197,94,0.18) 1px,transparent 1px);background-size:28px 28px;opacity:0.5;}
+.wf-label{position:absolute;top:0.75rem;left:1rem;font-size:0.57rem;letter-spacing:0.18em;text-transform:uppercase;color:rgba(255,255,255,0.3);display:flex;align-items:center;gap:0.4rem;z-index:3;font-family:'IBM Plex Mono',monospace;}
+.wf-label::before{content:'';width:7px;height:7px;border-radius:2px;background:var(--lime);box-shadow:0 0 8px var(--lime);animation:lpulse 2s infinite;}
+@keyframes lpulse{0%,100%{opacity:1}50%{opacity:0.2}}
+.wf-nodes{display:flex;align-items:flex-start;gap:0;padding-top:1.5rem;position:relative;z-index:2;flex-wrap:wrap;}
+.wf-stage{display:flex;flex-direction:column;align-items:center;}
+.wf-slbl{font-size:0.51rem;letter-spacing:0.14em;text-transform:uppercase;color:rgba(255,255,255,0.28);margin-bottom:0.3rem;font-family:'IBM Plex Mono',monospace;}
+.wf-node{display:flex;flex-direction:column;align-items:center;gap:0.3rem;cursor:pointer;position:relative;}
+.wf-box{width:58px;height:58px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.25rem;border:2px solid transparent;transition:all 0.3s;}
+.wf-node:hover .wf-box{transform:scale(1.1);box-shadow:0 0 20px rgba(22,163,74,0.4);}
+.wf-nlbl{font-size:0.52rem;text-align:center;color:rgba(255,255,255,0.42);max-width:66px;line-height:1.3;font-family:'IBM Plex Mono',monospace;}
+.wf-arr{color:rgba(255,255,255,0.18);padding:0 0.2rem;font-size:0.85rem;align-self:flex-start;margin-top:19px;flex-shrink:0;}
+.ttw{position:relative;}
+.tti{position:absolute;bottom:calc(100%+8px);left:50%;transform:translateX(-50%);background:white;border:1px solid var(--border);border-radius:8px;padding:0.6rem 0.9rem;font-size:0.67rem;opacity:0;pointer-events:none;transition:opacity 0.2s;z-index:50;color:var(--ink);line-height:1.5;max-width:200px;white-space:normal;text-align:left;box-shadow:0 4px 12px rgba(0,0,0,0.1);}
+.ttw:hover .tti{opacity:1;}
+/* Inventory table */
+.inv-table{background:white;border:1px solid var(--border);border-radius:8px;overflow:hidden;font-size:0.7rem;}
+.it-head{background:var(--surface2);border-bottom:1px solid var(--border);display:grid;grid-template-columns:130px 80px 80px 80px 100px 90px;padding:0.55rem 0.85rem;gap:0.4rem;font-size:0.59rem;letter-spacing:0.08em;color:var(--forest2);font-weight:700;text-transform:uppercase;font-family:'IBM Plex Mono',monospace;}
+.it-row{display:grid;grid-template-columns:130px 80px 80px 80px 100px 90px;padding:0.52rem 0.85rem;gap:0.4rem;border-bottom:1px solid rgba(204,220,204,0.4);align-items:center;transition:background 0.15s;}
+.it-row:hover{background:var(--surface2);}
+.it-row:last-child{border-bottom:none;}
+.ib{display:inline-block;padding:0.1rem 0.42rem;border-radius:4px;font-size:0.58rem;font-weight:600;font-family:'IBM Plex Mono',monospace;}
+.ib-ok{background:rgba(22,163,74,0.1);color:var(--green);border:1px solid rgba(22,163,74,0.2);}
+.ib-low{background:rgba(176,112,16,0.1);color:var(--amber);border:1px solid rgba(176,112,16,0.2);}
+.ib-out{background:rgba(192,32,32,0.1);color:var(--red);border:1px solid rgba(192,32,32,0.2);}
+.ib-reorder{background:rgba(26,58,106,0.1);color:var(--blue);border:1px solid rgba(26,58,106,0.2);}
+/* Stock alert */
+.stock-alert{background:white;border:1px solid var(--border);border-radius:8px;padding:0.7rem 1rem;margin-bottom:0.4rem;display:flex;gap:0.75rem;align-items:flex-start;font-size:0.73rem;transition:all 0.3s;}
+.stock-alert.critical{border-color:var(--red);}
+.stock-alert.low{border-color:var(--amber);}
+.stock-alert.reorder{border-color:var(--blue);}
+.sa-icon{font-size:1.1rem;flex-shrink:0;}
+.sa-title{font-weight:600;color:var(--ink);}
+.sa-detail{font-size:0.63rem;color:var(--muted);}
+.sa-badge{margin-left:auto;font-size:0.58rem;padding:0.1rem 0.42rem;border-radius:4px;font-weight:600;font-family:'IBM Plex Mono',monospace;white-space:nowrap;}
+.sab-crit{background:rgba(192,32,32,0.1);color:var(--red);border:1px solid rgba(192,32,32,0.2);}
+.sab-low{background:rgba(176,112,16,0.1);color:var(--amber);border:1px solid rgba(176,112,16,0.2);}
+.sab-reorder{background:rgba(26,58,106,0.1);color:var(--blue);border:1px solid rgba(26,58,106,0.2);}
+.ps-list{list-style:none;}
+.ps-list li{display:flex;gap:0.75rem;padding:0.45rem 0;border-bottom:1px solid var(--border);font-size:0.74rem;line-height:1.5;transition:all 0.3s;}
+.ps-list li:last-child{border-bottom:none;}
+.ps-num{width:20px;height:20px;border-radius:4px;background:var(--border);color:white;font-size:0.6rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;transition:background 0.3s;font-family:'IBM Plex Mono',monospace;}
+.info-forest{padding:0.75rem 1rem;border-radius:6px;font-size:0.77rem;line-height:1.6;background:rgba(12,76,32,0.06);border:1px solid rgba(12,76,32,0.15);color:var(--forest2);}
+.ba-bad{padding:0.6rem 0.9rem;border-radius:6px;font-size:0.76rem;line-height:1.5;background:rgba(192,32,32,0.04);border:1px solid rgba(192,32,32,0.12);}
+.ba-good{padding:0.6rem 0.9rem;border-radius:6px;font-size:0.76rem;line-height:1.5;background:rgba(22,163,74,0.05);border:1px solid rgba(22,163,74,0.14);}
+.quote-block{background:var(--ink);border-radius:10px;padding:1.75rem 2rem;color:white;}
+.quote-text{font-size:1.05rem;line-height:1.78;margin-bottom:0.75rem;font-weight:300;}
+.quote-text strong{color:#86efac;}
+.slide-counter{position:fixed;bottom:1.5rem;left:2rem;font-size:0.62rem;color:var(--muted);z-index:100;font-family:'IBM Plex Mono',monospace;}
+.slide-nav{position:fixed;bottom:1.5rem;right:2rem;display:flex;gap:0.5rem;z-index:100;}
+.nav-btn{background:white;border:1px solid var(--border);color:var(--text);padding:0.55rem 1.2rem;border-radius:6px;font-family:'IBM Plex Mono',monospace;font-size:0.7rem;cursor:pointer;transition:all 0.2s;}
+.nav-btn:hover{border-color:var(--forest);color:var(--forest);}
+.nav-btn.primary{background:var(--forest);border-color:var(--forest);color:white;}
+.nav-btn.primary:hover{background:var(--forest2);}
+.run-btn{background:var(--forest);color:white;border:none;border-radius:6px;padding:0.7rem 1.5rem;font-family:'IBM Plex Mono',monospace;font-size:0.72rem;cursor:pointer;transition:all 0.2s;width:100%;text-align:center;}
+.run-btn:hover{background:var(--forest2);}
+.animate-in{opacity:0;animation:fadeUp 0.5s ease-out forwards;}
+.slide.active .animate-in:nth-child(1){animation-delay:0.05s;}
+.slide.active .animate-in:nth-child(2){animation-delay:0.15s;}
+.slide.active .animate-in:nth-child(3){animation-delay:0.25s;}
+.slide.active .animate-in:nth-child(4){animation-delay:0.35s;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+</style>
+</head>
+<body>
+<div class="top-bar"></div>
+<nav>
+  <div class="nav-brand">E-COMMERCE · Inventory Alerts</div>
+  <div class="nav-dots" id="navDots"></div>
+  <div class="timer" id="timerBadge">⏱ 00:00</div>
+</nav>
+
+<section class="slide active" id="slide-0">
+  <div class="hero-bg"></div>
+  <div class="slide-inner">
+    <div class="animate-in"><div class="hero-badge">🛒 n8n AI Automation · E-commerce & Retail</div></div>
+    <div class="animate-in"><h1 class="hero-title">Stock Out.<br><span>Alerted.</span><br>Restocked.</h1></div>
+    <div class="animate-in"><p class="hero-desc">Real-time inventory monitoring across all sales channels. Low-stock alerts before items sell out. Automated reorder requests sent to suppliers. Sales paused when stock hits zero. Never lose a sale to stockout again.</p></div>
+    <div class="animate-in">
+      <div class="kpi-strip">
+        <div class="kpi"><div class="kpi-val">0</div><div class="kpi-lbl">Surprise Stockouts</div></div>
+        <div class="kpi"><div class="kpi-val">Auto</div><div class="kpi-lbl">Reorder Triggers</div></div>
+        <div class="kpi"><div class="kpi-val">Live</div><div class="kpi-lbl">Stock Dashboard</div></div>
+        <div class="kpi"><div class="kpi-val">Multi</div><div class="kpi-lbl">Channel Sync</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="slide-1">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">01 — The Problem</div><div class="sec-title">Selling Items You<br><span>Don't Have</span></div><p class="sec-desc">For e-commerce businesses, inventory errors are revenue killers — selling items that are out of stock, missing reorder triggers, and having stock counts that differ between platforms. All fixable with automation.</p></div>
+    <div class="animate-in two-col" style="margin-bottom:1.5rem">
+      <div class="card"><div class="card-icon">😱</div><div class="card-title">Overselling</div><div class="card-desc">3 units left in stock. Customer orders on website — 2 units. Another orders on Jumia — 2 units. Both orders confirmed. Now you have 1 unit and 2 confirmed orders. No automation = no synchronised inventory = orders you can't fulfil.</div></div>
+      <div class="card"><div class="card-icon">⏰</div><div class="card-title">Manual Stock Checking</div><div class="card-desc">Owner walks to warehouse to count stock. Updates the spreadsheet. Updates the website. Updates Jumia. Updates Konga. Takes 2 hours. Done once a week. By the time it's updated, the count is already wrong again.</div></div>
+      <div class="card"><div class="card-icon">📦</div><div class="card-title">Missed Reorder Windows</div><div class="card-desc">Best-selling sneaker goes to 0 units. Nobody notices until 20 customers get "out of stock" error. Supplier contacted. 2-week delivery lead time. 2 weeks of missed sales that could have been prevented with a 5-unit alert.</div></div>
+      <div class="card"><div class="card-icon">📊</div><div class="card-title">No Sales Velocity Data</div><div class="card-desc">How many units of the Ankara Top sell per day? What's the reorder lead time? What's the optimal reorder point? Without velocity data, reorder decisions are gut feel — leading to either stockouts or overstock.</div></div>
+    </div>
+    <div class="animate-in"><div class="info-forest">✅ n8n monitors stock levels in real time across all channels, alerts before stockouts, auto-generates supplier purchase orders, and pauses listings when stock hits zero — then re-activates on restocking.</div></div>
+  </div>
+</section>
+
+<section class="slide" id="slide-2">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">02 — The Blueprint</div><div class="sec-title">n8n Inventory<br><span>Intelligence</span></div><p class="sec-desc">Every sale deducts from real-time stock. Every return adds back. Alert at reorder point. Auto-reorder from supplier. Pause listings at zero. Resume on arrival. Stock accuracy maintained automatically.</p></div>
+    <div class="animate-in wf-canvas">
+      <div class="wf-grid"></div>
+      <div class="wf-label">n8n canvas — inventory management pipeline</div>
+      <div class="wf-nodes">
+        <div class="wf-stage"><div class="wf-slbl">Track</div>
+          <div style="display:flex;flex-direction:column;gap:0.35rem">
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#0a1a2a,#1d4ed8);color:#93c5fd;border-color:#1d4ed8;">📊</div><div class="wf-nlbl">Real-time<br>Deduct</div><div class="tti">Every order deducts from inventory in real time — not at shipping. All channels (website, Jumia, Konga, WhatsApp) update the same inventory count simultaneously. No overselling possible.</div></div>
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a3a1a,#166534);color:#4ade80;border-color:#166534;">🔄</div><div class="wf-nlbl">Return<br>Re-add</div><div class="tti">Returned and verified items automatically added back to inventory with condition status. Good condition → immediately resalable. Damaged → flagged, excluded from available count.</div></div>
+          </div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-stage"><div class="wf-slbl">Alert</div>
+          <div style="display:flex;flex-direction:column;gap:0.35rem">
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a1a0a,#78350f);color:#fde68a;border-color:#78350f;">🔔</div><div class="wf-nlbl">Low Stock<br>Alert</div><div class="tti">When stock reaches reorder point (calculated from sales velocity × lead time): immediate Slack alert to buyer/owner. "Nike Air Max 270 UK42: 3 units remaining. Lead time: 14 days. Reorder now?"</div></div>
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a0a0a,#7f1d1d);color:#fca5a5;border-color:#7f1d1d;">🚨</div><div class="wf-nlbl">Zero<br>Stock Alert</div><div class="tti">Stock hits 0: urgent alert sent. All channel listings automatically paused. "Out of Stock" shown on website, Jumia, Konga. No more orders accepted until stock confirmed.</div></div>
+          </div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-stage"><div class="wf-slbl">Reorder</div>
+          <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a0a1a,#7c3aed);color:#d8b4fe;border-color:#7c3aed;">📋</div><div class="wf-nlbl">Auto<br>PO Draft</div><div class="tti">GPT-4o generates draft purchase order: calculates optimal reorder quantity based on sales velocity, seasonal trends, and storage capacity. Sent to buyer for one-click approval.</div></div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-stage"><div class="wf-slbl">Restock</div>
+          <div style="display:flex;flex-direction:column;gap:0.35rem">
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#0a1a1a,#065f46);color:#6ee7b7;border-color:#065f46;">📦</div><div class="wf-nlbl">Stock<br>Receive</div><div class="tti">Goods received → inventory updated. Listings automatically re-activated across all channels. Customer waitlist notified: "The Nike Air Max you wanted is back in stock — order now!"</div></div>
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#0a0a1a,#1e3a5f);color:#93c5fd;border-color:#1e3a5f;">📊</div><div class="wf-nlbl">Velocity<br>Analytics</div><div class="tti">Daily sales velocity calculated per SKU. Seasonal patterns detected. AI refines reorder points automatically. Best-selling products get earlier alerts, slower ones later.</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="slide-3">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">03 — Simulation</div><div class="sec-title">Live Inventory<br><span>Dashboard</span></div><p class="sec-desc">Real-time stock levels across the full product catalogue. n8n has auto-generated 3 alerts this morning — two reorder flags and one critical stockout with listings paused automatically.</p></div>
+    <div class="animate-in" style="margin-bottom:1.25rem">
+      <div class="inv-table">
+        <div class="it-head"><div>Product</div><div>In Stock</div><div>Reorder Pt</div><div>Velocity</div><div>Lead Time</div><div>Status</div></div>
+        <div class="it-row"><div style="font-weight:600">Nike Air Max (UK42)</div><div>3</div><div>10</div><div>2/day</div><div>14 days</div><div><span class="ib ib-low">Reorder Now</span></div></div>
+        <div class="it-row"><div style="font-weight:600">Ankara Top (M)</div><div>0</div><div>15</div><div>4/day</div><div>7 days</div><div><span class="ib ib-out">🚨 Out of Stock</span></div></div>
+        <div class="it-row"><div style="font-weight:600">Leather Belt (34")</div><div>28</div><div>10</div><div>1/day</div><div>7 days</div><div><span class="ib ib-ok">Healthy ✓</span></div></div>
+        <div class="it-row"><div style="font-weight:600">Adidas Superstar (UK42)</div><div>8</div><div>12</div><div>3/day</div><div>21 days</div><div><span class="ib ib-low">Reorder Now</span></div></div>
+        <div class="it-row"><div style="font-weight:600">White Sneakers (UK38)</div><div>45</div><div>10</div><div>0.5/day</div><div>14 days</div><div><span class="ib ib-ok">Healthy ✓</span></div></div>
+      </div>
+    </div>
+    <div class="animate-in two-col">
+      <div>
+        <div style="font-size:0.61rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);font-family:'IBM Plex Mono',monospace;margin-bottom:0.4rem">Active Alerts — Today</div>
+        <div class="stock-alert critical"><div class="sa-icon">🚨</div><div><div class="sa-title">Ankara Top (M) — ZERO STOCK</div><div class="sa-detail">All listings paused · Supplier PO draft ready for approval</div></div><span class="sa-badge sab-crit">Critical</span></div>
+        <div class="stock-alert low"><div class="sa-icon">⚠️</div><div><div class="sa-title">Nike Air Max UK42 — 3 units left</div><div class="sa-detail">Reorder point: 10 · 14-day lead time · Order now or stockout in 1.5 days</div></div><span class="sa-badge sab-low">Reorder</span></div>
+        <div class="stock-alert reorder"><div class="sa-icon">📦</div><div><div class="sa-title">Adidas Superstar UK42 — 8 units</div><div class="sa-detail">Velocity: 3/day · 21-day lead time · PO drafted — approve to send</div></div><span class="sa-badge sab-reorder">PO Ready</span></div>
+      </div>
+      <div class="info-forest">✅ The Ankara Top stockout was detected at 7am. Listings paused on website, Jumia, and Konga by 7:01am. 12 customers on the waitlist will be notified automatically the moment stock arrives.</div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="slide-4">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">04 — Impact</div><div class="sec-title">Always In Stock.<br><span>Always Accurate.</span></div></div>
+    <div class="animate-in two-col" style="margin-bottom:1.5rem">
+      <div>
+        <div style="font-size:0.62rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--red);margin-bottom:0.75rem;font-weight:600;font-family:'IBM Plex Mono',monospace">❌ BEFORE</div>
+        <div style="display:flex;flex-direction:column;gap:0.5rem">
+          <div class="ba-bad">Overselling — confirmed orders for items not in stock</div>
+          <div class="ba-bad">Stockouts discovered when customers complain</div>
+          <div class="ba-bad">2 hrs weekly manual stock count across 5 platforms</div>
+          <div class="ba-bad">Reorder decisions based on gut feel — overstock or stockout</div>
+          <div class="ba-bad">No waitlist — customers who wanted out-of-stock items just leave</div>
+        </div>
+      </div>
+      <div>
+        <div style="font-size:0.62rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--green);margin-bottom:0.75rem;font-weight:600;font-family:'IBM Plex Mono',monospace">✅ AFTER</div>
+        <div style="display:flex;flex-direction:column;gap:0.5rem">
+          <div class="ba-good">Real-time sync across all channels — overselling impossible</div>
+          <div class="ba-good">Reorder alerts 14 days before stockout — always ahead of demand</div>
+          <div class="ba-good">Zero manual stock counting — inventory always accurate</div>
+          <div class="ba-good">Velocity-based reorder points — data-driven purchasing</div>
+          <div class="ba-good">Waitlist captures demand — customers notified on restock</div>
+        </div>
+      </div>
+    </div>
+    <div class="animate-in">
+      <div class="quote-block">
+        <div class="quote-text">"In e-commerce, a stockout isn't just a missed sale — it's a customer lost to a competitor. <strong>Real-time inventory intelligence</strong> ensures you never send a customer away empty-handed."</div>
+        <div style="font-size:0.62rem;color:rgba(255,255,255,0.3);font-family:'IBM Plex Mono',monospace">STACK: n8n · GPT-4o · Shopify/WooCommerce · Jumia/Konga APIs · WhatsApp API · Slack · Google Sheets</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="slide-counter" id="slideCounter">Slide 1 of 5</div>
+<div class="slide-nav">
+  <button class="nav-btn" onclick="prevSlide()">← Prev</button>
+  <button class="nav-btn primary" onclick="nextSlide()">Next →</button>
+</div>
+<script>
+const slides=document.querySelectorAll('.slide'),total=slides.length;let cur=0;
+const dots=document.getElementById('navDots');
+for(let i=0;i<total;i++){const d=document.createElement('div');d.className='nav-dot'+(i===0?' active':'');d.onclick=()=>goTo(i);dots.appendChild(d);}
+function goTo(n){slides[cur].classList.remove('active');dots.children[cur].classList.remove('active');if(cur<n)dots.children[cur].classList.add('done');cur=n;slides[cur].classList.add('active');dots.children[cur].classList.add('active');document.getElementById('slideCounter').textContent=`Slide ${cur+1} of ${total}`;}
+function nextSlide(){if(cur<total-1)goTo(cur+1);}function prevSlide(){if(cur>0)goTo(cur-1);}
+document.addEventListener('keydown',e=>{if(e.key==='ArrowRight'||e.key==='ArrowDown')nextSlide();if(e.key==='ArrowLeft'||e.key==='ArrowUp')prevSlide();});
+let secs=0;setInterval(()=>{secs++;const m=String(Math.floor(secs/60)).padStart(2,'0'),s=String(secs%60).padStart(2,'0');document.getElementById('timerBadge').textContent=`⏱ ${m}:${s}`;if(secs>=840)document.getElementById('timerBadge').style.color='#c02020';},1000);
+</script>
+</body>
+</html>
