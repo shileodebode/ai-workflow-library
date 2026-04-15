@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sales Contract & Deal Closing Automation</title>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@300;400;600;700;900&family=Lato:ital,wght@0,300;0,400;0,700;1,300&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f8f8f6;--surface:#ffffff;--surface2:#f0f0ec;--border:#e0e0d8;
+  --ink:#0f0f0e;--gold:#b8962a;--gold2:#d4aa30;--gold3:#f0c842;
+  --charcoal:#2a2a28;--warm:#4a4840;--green:#1a7a3a;--red:#c02828;
+  --blue:#1a4a8a;--text:#1a1a18;--muted:#6a6a62;--light:#f4f4f0;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'Lato',sans-serif;overflow-x:hidden;}
+.top-rule{position:fixed;top:0;left:0;right:0;height:3px;background:var(--charcoal);z-index:200;}
+.top-rule::after{content:'';position:absolute;left:0;top:0;width:120px;height:100%;background:linear-gradient(90deg,var(--gold),var(--gold3));}
+nav{position:fixed;top:3px;left:0;right:0;z-index:100;background:rgba(248,248,246,0.98);backdrop-filter:blur(10px);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 2.5rem;height:54px;}
+.nav-brand{font-family:'Unbounded',sans-serif;font-size:0.65rem;font-weight:600;color:var(--charcoal);letter-spacing:0.05em;text-transform:uppercase;}
+.nav-dots{display:flex;gap:0.3rem;}
+.nav-dot{width:7px;height:7px;background:var(--border);cursor:pointer;transition:all 0.2s;}
+.nav-dot.active{background:var(--gold);transform:scale(1.5);}
+.nav-dot.done{background:var(--green);}
+.timer{font-size:0.66rem;color:var(--gold);background:rgba(184,150,42,0.08);border:1px solid rgba(184,150,42,0.2);padding:0.2rem 0.75rem;font-family:'Space Mono',monospace;}
+.slide{min-height:100vh;padding:80px 0 50px;display:none;flex-direction:column;align-items:center;justify-content:center;position:relative;overflow:hidden;}
+.slide.active{display:flex;}
+.slide-inner{width:100%;max-width:1140px;padding:0 2.5rem;position:relative;z-index:2;}
+/* Hero */
+.hero-rule{position:absolute;left:0;top:0;bottom:0;width:3px;background:linear-gradient(to bottom,var(--gold),transparent);}
+.hero-bg-lines{position:absolute;inset:0;background-image:repeating-linear-gradient(90deg,transparent,transparent 80px,rgba(184,150,42,0.03) 80px,rgba(184,150,42,0.03) 81px);pointer-events:none;}
+.hero-num{position:absolute;right:6%;top:50%;transform:translateY(-50%);font-family:'Unbounded',sans-serif;font-size:16rem;font-weight:900;color:rgba(184,150,42,0.04);line-height:1;pointer-events:none;letter-spacing:-0.05em;}
+.hero-eyebrow{display:inline-flex;align-items:center;gap:0.5rem;font-family:'Space Mono',monospace;font-size:0.65rem;color:var(--gold);letter-spacing:0.15em;text-transform:uppercase;margin-bottom:1.5rem;}
+.hero-eyebrow::before{content:'';width:28px;height:2px;background:var(--gold);}
+h1.hero-title{font-family:'Unbounded',sans-serif;font-size:clamp(2.2rem,4.5vw,4rem);font-weight:900;line-height:1.05;letter-spacing:-0.03em;color:var(--ink);margin-bottom:1.5rem;text-transform:uppercase;}
+h1.hero-title span{color:var(--gold);}
+.hero-desc{font-size:0.97rem;color:var(--muted);max-width:500px;line-height:1.8;margin-bottom:2.5rem;font-weight:300;}
+.kpi-strip{display:flex;gap:0;border:2px solid var(--ink);max-width:620px;}
+.kpi{background:white;padding:1.1rem 1.4rem;flex:1;border-right:2px solid var(--ink);}
+.kpi:last-child{border-right:none;}
+.kpi-val{font-family:'Unbounded',sans-serif;font-size:1.6rem;font-weight:700;color:var(--gold);line-height:1;}
+.kpi-lbl{font-size:0.58rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);margin-top:0.25rem;font-family:'Space Mono',monospace;}
+.sec-tag{font-size:0.6rem;letter-spacing:0.28em;text-transform:uppercase;color:var(--gold);margin-bottom:0.4rem;font-weight:400;font-family:'Space Mono',monospace;display:flex;align-items:center;gap:0.5rem;}
+.sec-tag::before{content:'';width:16px;height:2px;background:var(--gold);}
+.sec-title{font-family:'Unbounded',sans-serif;font-size:clamp(1.5rem,3vw,2.4rem);font-weight:700;line-height:1.1;margin-bottom:0.5rem;color:var(--ink);text-transform:uppercase;letter-spacing:-0.02em;}
+.sec-title span{color:var(--gold);}
+.sec-desc{font-size:0.87rem;color:var(--muted);margin-bottom:1.85rem;max-width:540px;line-height:1.78;font-weight:300;}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;}
+.three-col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;}
+.lr{display:grid;grid-template-columns:1.1fr 1fr;gap:2rem;align-items:start;}
+.lr-rev{display:grid;grid-template-columns:1fr 1.15fr;gap:2rem;align-items:start;}
+.card{background:white;border:1px solid var(--border);padding:1.25rem;transition:all 0.2s;box-shadow:0 1px 4px rgba(0,0,0,0.04);}
+.card:hover{border-color:var(--gold);transform:translateY(-2px);box-shadow:0 6px 18px rgba(184,150,42,0.1);}
+.card-icon{font-size:1.4rem;margin-bottom:0.5rem;}
+.card-title{font-family:'Unbounded',sans-serif;font-size:0.75rem;font-weight:600;margin-bottom:0.3rem;color:var(--ink);text-transform:uppercase;letter-spacing:0.02em;}
+.card-desc{font-size:0.72rem;color:var(--muted);line-height:1.65;}
+.panel{background:white;border:1px solid var(--border);padding:1.4rem;}
+.panel h3{font-family:'Unbounded',sans-serif;font-size:0.72rem;font-weight:600;color:var(--charcoal);margin-bottom:0.9rem;text-transform:uppercase;letter-spacing:0.05em;display:flex;align-items:center;gap:0.5rem;}
+.panel h3::before{content:'';width:12px;height:2px;background:var(--gold);}
+.steps{list-style:none;}
+.steps li{display:flex;gap:0.75rem;padding:0.45rem 0;border-bottom:1px solid var(--border);font-size:0.76rem;line-height:1.6;}
+.steps li:last-child{border-bottom:none;}
+.step-n{width:22px;height:22px;background:var(--charcoal);color:white;font-size:0.62rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:'Space Mono',monospace;}
+/* Workflow */
+.wf-canvas{background:var(--charcoal);padding:2rem;position:relative;overflow:hidden;}
+.wf-texture{position:absolute;inset:0;background-image:repeating-linear-gradient(45deg,transparent,transparent 20px,rgba(184,150,42,0.03) 20px,rgba(184,150,42,0.03) 21px);}
+.wf-label{position:absolute;top:0.75rem;left:1rem;font-size:0.57rem;letter-spacing:0.2em;text-transform:uppercase;color:rgba(255,255,255,0.3);display:flex;align-items:center;gap:0.4rem;z-index:3;font-family:'Space Mono',monospace;}
+.wf-label::before{content:'';width:7px;height:7px;background:var(--gold3);box-shadow:0 0 8px var(--gold3);animation:gpulse 2s infinite;}
+@keyframes gpulse{0%,100%{opacity:1}50%{opacity:0.2}}
+.wf-nodes{display:flex;align-items:flex-start;gap:0;padding-top:1.5rem;position:relative;z-index:2;flex-wrap:wrap;}
+.wf-stage{display:flex;flex-direction:column;align-items:center;}
+.wf-slbl{font-size:0.5rem;letter-spacing:0.15em;text-transform:uppercase;color:rgba(255,255,255,0.28);margin-bottom:0.3rem;font-family:'Space Mono',monospace;}
+.wf-node{display:flex;flex-direction:column;align-items:center;gap:0.3rem;cursor:pointer;position:relative;}
+.wf-box{width:58px;height:58px;display:flex;align-items:center;justify-content:center;font-size:1.25rem;border:2px solid transparent;transition:all 0.3s;}
+.wf-node:hover .wf-box{transform:scale(1.1);box-shadow:0 0 20px rgba(184,150,42,0.4);}
+.wf-nlbl{font-size:0.52rem;text-align:center;color:rgba(255,255,255,0.4);max-width:66px;line-height:1.3;font-family:'Space Mono',monospace;}
+.wf-arr{color:rgba(255,255,255,0.18);padding:0 0.2rem;font-size:0.85rem;align-self:flex-start;margin-top:19px;flex-shrink:0;}
+.ttw{position:relative;}
+.tti{position:absolute;bottom:calc(100%+8px);left:50%;transform:translateX(-50%);background:white;border:1px solid var(--border);padding:0.6rem 0.9rem;font-size:0.67rem;opacity:0;pointer-events:none;transition:opacity 0.2s;z-index:50;color:var(--ink);line-height:1.5;max-width:200px;white-space:normal;text-align:left;box-shadow:0 4px 12px rgba(0,0,0,0.12);}
+.ttw:hover .tti{opacity:1;}
+/* Contract preview */
+.contract-preview{background:white;border:1px solid var(--border);overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,0.08);}
+.cp-header{background:var(--charcoal);color:white;padding:1rem 1.5rem;display:flex;align-items:center;justify-content:space-between;}
+.cp-title{font-family:'Unbounded',sans-serif;font-size:0.75rem;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;}
+.cp-body{padding:1.1rem 1.5rem;font-size:0.72rem;line-height:1.75;}
+.cp-clause{padding:0.5rem 0.75rem;border-left:3px solid var(--gold);margin-bottom:0.5rem;background:rgba(184,150,42,0.03);}
+.cp-clause-title{font-family:'Unbounded',sans-serif;font-size:0.6rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--gold);margin-bottom:0.2rem;}
+.cp-sig-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-top:0.85rem;padding-top:0.85rem;border-top:1px solid var(--border);}
+.cp-sig{background:var(--light);padding:0.75rem;text-align:center;font-size:0.65rem;}
+.cp-sig-name{font-weight:700;font-size:0.75rem;color:var(--ink);margin-bottom:0.1rem;}
+.cp-sig-status{font-size:0.6rem;font-family:'Space Mono',monospace;}
+.sig-pending{color:var(--muted);}
+.sig-signed{color:var(--green);}
+/* Deal tracker */
+.deal-tracker{background:white;border:1px solid var(--border);overflow:hidden;font-size:0.7rem;}
+.dt-head{background:rgba(184,150,42,0.08);border-bottom:1px solid var(--border);display:grid;grid-template-columns:30px 130px 110px 90px 80px 90px;padding:0.55rem 0.85rem;gap:0.4rem;font-size:0.59rem;letter-spacing:0.08em;color:var(--gold);font-weight:600;text-transform:uppercase;font-family:'Space Mono',monospace;}
+.dt-row{display:grid;grid-template-columns:30px 130px 110px 90px 80px 90px;padding:0.52rem 0.85rem;gap:0.4rem;border-bottom:1px solid rgba(224,224,216,0.5);align-items:center;transition:background 0.15s;}
+.dt-row:hover{background:var(--light);}
+.dt-row:last-child{border-bottom:none;}
+.db{display:inline-block;padding:0.1rem 0.45rem;font-size:0.58rem;font-weight:600;font-family:'Space Mono',monospace;}
+.db-sent{background:rgba(26,74,138,0.1);color:var(--blue);border:1px solid rgba(26,74,138,0.2);}
+.db-signed{background:rgba(26,122,58,0.1);color:var(--green);border:1px solid rgba(26,122,58,0.2);}
+.db-pend{background:rgba(184,150,42,0.1);color:var(--gold);border:1px solid rgba(184,150,42,0.2);}
+.db-won{background:rgba(42,42,40,0.1);color:var(--charcoal);border:1px solid rgba(42,42,40,0.2);}
+/* PS list */
+.ps-list{list-style:none;}
+.ps-list li{display:flex;gap:0.75rem;padding:0.45rem 0;border-bottom:1px solid var(--border);font-size:0.74rem;line-height:1.5;transition:all 0.3s;}
+.ps-list li:last-child{border-bottom:none;}
+.ps-num{width:20px;height:20px;background:var(--border);color:white;font-size:0.6rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;transition:background 0.3s;font-family:'Space Mono',monospace;}
+/* Info boxes */
+.info-gold{padding:0.75rem 1rem;font-size:0.77rem;line-height:1.6;background:rgba(184,150,42,0.06);border:1px solid rgba(184,150,42,0.2);color:var(--warm);}
+.info-green{padding:0.75rem 1rem;font-size:0.77rem;line-height:1.6;background:rgba(26,122,58,0.06);border:1px solid rgba(26,122,58,0.18);color:var(--green);}
+/* Ba */
+.ba-bad{padding:0.6rem 0.9rem;font-size:0.76rem;line-height:1.5;background:rgba(192,40,40,0.04);border:1px solid rgba(192,40,40,0.12);}
+.ba-good{padding:0.6rem 0.9rem;font-size:0.76rem;line-height:1.5;background:rgba(26,122,58,0.05);border:1px solid rgba(26,122,58,0.14);}
+.quote-block-deal{background:var(--charcoal);padding:1.75rem 2rem;color:white;border-left:4px solid var(--gold);}
+.quote-text{font-family:'Lato',sans-serif;font-size:1.05rem;line-height:1.78;margin-bottom:0.75rem;font-weight:300;font-style:italic;}
+.quote-text strong{color:var(--gold3);font-style:normal;}
+.slide-counter{position:fixed;bottom:1.5rem;left:2rem;font-size:0.62rem;color:var(--muted);letter-spacing:0.1em;z-index:100;font-family:'Space Mono',monospace;}
+.slide-nav{position:fixed;bottom:1.5rem;right:2rem;display:flex;gap:0.5rem;z-index:100;}
+.nav-btn{background:white;border:1px solid var(--border);color:var(--text);padding:0.55rem 1.2rem;font-family:'Space Mono',monospace;font-size:0.68rem;cursor:pointer;transition:all 0.2s;}
+.nav-btn:hover{border-color:var(--gold);color:var(--gold);}
+.nav-btn.primary{background:var(--charcoal);border-color:var(--charcoal);color:white;}
+.nav-btn.primary:hover{background:var(--ink);}
+.run-btn{background:var(--charcoal);color:white;border:none;padding:0.7rem 1.5rem;font-family:'Space Mono',monospace;font-size:0.7rem;font-weight:700;cursor:pointer;letter-spacing:0.06em;transition:all 0.2s;width:100%;text-align:center;border-left:3px solid var(--gold);}
+.run-btn:hover{background:var(--ink);}
+.animate-in{opacity:0;animation:fadeUp 0.5s ease-out forwards;}
+.slide.active .animate-in:nth-child(1){animation-delay:0.05s;}
+.slide.active .animate-in:nth-child(2){animation-delay:0.15s;}
+.slide.active .animate-in:nth-child(3){animation-delay:0.25s;}
+.slide.active .animate-in:nth-child(4){animation-delay:0.35s;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+/* Signing animation */
+.sig-box{transition:all 0.5s;}
+.sig-box.signing{background:rgba(184,150,42,0.08);}
+.sig-box.signed-box{background:rgba(26,122,58,0.06);}
+</style>
+</head>
+<body>
+<div class="top-rule"></div>
+<nav>
+  <div class="nav-brand">Sales · Contract & Deal Closing</div>
+  <div class="nav-dots" id="navDots"></div>
+  <div class="timer" id="timerBadge">⏱ 00:00</div>
+</nav>
+
+<!-- SLIDE 1: HERO -->
+<section class="slide active" id="slide-0">
+  <div class="hero-rule"></div><div class="hero-bg-lines"></div><div class="hero-num">£</div>
+  <div class="slide-inner">
+    <div class="animate-in"><div class="hero-eyebrow">n8n AI Automation · Sales Department</div></div>
+    <div class="animate-in"><h1 class="hero-title">Close Deals.<br><span>Faster.</span><br>Automatically.</h1></div>
+    <div class="animate-in"><p class="hero-desc">Contract generated, sent for signature, countersigned, and filed — all without a single manual step. Every won deal converts to a signed contract before the end of day.</p></div>
+    <div class="animate-in">
+      <div class="kpi-strip">
+        <div class="kpi"><div class="kpi-val">2hr</div><div class="kpi-lbl">Avg Contract Time</div></div>
+        <div class="kpi"><div class="kpi-val">100%</div><div class="kpi-lbl">Deals Documented</div></div>
+        <div class="kpi"><div class="kpi-val">0</div><div class="kpi-lbl">Legal Errors</div></div>
+        <div class="kpi"><div class="kpi-val">Auto</div><div class="kpi-lbl">Post-Sign Workflow</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 2: PROBLEM -->
+<section class="slide" id="slide-1">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">01 — The Problem</div><div class="sec-title">Deals Die Between<br><span>"Yes"</span> & Signed</div><p class="sec-desc">Verbal commitment isn't revenue. The gap between a prospect saying yes and a contract being signed is where deals leak — through delays, errors, and lost momentum.</p></div>
+    <div class="animate-in two-col" style="margin-bottom:1.5rem">
+      <div class="card"><div class="card-icon">⏳</div><div class="card-title">Contract Delay</div><div class="card-desc">Legal team backlog means contracts take 3–5 days to generate. Prospect enthusiasm cools. Competitor gets back in the conversation. Deal momentum lost.</div></div>
+      <div class="card"><div class="card-icon">📝</div><div class="card-title">Wrong Terms</div><div class="card-desc">Rep fills out template manually — wrong payment terms, wrong entity name, wrong start date. Legal catches it. Contract reissued. Another 2 days gone.</div></div>
+      <div class="card"><div class="card-icon">🔄</div><div class="card-title">No Countersign Flow</div><div class="card-desc">Contract sent, client signs, nobody notices. No internal countersignature process. Deal sits in legal limbo — technically unsigned by your own company.</div></div>
+      <div class="card"><div class="card-icon">📁</div><div class="card-title">Scattered Records</div><div class="card-desc">Signed contracts in email attachments, shared drives, Dropbox folders. No central record. Legal spends days hunting for contracts during audits or disputes.</div></div>
+    </div>
+    <div class="animate-in"><div class="info-gold">✅ n8n generates pre-populated, legally accurate contracts in minutes, routes for signature automatically, and files everything centrally on sign.</div></div>
+  </div>
+</section>
+
+<!-- SLIDE 3: WORKFLOW -->
+<section class="slide" id="slide-2">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">02 — The Blueprint</div><div class="sec-title">n8n Contract <span>Closing</span><br>Workflow</div><p class="sec-desc">Won deal triggers the contract pipeline. Every step automated — generation, approval, signing, countersigning, filing, and onboarding kickoff.</p></div>
+    <div class="animate-in wf-canvas">
+      <div class="wf-texture"></div><div class="wf-label">n8n canvas — deal closing pipeline</div>
+      <div class="wf-nodes">
+        <div class="wf-stage"><div class="wf-slbl">Trigger</div>
+          <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a1a0a,#78350f);color:#fde68a;border-color:#78350f;">🏆</div><div class="wf-nlbl">Deal Won<br>CRM</div><div class="tti">CRM deal moved to "Closed Won" triggers n8n. Pulls all deal data: client info, pricing, terms, payment schedule, rep details.</div></div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-stage"><div class="wf-slbl">Generate</div>
+          <div style="display:flex;flex-direction:column;gap:0.35rem">
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a0a0a,#991b1b);color:#fca5a5;border-color:#991b1b;">🧠</div><div class="wf-nlbl">GPT-4o<br>Contract</div><div class="tti">GPT-4o selects the right contract template (service, retainer, SaaS, consulting) and fills every variable from CRM deal data. No manual entry.</div></div>
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#0a1a2a,#1d4ed8);color:#93c5fd;border-color:#1d4ed8;">✅</div><div class="wf-nlbl">Legal<br>Review</div><div class="tti">Deal value &gt;£25k: Legal notified via Slack for review before send. Small deals auto-approved. Review window: 4 hours max before auto-escalation.</div></div>
+          </div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-stage"><div class="wf-slbl">Sign</div>
+          <div style="display:flex;flex-direction:column;gap:0.35rem">
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#0a1a0a,#14532d);color:#86efac;border-color:#14532d;">✍️</div><div class="wf-nlbl">DocuSign<br>Send</div><div class="tti">DocuSign envelope created and sent to client. Signing order set: client signs first, then internal director countersigns automatically.</div></div>
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a0a2e,#6d28d9);color:#c4b5fd;border-color:#6d28d9;">⏰</div><div class="wf-nlbl">Sign<br>Reminders</div><div class="tti">Not signed in 24hrs: personalised reminder from rep. Not signed in 48hrs: sales manager escalation. Avoids ghosting at the finish line.</div></div>
+          </div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-stage"><div class="wf-slbl">Complete</div>
+          <div style="display:flex;flex-direction:column;gap:0.35rem">
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a3a1a,#166534);color:#4ade80;border-color:#166534;">📁</div><div class="wf-nlbl">Auto<br>File</div><div class="tti">On full execution: signed PDF saved to Google Drive (client folder + contracts archive), linked in CRM deal record, shared with Finance and Legal.</div></div>
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#0a0a1a,#1e3a5f);color:#93c5fd;border-color:#1e3a5f;">💬</div><div class="wf-nlbl">Win<br>Announce</div><div class="tti">Slack #wins channel: "🏆 Deal Closed — [Client], £[Value], signed by [Rep]!" Team celebration. CRM deal value updated.</div></div>
+          </div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-stage"><div class="wf-slbl">Kickoff</div>
+          <div style="display:flex;flex-direction:column;gap:0.35rem">
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#2a1a0a,#92400e);color:#fcd34d;border-color:#92400e;">🚀</div><div class="wf-nlbl">Onboard<br>Trigger</div><div class="tti">Signed contract triggers the client onboarding workflow automatically: welcome email, kickoff call scheduled, project setup in PM tool.</div></div>
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#0a1a1a,#065f46);color:#6ee7b7;border-color:#065f46;">🧾</div><div class="wf-nlbl">Invoice<br>Create</div><div class="tti">First invoice auto-generated and sent to client's billing contact on signature — deal to invoice in under 2 hours.</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 4: SIM 1 — CONTRACT -->
+<section class="slide" id="slide-3">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">03 — Simulation 1</div><div class="sec-title">Live: Contract<br><span>Generated & Signed</span></div><p class="sec-desc">TechVenture just signed verbally. Watch n8n generate their contract, send for DocuSign, and complete both signatures — automated end-to-end.</p></div>
+    <div class="animate-in lr">
+      <div style="display:flex;flex-direction:column;gap:1rem">
+        <div class="panel">
+          <h3>Contract Pipeline</h3>
+          <ul class="ps-list" id="contractSteps">
+            <li id="cs1" style="opacity:0.3"><div class="ps-num">1</div><div>Deal Won trigger fires — CRM data pulled</div></li>
+            <li id="cs2" style="opacity:0.3"><div class="ps-num">2</div><div>GPT-4o selects template + populates all variables</div></li>
+            <li id="cs3" style="opacity:0.3"><div class="ps-num">3</div><div>Contract value £16,836 — auto-approved (below £25k)</div></li>
+            <li id="cs4" style="opacity:0.3"><div class="ps-num">4</div><div>DocuSign envelope sent to Oluwaseun Adeyemi</div></li>
+            <li id="cs5" style="opacity:0.3"><div class="ps-num">5</div><div>Client signs → internal countersign auto-triggered</div></li>
+            <li id="cs6" style="opacity:0.3"><div class="ps-num">6</div><div>Signed PDF filed · Invoice generated · Kickoff triggered ✅</div></li>
+          </ul>
+        </div>
+        <button class="run-btn" id="contractBtn" onclick="runContractSim()">▶ GENERATE & SIGN CONTRACT</button>
+      </div>
+      <div>
+        <div class="contract-preview" id="contractPreview">
+          <div class="cp-header"><div class="cp-title">Service Agreement</div><span style="font-family:'Space Mono',monospace;font-size:0.6rem;opacity:0.6">REF: CTR-2025-0284</span></div>
+          <div class="cp-body">
+            <div style="margin-bottom:0.85rem;font-size:0.71rem;line-height:1.7">This Agreement is entered into between <strong>Company Ltd</strong> ("Service Provider") and <strong>TechVenture Ltd</strong> ("Client") on the terms set out below.</div>
+            <div class="cp-clause" id="clause1"><div class="cp-clause-title">1. Services</div>n8n Automation Setup, GPT-4o Integration & 12-month Support. As detailed in Proposal QT-2025-0284.</div>
+            <div class="cp-clause" id="clause2"><div class="cp-clause-title">2. Fees & Payment</div>Total: £16,836 excl. VAT. Payment: 50% on signing, 50% on go-live. Net 30 terms.</div>
+            <div class="cp-clause" id="clause3"><div class="cp-clause-title">3. Term</div>12 months from commencement date. Automatic renewal unless 30 days written notice given.</div>
+            <div class="cp-sig-row">
+              <div class="cp-sig sig-box" id="sig-client"><div class="cp-sig-name">Oluwaseun Adeyemi</div><div style="font-size:0.62rem;color:var(--muted)">VP Operations · TechVenture Ltd</div><div class="cp-sig-status sig-pending" id="sig-client-status">⏳ Awaiting signature</div></div>
+              <div class="cp-sig sig-box" id="sig-internal"><div class="cp-sig-name">Tobi Adeyemi</div><div style="font-size:0.62rem;color:var(--muted)">Director · Company Ltd</div><div class="cp-sig-status sig-pending" id="sig-internal-status">⏳ Awaiting countersign</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 5: SIM 2 — DEAL TRACKER -->
+<section class="slide" id="slide-4">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">04 — Simulation 2</div><div class="sec-title">Contract <span>Tracker</span><br>Dashboard</div><p class="sec-desc">Every deal at contract stage tracked in real time. Management sees what's signed, what's pending, and what needs a nudge — without asking anyone.</p></div>
+    <div class="animate-in" style="margin-bottom:1.25rem">
+      <div class="deal-tracker">
+        <div class="dt-head"><div>#</div><div>Client</div><div>Rep</div><div>Value</div><div>Sent</div><div>Status</div></div>
+        <div class="dt-row"><div style="color:var(--muted)">01</div><div>TechVenture Ltd</div><div>Tobi A.</div><div>£16,836</div><div style="font-size:0.65rem;color:var(--muted)">Today</div><div><span class="db db-signed">Signed ✓</span></div></div>
+        <div class="dt-row"><div style="color:var(--muted)">02</div><div>FinanceHub</div><div>Tobi A.</div><div>£24,000</div><div style="font-size:0.65rem;color:var(--muted)">Yesterday</div><div><span class="db db-pend">Awaiting</span></div></div>
+        <div class="dt-row"><div style="color:var(--muted)">03</div><div>DataSystems</div><div>Kemi O.</div><div>£32,000</div><div style="font-size:0.65rem;color:var(--muted)">2 days ago</div><div><span class="db db-pend">48hr Reminder ⚡</span></div></div>
+        <div class="dt-row"><div style="color:var(--muted)">04</div><div>BuildTech</div><div>Kemi O.</div><div>£45,000</div><div style="font-size:0.65rem;color:var(--muted)">Today</div><div><span class="db db-sent">Sent</span></div></div>
+        <div class="dt-row"><div style="color:var(--muted)">05</div><div>CloudBase</div><div>Tobi A.</div><div>£9,500</div><div style="font-size:0.65rem;color:var(--muted)">Today</div><div><span class="db db-won">Fully Executed ✓</span></div></div>
+      </div>
+    </div>
+    <div class="animate-in two-col">
+      <div class="panel">
+        <h3>Auto-Actions Per Status</h3>
+        <ul class="steps">
+          <li><div class="step-n">1</div><div><strong>Sent:</strong> n8n monitors for 24hr no-sign → rep reminder email auto-sent</div></li>
+          <li><div class="step-n">2</div><div><strong>Awaiting:</strong> 48hr → manager escalation in Slack with one-click nudge</div></li>
+          <li><div class="step-n">3</div><div><strong>Signed:</strong> Countersign triggered → Finance notified → Invoice sent</div></li>
+          <li><div class="step-n">4</div><div><strong>Executed:</strong> Client onboarding starts → #wins Slack announcement posted</div></li>
+        </ul>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:0.85rem">
+        <div style="background:var(--charcoal);padding:1.1rem;color:white;font-size:0.75rem;line-height:1.7;border-left:3px solid var(--gold)">
+          <div style="font-family:'Space Mono',monospace;font-size:0.6rem;color:var(--gold3);margin-bottom:0.5rem">💬 Slack · #wins (just now)</div>
+          🏆 <strong style="color:var(--gold3)">DEAL CLOSED — CloudBase · £9,500</strong><br>
+          Rep: Tobi Adeyemi · Fully executed ✓<br>
+          Onboarding kickoff scheduled: Mon 9am<br>
+          Invoice #INV-2025-0285 sent to billing@cloudbase.io<br>
+          <span style="color:rgba(255,255,255,0.35);font-size:0.62rem">Auto-generated by n8n · No human involvement</span>
+        </div>
+        <div class="info-green">✅ From verbal yes to signed contract to first invoice: under 2 hours. Fully automated, zero manual steps, legally airtight.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 6: BEFORE/AFTER -->
+<section class="slide" id="slide-5">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">05 — Business Impact</div><div class="sec-title">Verbal Yes to <span>Revenue</span><br>Faster Than Ever</div></div>
+    <div class="animate-in two-col" style="margin-bottom:1.5rem">
+      <div>
+        <div style="font-size:0.6rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--red);margin-bottom:0.75rem;font-weight:600;font-family:'Space Mono',monospace">❌ BEFORE</div>
+        <div style="display:flex;flex-direction:column;gap:0.5rem">
+          <div class="ba-bad">Contract generation: 3–5 days waiting for legal team</div>
+          <div class="ba-bad">Manual template filling — wrong terms, wrong names, reissued</div>
+          <div class="ba-bad">No signing reminders — deals ghost at the finish line</div>
+          <div class="ba-bad">Signed contracts in email — never found again during disputes</div>
+          <div class="ba-bad">Onboarding starts when someone remembers to start it</div>
+        </div>
+      </div>
+      <div>
+        <div style="font-size:0.6rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--green);margin-bottom:0.75rem;font-weight:600;font-family:'Space Mono',monospace">✅ AFTER</div>
+        <div style="display:flex;flex-direction:column;gap:0.5rem">
+          <div class="ba-good">Contract generated in minutes — signed same day the deal is won</div>
+          <div class="ba-good">CRM data auto-fills every variable — zero manual entry, zero errors</div>
+          <div class="ba-good">24hr and 48hr reminders keep deals from dying at the line</div>
+          <div class="ba-good">Every signed contract filed, linked in CRM, shared with Finance</div>
+          <div class="ba-good">Onboarding, invoice, and win announcement all trigger on signature</div>
+        </div>
+      </div>
+    </div>
+    <div class="animate-in">
+      <div class="quote-block-deal">
+        <div class="quote-text">"The longer the gap between <strong>'yes' and signed contract</strong>, the higher the chance of losing the deal. Every delay is an opportunity for doubt, competitor re-engagement, or budget freeze. This automation closes that gap completely."</div>
+        <div style="font-size:0.62rem;color:rgba(255,255,255,0.35);letter-spacing:0.08em;font-family:'Space Mono',monospace">STACK: n8n · GPT-4o · DocuSign · HubSpot/Salesforce · Google Drive · Xero · Slack · Gmail</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="slide-counter" id="slideCounter">Slide 1 of 6</div>
+<div class="slide-nav">
+  <button class="nav-btn" onclick="prevSlide()">← Prev</button>
+  <button class="nav-btn primary" onclick="nextSlide()">Next →</button>
+</div>
+<script>
+const slides=document.querySelectorAll('.slide'),total=slides.length;let cur=0;
+const dots=document.getElementById('navDots');
+for(let i=0;i<total;i++){const d=document.createElement('div');d.className='nav-dot'+(i===0?' active':'');d.onclick=()=>goTo(i);dots.appendChild(d);}
+function goTo(n){slides[cur].classList.remove('active');dots.children[cur].classList.remove('active');if(cur<n)dots.children[cur].classList.add('done');cur=n;slides[cur].classList.add('active');dots.children[cur].classList.add('active');document.getElementById('slideCounter').textContent=`Slide ${cur+1} of ${total}`;}
+function nextSlide(){if(cur<total-1)goTo(cur+1);}function prevSlide(){if(cur>0)goTo(cur-1);}
+document.addEventListener('keydown',e=>{if(e.key==='ArrowRight'||e.key==='ArrowDown')nextSlide();if(e.key==='ArrowLeft'||e.key==='ArrowUp')prevSlide();});
+let secs=0;setInterval(()=>{secs++;const m=String(Math.floor(secs/60)).padStart(2,'0'),s=String(secs%60).padStart(2,'0');document.getElementById('timerBadge').textContent=`⏱ ${m}:${s}`;if(secs>=840)document.getElementById('timerBadge').style.color='#c02828';},1000);
+function delay(ms){return new Promise(r=>setTimeout(r,ms));}
+let contractRunning=false;
+async function runContractSim(){
+  if(contractRunning)return;contractRunning=true;
+  const btn=document.getElementById('contractBtn');btn.textContent='Generating...';
+  document.getElementById('sig-client').className='cp-sig sig-box';
+  document.getElementById('sig-internal').className='cp-sig sig-box';
+  document.getElementById('sig-client-status').className='cp-sig-status sig-pending';
+  document.getElementById('sig-client-status').textContent='⏳ Awaiting signature';
+  document.getElementById('sig-internal-status').className='cp-sig-status sig-pending';
+  document.getElementById('sig-internal-status').textContent='⏳ Awaiting countersign';
+  const stepIds=['cs1','cs2','cs3','cs4','cs5','cs6'];
+  stepIds.forEach(id=>{const el=document.getElementById(id);if(el){el.style.opacity='0.3';el.querySelector('.ps-num').style.background='var(--border)';}});
+  const light=(i)=>{stepIds.forEach(id=>{const el=document.getElementById(id);if(el){el.style.opacity='0.3';el.querySelector('.ps-num').style.background='var(--border)';}});const el=document.getElementById(stepIds[i]);if(el){el.style.opacity='1';el.style.color='var(--gold)';el.querySelector('.ps-num').style.background='var(--charcoal)';}};
+  for(let i=0;i<4;i++){light(i);await delay(550);}
+  // Client signs
+  light(4);
+  document.getElementById('sig-client').className='cp-sig sig-box signing';
+  await delay(800);
+  document.getElementById('sig-client').className='cp-sig sig-box signed-box';
+  document.getElementById('sig-client-status').className='cp-sig-status sig-signed';
+  document.getElementById('sig-client-status').textContent='✅ Signed — Apr 11, 2025';
+  await delay(600);
+  document.getElementById('sig-internal').className='cp-sig sig-box signing';
+  await delay(800);
+  document.getElementById('sig-internal').className='cp-sig sig-box signed-box';
+  document.getElementById('sig-internal-status').className='cp-sig-status sig-signed';
+  document.getElementById('sig-internal-status').textContent='✅ Countersigned — Apr 11, 2025';
+  light(5);
+  btn.textContent='↺ Reset & Run Again';contractRunning=false;
+}
+</script>
+</body>
+</html>
