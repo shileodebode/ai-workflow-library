@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Housekeeping Scheduling & Room Status — n8n for Hotels</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #f3faf5;
+  --forest: #0a5c30;
+  --green: #16a34a;
+  --green-light: #bbf7d0;
+  --text: #0a2a18;
+  --muted: #4a7060;
+  --card: #ffffff;
+  --border: rgba(10,92,48,0.12);
+  --radius: 10px;
+  --yellow: #ca8a04;
+  --orange: #ea580c;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;overflow:hidden;background:var(--bg);font-family:'DM Sans',sans-serif;color:var(--text)}
+
+#timer{position:fixed;top:18px;right:22px;z-index:9999;background:var(--forest);color:#fff;font-family:'Fira Code',monospace;font-size:12px;padding:6px 14px;border-radius:6px;transition:background .4s}
+#timer.red{background:#b91c1c}
+#counter{position:fixed;bottom:18px;left:22px;z-index:9999;font-family:'Fira Code',monospace;font-size:11px;color:var(--muted)}
+nav{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);z-index:9999;display:flex;gap:8px;align-items:center;background:rgba(255,255,255,0.9);backdrop-filter:blur(8px);padding:8px 16px;border-radius:8px;border:1px solid var(--border)}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--border);border:1.5px solid var(--muted);cursor:pointer;transition:all .3s}
+.dot.active{background:var(--forest);border-color:var(--forest);width:20px;border-radius:3px}
+
+#deck{width:100%;height:100%;position:relative}
+.slide{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:55px 75px;opacity:0;pointer-events:none;transition:opacity .45s ease}
+.slide.active{opacity:1;pointer-events:all}
+.center-col{display:flex;flex-direction:column;align-items:center;text-align:center}
+
+/* HERO */
+.badge{display:inline-flex;align-items:center;gap:8px;background:rgba(22,163,74,0.1);border:1px solid rgba(22,163,74,0.3);color:var(--forest);padding:5px 16px;border-radius:20px;font-size:11px;letter-spacing:2px;text-transform:uppercase;font-family:'Fira Code',monospace;margin-bottom:24px}
+.badge-dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse 1.8s infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.3;transform:scale(.5)}}
+.hero-title{font-size:clamp(40px,5vw,68px);font-weight:700;line-height:1.0;color:var(--forest);max-width:720px;text-align:center;margin-bottom:18px;letter-spacing:-1.5px}
+.hero-title .hl{color:var(--green)}
+.hero-desc{font-size:15px;color:var(--muted);max-width:560px;text-align:center;line-height:1.7;margin-bottom:44px;font-weight:400}
+.kpi-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;width:100%;max-width:800px}
+.kpi{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:18px 14px;text-align:center;box-shadow:0 2px 10px rgba(10,92,48,0.06)}
+.kpi-val{font-family:'Fira Code',monospace;font-size:24px;font-weight:500;color:var(--forest);line-height:1}
+.kpi-label{font-size:11px;color:var(--muted);margin-top:6px;letter-spacing:.5px}
+
+/* PROBLEM */
+.section-eyebrow{font-family:'Fira Code',monospace;font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--green);margin-bottom:8px}
+.section-title{font-size:clamp(30px,3.5vw,46px);font-weight:700;color:var(--forest);margin-bottom:10px;line-height:1.1;letter-spacing:-1px}
+.section-desc{font-size:14px;color:var(--muted);max-width:560px;line-height:1.7;margin-bottom:36px}
+.problem-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;width:100%;max-width:900px}
+.prob-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:22px 18px;border-left:3px solid var(--green)}
+.prob-icon{font-size:24px;margin-bottom:10px}
+.prob-title{font-size:14px;font-weight:600;color:var(--forest);margin-bottom:6px}
+.prob-text{font-size:12px;color:var(--muted);line-height:1.6}
+
+/* CANVAS */
+#s3{padding:38px 55px}
+.canvas-wrap{width:100%;max-width:980px;border-radius:12px;overflow:hidden;border:1px solid rgba(10,92,48,0.2);box-shadow:0 8px 40px rgba(10,92,48,0.15)}
+.canvas-header{background:#071410;padding:11px 18px;display:flex;align-items:center;gap:8px}
+.canvas-dot{width:10px;height:10px;border-radius:50%}
+.canvas-header span{font-family:'Fira Code',monospace;font-size:11px;color:#406050;margin-left:8px;letter-spacing:1px}
+.pulse-ind{width:7px;height:7px;border-radius:50%;background:#22c55e;margin-left:auto;animation:pulse 1.4s infinite;box-shadow:0 0 6px #22c55e}
+.canvas-body{background:#040e0a;background-image:radial-gradient(circle,#0d2a18 1px,transparent 1px);background-size:20px 20px;padding:22px 18px}
+.workflow-row{display:flex;align-items:center;gap:0;margin-bottom:10px}
+.stage-label{font-family:'Fira Code',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:#2a5040;width:80px;flex-shrink:0}
+.nodes-row{display:flex;align-items:center;gap:4px;flex:1;flex-wrap:wrap}
+.wf-node{position:relative;display:flex;flex-direction:column;align-items:center;cursor:pointer}
+.wf-node-box{background:#081810;border:1.5px solid #143828;border-radius:6px;padding:6px 10px;font-size:10px;color:#80c0a0;white-space:nowrap;display:flex;align-items:center;gap:5px;font-family:'Fira Code',monospace;transition:border-color .2s,background .2s}
+.wf-node-box:hover{border-color:#16a34a;background:#0c2018}
+.wf-node-box .ic{font-size:13px}
+.wf-arrow{color:#143828;font-size:14px;flex-shrink:0;padding:0 2px}
+.tooltip{display:none;position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);background:#071410;border:1px solid #143828;border-radius:6px;padding:10px 14px;font-size:10px;color:#60a080;width:190px;z-index:100;line-height:1.6;font-family:'DM Sans',sans-serif;box-shadow:0 4px 20px rgba(0,0,0,.6)}
+.wf-node:hover .tooltip{display:block}
+.n-pms .wf-node-box{border-color:#16a34a;background:#041008}
+.n-ai .wf-node-box{border-color:#6366f1;background:#080820}
+.n-wa .wf-node-box{border-color:#22c55e;background:#041008}
+.n-track .wf-node-box{border-color:#ca8a04;background:#100800}
+.n-dash .wf-node-box{border-color:#2050d8;background:#040820}
+
+/* SIMULATION */
+#s4{flex-direction:column;gap:12px}
+.sim-top{text-align:center}
+.sim-grid{display:grid;grid-template-columns:1fr 1fr;gap:28px;width:100%;max-width:940px;align-items:start}
+.sim-left h3{font-size:18px;font-weight:700;color:var(--forest);margin-bottom:4px}
+.sim-left p{font-size:12px;color:var(--muted);margin-bottom:16px}
+.pipe-steps{list-style:none;display:flex;flex-direction:column;gap:7px}
+.pipe-step{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:6px;border:1px solid var(--border);background:var(--card);transition:all .35s;opacity:.3}
+.pipe-step.active{opacity:1;border-color:var(--green);background:rgba(22,163,74,0.06)}
+.pipe-step.done{opacity:1;border-color:rgba(22,163,74,.3);background:rgba(22,163,74,0.04)}
+.pipe-num{width:20px;height:20px;border-radius:4px;background:var(--border);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:600;color:var(--muted);flex-shrink:0;font-family:'Fira Code',monospace;transition:all .35s}
+.pipe-step.active .pipe-num{background:var(--green);color:#fff}
+.pipe-step.done .pipe-num{background:var(--forest);color:#fff}
+.pipe-txt{font-size:12px;line-height:1.45;color:var(--text)}
+.pipe-txt strong{display:block;font-size:10px;color:var(--forest);font-weight:600;letter-spacing:.5px;text-transform:uppercase}
+
+/* room grid */
+.room-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.room-card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:10px 8px;text-align:center;transition:all .4s}
+.room-num{font-family:'Fira Code',monospace;font-size:14px;font-weight:500;color:var(--forest);margin-bottom:4px}
+.room-status{font-size:9px;padding:2px 8px;border-radius:10px;display:inline-block;font-weight:600;letter-spacing:.5px;text-transform:uppercase;transition:all .4s}
+.status-checkout{background:#fef3c7;color:#92400e;border:1px solid #fcd34d}
+.status-assigned{background:#dbeafe;color:#1e40af;border:1px solid #93c5fd}
+.status-cleaning{background:#fef9c3;color:#854d0e;border:1px solid #fde047}
+.status-inspect{background:#ede9fe;color:#5b21b6;border:1px solid #c4b5fd}
+.status-ready{background:#dcfce7;color:#14532d;border:1px solid #86efac}
+.room-hk{font-size:9px;color:var(--muted);margin-top:3px;min-height:12px}
+.wa-alert{opacity:0;transform:translateY(4px);transition:all .5s;background:#dcfce7;border:1px solid #86efac;border-radius:8px;padding:10px 12px;font-size:11px;color:#14532d;margin-top:10px;font-family:'Fira Code',monospace}
+.wa-alert.show{opacity:1;transform:translateY(0)}
+.sim-restart{margin-top:12px;padding:7px 18px;background:var(--forest);color:#fff;border:none;border-radius:6px;font-family:'Fira Code',monospace;font-size:11px;letter-spacing:1px;cursor:pointer;transition:background .2s}
+.sim-restart:hover{background:var(--green)}
+
+/* BEFORE/AFTER */
+.ba-wrap{display:grid;grid-template-columns:1fr 1fr;gap:20px;width:100%;max-width:840px}
+.ba-col{border-radius:var(--radius);padding:26px 22px}
+.ba-before{background:#fff;border:1.5px solid #fca5a5}
+.ba-after{background:var(--forest);color:#fff}
+.ba-col-title{font-family:'Fira Code',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;margin-bottom:16px;font-weight:500}
+.ba-before .ba-col-title{color:#ef4444}
+.ba-after .ba-col-title{color:var(--green-light)}
+.ba-list{list-style:none;display:flex;flex-direction:column;gap:11px}
+.ba-item{display:flex;gap:10px;font-size:13px;line-height:1.5;align-items:flex-start}
+.ba-before .ba-item{color:#7f1d1d}
+.ba-after .ba-item{color:#a8d8b8}
+.ba-after .ba-item strong{color:#fff}
+
+/* QUOTE */
+#s6{background:var(--forest)}
+.quote-wrap{max-width:700px;text-align:center}
+.q-eyebrow{font-family:'Fira Code',monospace;font-size:10px;letter-spacing:3px;color:rgba(187,247,208,.5);text-transform:uppercase;margin-bottom:20px}
+.q-text{font-size:clamp(22px,2.8vw,36px);font-weight:300;color:#e8f8ee;line-height:1.5;margin-bottom:20px}
+.q-text strong{color:var(--green-light);font-weight:700}
+.q-author{font-size:12px;letter-spacing:1.5px;color:rgba(255,255,255,.4);margin-bottom:28px;text-transform:uppercase;font-family:'Fira Code',monospace}
+.stack-line{font-family:'Fira Code',monospace;font-size:10px;letter-spacing:2px;color:rgba(187,247,208,.45);border:1px solid rgba(187,247,208,.2);padding:8px 20px;border-radius:4px;text-transform:uppercase}
+</style>
+</head>
+<body>
+<div id="timer">00:00</div>
+<div id="counter">Slide 1 of 6</div>
+<nav>
+  <div class="dot active" onclick="goTo(0)"></div>
+  <div class="dot" onclick="goTo(1)"></div>
+  <div class="dot" onclick="goTo(2)"></div>
+  <div class="dot" onclick="goTo(3)"></div>
+  <div class="dot" onclick="goTo(4)"></div>
+  <div class="dot" onclick="goTo(5)"></div>
+</nav>
+<div id="deck">
+
+<!-- SLIDE 1: HERO -->
+<section class="slide active center-col" id="s1">
+  <div class="badge"><span class="badge-dot"></span>n8n Hospitality Ops · 2025</div>
+  <h1 class="hero-title">Right Room.<br><span class="hl">Right Time.</span> Every Guest.</h1>
+  <p class="hero-desc">Housekeeping schedules auto-generated from PMS checkout data every morning — rooms prioritised by arrival time, staff assigned by zone, status tracked live, and front desk notified the moment each room is ready.</p>
+  <div class="kpi-strip">
+    <div class="kpi"><div class="kpi-val">0</div><div class="kpi-label">Late rooms</div></div>
+    <div class="kpi"><div class="kpi-val">Auto</div><div class="kpi-label">Staff assignment</div></div>
+    <div class="kpi"><div class="kpi-val">Live</div><div class="kpi-label">Room status</div></div>
+    <div class="kpi"><div class="kpi-val">+28%</div><div class="kpi-label">Team efficiency</div></div>
+  </div>
+</section>
+
+<!-- SLIDE 2: PROBLEM -->
+<section class="slide center-col" id="s2">
+  <div class="section-eyebrow">The Problem</div>
+  <h2 class="section-title">Rooms Not Ready. Guests Left Waiting.</h2>
+  <p class="section-desc">Without automation, housekeeping is a coordination nightmare — late rooms, misaligned priorities, no live status, and frustrated guests at check-in every single morning.</p>
+  <div class="problem-grid">
+    <div class="prob-card">
+      <div class="prob-icon">🗓️</div>
+      <div class="prob-title">Manual Scheduling</div>
+      <p class="prob-text">Housekeeper schedules made by hand each morning — often wrong, inconsistent, and not aligned with actual checkout times.</p>
+    </div>
+    <div class="prob-card">
+      <div class="prob-icon">📵</div>
+      <div class="prob-title">Zero Visibility</div>
+      <p class="prob-text">Front desk has no idea which rooms are clean until a housekeeper physically reports. Guests wait. Tension builds.</p>
+    </div>
+    <div class="prob-card">
+      <div class="prob-icon">🔀</div>
+      <div class="prob-title">Priority Mismatch</div>
+      <p class="prob-text">Staff clean random rooms, not the ones with early arrivals. VIP guests arrive to unready rooms daily.</p>
+    </div>
+    <div class="prob-card">
+      <div class="prob-icon">🧹</div>
+      <div class="prob-title">Inspection Gaps</div>
+      <p class="prob-text">No quality check process — rooms marked "clean" without supervisor inspection. Guest complaints spike.</p>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 3: WORKFLOW -->
+<section class="slide center-col" id="s3">
+  <div class="section-eyebrow" style="margin-bottom:12px">Automation Workflow</div>
+  <div class="canvas-wrap">
+    <div class="canvas-header">
+      <div class="canvas-dot" style="background:#ff5f57"></div>
+      <div class="canvas-dot" style="background:#febc2e"></div>
+      <div class="canvas-dot" style="background:#28c840"></div>
+      <span>Grand Continental · Housekeeping Pipeline · Monday 06:00</span>
+      <div class="pulse-ind"></div>
+    </div>
+    <div class="canvas-body">
+
+      <div class="workflow-row">
+        <div class="stage-label">INTAKE</div>
+        <div class="nodes-row">
+          <div class="wf-node n-pms">
+            <div class="wf-node-box"><span class="ic">🏨</span>PMS Checkout Data</div>
+            <div class="tooltip">Pulls all checkout records from the PMS at 6am. Returns room number, guest departure time, room type, and next arrival time — all in one API call.</div>
+          </div>
+          <span class="wf-arrow">→</span>
+          <div class="wf-node n-ai">
+            <div class="wf-node-box"><span class="ic">⚡</span>Priority Scheduler</div>
+            <div class="tooltip">Ranks all checkout rooms by next arrival time, VIP status, and room type. Suites and early arrivals go to the top. Algorithm processes 50 rooms in under 2 seconds.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="workflow-row">
+        <div class="stage-label">ASSIGN</div>
+        <div class="nodes-row">
+          <div class="wf-node n-track">
+            <div class="wf-node-box"><span class="ic">👷</span>Zone Staff Assignment</div>
+            <div class="tooltip">Assigns rooms to housekeepers based on floor zone, current workload, and seniority. Amaka gets floors 2-3, Ngozi gets floors 4-5 — balanced, no overlap.</div>
+          </div>
+          <span class="wf-arrow">→</span>
+          <div class="wf-node n-wa">
+            <div class="wf-node-box"><span class="ic">📲</span>WA Task to Housekeeper</div>
+            <div class="tooltip">WhatsApp message sent to each housekeeper: room list in priority order, special notes (VIP, extra linen, maintenance issues). Ticked off as they complete each room.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="workflow-row">
+        <div class="stage-label">TRACK</div>
+        <div class="nodes-row">
+          <div class="wf-node n-track">
+            <div class="wf-node-box"><span class="ic">📊</span>Status Update Tracker</div>
+            <div class="tooltip">Housekeeper replies "done" to WhatsApp — room status updates to "Inspection Due" in real-time Google Sheets dashboard. Supervisor notified immediately.</div>
+          </div>
+          <span class="wf-arrow">→</span>
+          <div class="wf-node n-ai">
+            <div class="wf-node-box"><span class="ic">🔍</span>Inspection Prompt</div>
+            <div class="tooltip">Supervisor receives checklist prompt via WhatsApp: linens, bathroom, minibar, AC. Marks pass/fail. Only passing rooms advance to "Ready" status.</div>
+          </div>
+          <span class="wf-arrow">→</span>
+          <div class="wf-node n-wa">
+            <div class="wf-node-box"><span class="ic">🔔</span>Front Desk Alert</div>
+            <div class="tooltip">Instant WhatsApp to front desk: "Room 214 is ready for check-in." Triggered the moment inspection passes. Average alert time: 8 seconds after approval.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="workflow-row">
+        <div class="stage-label">REPORT</div>
+        <div class="nodes-row">
+          <div class="wf-node n-dash">
+            <div class="wf-node-box"><span class="ic">📈</span>Occupancy Dashboard</div>
+            <div class="tooltip">Live Google Sheets dashboard shows all room statuses at a glance — green (ready), yellow (cleaning), red (blocked). Management sees full hotel status from any device.</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 4: SIMULATION -->
+<section class="slide" id="s4" style="flex-direction:column;gap:12px">
+  <div class="sim-top">
+    <div class="section-eyebrow">Live Demo</div>
+    <h2 class="section-title" style="font-size:26px;margin-bottom:0">Monday Morning · Grand Continental Hotel</h2>
+  </div>
+  <div class="sim-grid">
+    <div class="sim-left">
+      <h3>Pipeline Progress</h3>
+      <p>8 rooms moving from checkout to ready</p>
+      <ul class="pipe-steps" id="pipeSteps">
+        <li class="pipe-step" id="ps1">
+          <div class="pipe-num">1</div>
+          <div class="pipe-txt"><strong>PMS data pulled</strong>8 checkout rooms loaded, sorted by arrival time</div>
+        </li>
+        <li class="pipe-step" id="ps2">
+          <div class="pipe-num">2</div>
+          <div class="pipe-txt"><strong>Staff assigned</strong>Amaka → Floors 2-3 · Ngozi → Floors 4-5</div>
+        </li>
+        <li class="pipe-step" id="ps3">
+          <div class="pipe-num">3</div>
+          <div class="pipe-txt"><strong>WhatsApp tasks sent</strong>Each housekeeper receives priority room list</div>
+        </li>
+        <li class="pipe-step" id="ps4">
+          <div class="pipe-num">4</div>
+          <div class="pipe-txt"><strong>Rooms cleaning → inspected</strong>Supervisor inspects each room, marks pass/fail</div>
+        </li>
+        <li class="pipe-step" id="ps5">
+          <div class="pipe-num">5</div>
+          <div class="pipe-txt"><strong>Front desk alerts fired</strong>"Room 214 ready" · "Room 308 ready" · 6 more…</div>
+        </li>
+      </ul>
+      <button class="sim-restart" onclick="runSim()">↺ Replay</button>
+    </div>
+    <div class="sim-right">
+      <div class="room-grid" id="roomGrid">
+        <div class="room-card" id="r101"><div class="room-num">101</div><div class="room-status status-checkout" id="r101s">Checkout Due</div><div class="room-hk" id="r101h"></div></div>
+        <div class="room-card" id="r102"><div class="room-num">205</div><div class="room-status status-checkout" id="r102s">Checkout Due</div><div class="room-hk" id="r102h"></div></div>
+        <div class="room-card" id="r103"><div class="room-num">214</div><div class="room-status status-checkout" id="r103s">Checkout Due</div><div class="room-hk" id="r103h"></div></div>
+        <div class="room-card" id="r104"><div class="room-num">308</div><div class="room-status status-checkout" id="r104s">Checkout Due</div><div class="room-hk" id="r104h"></div></div>
+        <div class="room-card" id="r105"><div class="room-num">312</div><div class="room-status status-checkout" id="r105s">Checkout Due</div><div class="room-hk" id="r105h"></div></div>
+        <div class="room-card" id="r106"><div class="room-num">401</div><div class="room-status status-checkout" id="r106s">Checkout Due</div><div class="room-hk" id="r106h"></div></div>
+        <div class="room-card" id="r107"><div class="room-num">415</div><div class="room-status status-checkout" id="r107s">Checkout Due</div><div class="room-hk" id="r107h"></div></div>
+        <div class="room-card" id="r108"><div class="room-num">502</div><div class="room-status status-checkout" id="r108s">Checkout Due</div><div class="room-hk" id="r108h"></div></div>
+      </div>
+      <div class="wa-alert" id="waAlert">📲 WhatsApp → Front Desk: "Room 214 is ready for check-in ✓"</div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 5: BEFORE/AFTER -->
+<section class="slide center-col" id="s5">
+  <div class="section-eyebrow" style="margin-bottom:12px">Impact Comparison</div>
+  <h2 class="section-title" style="margin-bottom:24px;font-size:32px">Before & After Automation</h2>
+  <div class="ba-wrap">
+    <div class="ba-col ba-before">
+      <div class="ba-col-title">✕ Before n8n</div>
+      <ul class="ba-list">
+        <li class="ba-item"><span>📋</span><span>Housekeeping list written by hand each morning — inconsistent priorities</span></li>
+        <li class="ba-item"><span>📞</span><span>Front desk calls each floor to check if rooms are ready — 30-min delay</span></li>
+        <li class="ba-item"><span>🚫</span><span>VIP guests arrive to unready rooms — embarrassing scenes daily</span></li>
+        <li class="ba-item"><span>👁️</span><span>No inspection workflow — dirty rooms occasionally released as "ready"</span></li>
+        <li class="ba-item"><span>📉</span><span>No data on cleaning times, efficiency, or recurring problem rooms</span></li>
+      </ul>
+    </div>
+    <div class="ba-col ba-after">
+      <div class="ba-col-title">✓ After n8n</div>
+      <ul class="ba-list">
+        <li class="ba-item"><span>⚡</span><span><strong>Auto-schedule</strong> generated at 6am from PMS — zero manual work</span></li>
+        <li class="ba-item"><span>📲</span><span><strong>Instant WhatsApp alert</strong> to front desk the moment each room passes inspection</span></li>
+        <li class="ba-item"><span>🎯</span><span><strong>Zero late rooms</strong> — priority algorithm ensures early arrivals are first</span></li>
+        <li class="ba-item"><span>✅</span><span><strong>Inspection required</strong> before any room is marked ready — quality enforced</span></li>
+        <li class="ba-item"><span>📊</span><span><strong>Live dashboard</strong> — management sees all room statuses in real-time, anywhere</span></li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 6: QUOTE -->
+<section class="slide center-col" id="s6">
+  <div class="quote-wrap">
+    <div class="q-eyebrow">Operations Excellence · Automated</div>
+    <p class="q-text">Check-in queues disappeared overnight. Every room is ready <strong>before the guest arrives.</strong> The morning chaos is completely gone.</p>
+    <div class="q-author">Housekeeping Manager · Eko Hotels & Suites, Victoria Island</div>
+    <div class="stack-line">n8n · GPT-4o · Hotel PMS API · WhatsApp API · Slack · Google Sheets</div>
+  </div>
+</section>
+
+</div>
+<script>
+let seconds = 0;
+setInterval(() => {
+  seconds++;
+  const m = String(Math.floor(seconds/60)).padStart(2,'0');
+  const s = String(seconds%60).padStart(2,'0');
+  const el = document.getElementById('timer');
+  el.textContent = m+':'+s;
+  if(seconds >= 840) el.classList.add('red');
+}, 1000);
+
+const slides = document.querySelectorAll('.slide');
+const dots = document.querySelectorAll('.dot');
+let current = 0;
+function goTo(n) {
+  slides[current].classList.remove('active');
+  dots[current].classList.remove('active');
+  current = n;
+  slides[current].classList.add('active');
+  dots[current].classList.add('active');
+  document.getElementById('counter').textContent = `Slide ${current+1} of ${slides.length}`;
+  if(current === 3) runSim();
+}
+document.addEventListener('keydown', e => {
+  if(e.key === 'ArrowRight' && current < slides.length-1) goTo(current+1);
+  if(e.key === 'ArrowLeft' && current > 0) goTo(current-1);
+});
+
+// Room simulation data
+const rooms = [
+  {sid:'r101s', hid:'r101h', hk:'Amaka'},
+  {sid:'r102s', hid:'r102h', hk:'Amaka'},
+  {sid:'r103s', hid:'r103h', hk:'Amaka'},
+  {sid:'r104s', hid:'r104h', hk:'Ngozi'},
+  {sid:'r105s', hid:'r105h', hk:'Ngozi'},
+  {sid:'r106s', hid:'r106h', hk:'Ngozi'},
+  {sid:'r107s', hid:'r107h', hk:'Ngozi'},
+  {sid:'r108s', hid:'r108h', hk:'Amaka'}
+];
+
+const stages = [
+  {cls:'status-assigned', txt:'Assigned'},
+  {cls:'status-cleaning', txt:'Cleaning…'},
+  {cls:'status-inspect', txt:'Inspecting'},
+  {cls:'status-ready', txt:'Ready ✓'}
+];
+
+let simRunning = false;
+function runSim() {
+  if(simRunning) return;
+  simRunning = true;
+  // reset
+  ['ps1','ps2','ps3','ps4','ps5'].forEach(id => {
+    const el = document.getElementById(id);
+    if(el) el.classList.remove('active','done');
+  });
+  rooms.forEach(r => {
+    const s = document.getElementById(r.sid);
+    const h = document.getElementById(r.hid);
+    if(s) { s.className='room-status status-checkout'; s.textContent='Checkout Due'; }
+    if(h) h.textContent='';
+  });
+  document.getElementById('waAlert').classList.remove('show');
+
+  const pipeIds = ['ps1','ps2','ps3','ps4','ps5'];
+  let pi = 0;
+
+  function advPipe() {
+    if(pi > 0) {
+      const prev = document.getElementById(pipeIds[pi-1]);
+      if(prev) { prev.classList.remove('active'); prev.classList.add('done'); }
+    }
+    if(pi < pipeIds.length) {
+      const cur = document.getElementById(pipeIds[pi]);
+      if(cur) cur.classList.add('active');
+      pi++;
+    }
+  }
+
+  // Step 1: pipe
+  advPipe();
+  setTimeout(() => {
+    // Step 2: assign
+    advPipe();
+    rooms.forEach(r => {
+      const s = document.getElementById(r.sid);
+      const h = document.getElementById(r.hid);
+      if(s) { s.className='room-status status-assigned'; s.textContent='Assigned'; }
+      if(h) h.textContent=r.hk;
+    });
+  }, 900);
+
+  setTimeout(() => {
+    // Step 3: WA task sent
+    advPipe();
+  }, 1700);
+
+  // Step 4: rooms move through stages with stagger
+  setTimeout(() => {
+    advPipe();
+    rooms.forEach((r, idx) => {
+      setTimeout(() => {
+        const s = document.getElementById(r.sid);
+        if(s) { s.className='room-status status-cleaning'; s.textContent='Cleaning…'; }
+      }, idx * 250);
+    });
+  }, 2400);
+
+  setTimeout(() => {
+    rooms.forEach((r, idx) => {
+      setTimeout(() => {
+        const s = document.getElementById(r.sid);
+        if(s) { s.className='room-status status-inspect'; s.textContent='Inspecting'; }
+      }, idx * 280);
+    });
+  }, 4200);
+
+  setTimeout(() => {
+    advPipe();
+    rooms.forEach((r, idx) => {
+      setTimeout(() => {
+        const s = document.getElementById(r.sid);
+        if(s) { s.className='room-status status-ready'; s.textContent='Ready ✓'; }
+      }, idx * 300);
+    });
+    setTimeout(() => {
+      document.getElementById('waAlert').classList.add('show');
+      simRunning = false;
+    }, rooms.length * 300 + 400);
+  }, 6000);
+}
+</script>
+</body>
+</html>
