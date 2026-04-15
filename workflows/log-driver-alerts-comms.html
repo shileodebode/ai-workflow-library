@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Logistics — Driver Alerts & Communication Automation</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f9f8f2;--surface:#ffffff;--surface2:#f4f2e4;--border:#e4e0c8;
+  --ink:#14120a;--char:#2a2818;--yellow:#d4a010;--yellow2:#b88808;
+  --lime:#8ac810;--cream:#fffce8;--green:#1a6830;--red:#c02828;
+  --amber:#c07010;--blue:#1a3a78;--text:#20180a;--muted:#6a6030;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;overflow-x:hidden;}
+.top-bar{position:fixed;top:0;left:0;right:0;height:3px;background:var(--char);z-index:200;}
+.top-bar::after{content:'';position:absolute;left:0;top:0;height:100%;width:120px;background:var(--yellow);}
+nav{position:fixed;top:3px;left:0;right:0;z-index:100;background:rgba(249,248,242,0.97);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 2.5rem;height:54px;}
+.nav-brand{font-family:'JetBrains Mono',monospace;font-size:0.7rem;color:var(--yellow2);letter-spacing:0.06em;}
+.nav-dots{display:flex;gap:0.3rem;}
+.nav-dot{width:7px;height:7px;border-radius:2px;background:var(--border);cursor:pointer;transition:all 0.2s;}
+.nav-dot.active{background:var(--yellow);transform:scale(1.4);}
+.nav-dot.done{background:var(--green);}
+.timer{font-size:0.67rem;color:var(--yellow2);background:rgba(212,160,16,0.08);border:1px solid rgba(212,160,16,0.2);padding:0.2rem 0.75rem;border-radius:4px;font-family:'JetBrains Mono',monospace;}
+.slide{min-height:100vh;padding:78px 0 50px;display:none;flex-direction:column;align-items:center;justify-content:center;position:relative;overflow:hidden;}
+.slide.active{display:flex;}
+.slide-inner{width:100%;max-width:1140px;padding:0 2.5rem;position:relative;z-index:2;}
+.hero-lines{position:absolute;inset:0;background-image:repeating-linear-gradient(90deg,transparent,transparent 100px,rgba(212,160,16,0.03) 100px,rgba(212,160,16,0.03) 101px);pointer-events:none;}
+.hero-badge{display:inline-flex;align-items:center;gap:0.5rem;background:var(--cream);border:1px solid rgba(212,160,16,0.25);color:var(--yellow2);font-size:0.67rem;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;padding:0.28rem 0.9rem;border-radius:4px;margin-bottom:1.5rem;font-family:'JetBrains Mono',monospace;}
+h1.hero-title{font-family:'Outfit',sans-serif;font-size:clamp(2.8rem,5.5vw,4.8rem);font-weight:800;line-height:1.0;letter-spacing:-0.03em;color:var(--ink);margin-bottom:1.5rem;}
+h1.hero-title span{color:var(--yellow);}
+.hero-desc{font-size:0.97rem;color:var(--muted);max-width:510px;line-height:1.78;margin-bottom:2.5rem;font-weight:300;}
+.kpi-strip{display:flex;gap:1px;background:var(--border);border-radius:8px;overflow:hidden;max-width:640px;box-shadow:0 2px 10px rgba(212,160,16,0.07);}
+.kpi{background:white;padding:1.1rem 1.4rem;flex:1;}
+.kpi-val{font-family:'Outfit',sans-serif;font-size:1.85rem;font-weight:800;color:var(--yellow2);line-height:1;}
+.kpi-lbl{font-size:0.59rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);margin-top:0.2rem;font-family:'JetBrains Mono',monospace;}
+.sec-tag{font-size:0.61rem;letter-spacing:0.22em;text-transform:uppercase;color:var(--yellow2);margin-bottom:0.4rem;font-weight:600;font-family:'JetBrains Mono',monospace;display:flex;align-items:center;gap:0.4rem;}
+.sec-tag::before{content:'//';font-size:0.75rem;}
+.sec-title{font-family:'Outfit',sans-serif;font-size:clamp(1.9rem,3.8vw,3rem);font-weight:800;line-height:1.05;margin-bottom:0.5rem;color:var(--ink);letter-spacing:-0.02em;}
+.sec-title span{color:var(--yellow);}
+.sec-desc{font-size:0.87rem;color:var(--muted);margin-bottom:1.85rem;max-width:540px;line-height:1.78;font-weight:300;}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;}
+.three-col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;}
+.lr{display:grid;grid-template-columns:1.1fr 1fr;gap:2rem;align-items:start;}
+.lr-rev{display:grid;grid-template-columns:1fr 1.15fr;gap:2rem;align-items:start;}
+.card{background:white;border:1px solid var(--border);border-radius:8px;padding:1.25rem;transition:all 0.2s;box-shadow:0 1px 4px rgba(0,0,0,0.04);}
+.card:hover{border-color:var(--yellow);transform:translateY(-2px);box-shadow:0 6px 18px rgba(212,160,16,0.1);}
+.card-icon{font-size:1.4rem;margin-bottom:0.5rem;}
+.card-title{font-family:'Outfit',sans-serif;font-size:0.95rem;font-weight:700;margin-bottom:0.3rem;color:var(--ink);}
+.card-desc{font-size:0.72rem;color:var(--muted);line-height:1.65;}
+.panel{background:white;border:1px solid var(--border);border-radius:8px;padding:1.4rem;}
+.panel h3{font-family:'Outfit',sans-serif;font-size:0.88rem;font-weight:700;color:var(--char);margin-bottom:0.9rem;display:flex;align-items:center;gap:0.5rem;}
+.panel h3::before{content:'→';color:var(--yellow);}
+.steps{list-style:none;}
+.steps li{display:flex;gap:0.75rem;padding:0.45rem 0;border-bottom:1px solid var(--border);font-size:0.76rem;line-height:1.6;}
+.steps li:last-child{border-bottom:none;}
+.step-n{width:22px;height:22px;border-radius:4px;background:var(--char);color:white;font-size:0.62rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:'JetBrains Mono',monospace;}
+/* Workflow */
+.wf-canvas{background:var(--char);border-radius:10px;padding:2rem;position:relative;overflow:hidden;}
+.wf-stripe{position:absolute;inset:0;background-image:repeating-linear-gradient(45deg,transparent,transparent 20px,rgba(212,160,16,0.04) 20px,rgba(212,160,16,0.04) 21px);}
+.wf-label{position:absolute;top:0.75rem;left:1rem;font-size:0.57rem;letter-spacing:0.18em;text-transform:uppercase;color:rgba(255,255,255,0.3);display:flex;align-items:center;gap:0.4rem;z-index:3;font-family:'JetBrains Mono',monospace;}
+.wf-label::before{content:'';width:7px;height:7px;border-radius:2px;background:var(--yellow);box-shadow:0 0 8px var(--yellow);animation:ypulse 2s infinite;}
+@keyframes ypulse{0%,100%{opacity:1}50%{opacity:0.2}}
+.wf-nodes{display:flex;align-items:flex-start;gap:0;padding-top:1.5rem;position:relative;z-index:2;flex-wrap:wrap;}
+.wf-stage{display:flex;flex-direction:column;align-items:center;}
+.wf-slbl{font-size:0.51rem;letter-spacing:0.14em;text-transform:uppercase;color:rgba(255,255,255,0.28);margin-bottom:0.3rem;font-family:'JetBrains Mono',monospace;}
+.wf-node{display:flex;flex-direction:column;align-items:center;gap:0.3rem;cursor:pointer;position:relative;}
+.wf-box{width:58px;height:58px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.25rem;border:2px solid transparent;transition:all 0.3s;}
+.wf-node:hover .wf-box{transform:scale(1.1);box-shadow:0 0 20px rgba(212,160,16,0.4);}
+.wf-nlbl{font-size:0.52rem;text-align:center;color:rgba(255,255,255,0.42);max-width:66px;line-height:1.3;font-family:'JetBrains Mono',monospace;}
+.wf-arr{color:rgba(255,255,255,0.18);padding:0 0.2rem;font-size:0.85rem;align-self:flex-start;margin-top:19px;flex-shrink:0;}
+.ttw{position:relative;}
+.tti{position:absolute;bottom:calc(100%+8px);left:50%;transform:translateX(-50%);background:white;border:1px solid var(--border);border-radius:6px;padding:0.6rem 0.9rem;font-size:0.67rem;opacity:0;pointer-events:none;transition:opacity 0.2s;z-index:50;color:var(--ink);line-height:1.5;max-width:200px;white-space:normal;text-align:left;box-shadow:0 4px 12px rgba(0,0,0,0.1);}
+.ttw:hover .tti{opacity:1;}
+/* Driver alert */
+.driver-alert{background:white;border:1px solid var(--border);border-radius:8px;padding:0.75rem 1rem;margin-bottom:0.45rem;display:flex;gap:0.75rem;align-items:flex-start;transition:all 0.3s;font-size:0.72rem;}
+.driver-alert.urgent{border-color:var(--red);background:rgba(192,40,40,0.03);}
+.driver-alert.warning{border-color:var(--amber);background:rgba(192,112,16,0.03);}
+.driver-alert.info{border-color:var(--yellow);background:rgba(212,160,16,0.03);}
+.driver-alert.resolved{border-color:var(--green);background:rgba(26,104,48,0.03);}
+.da-icon{font-size:1.1rem;flex-shrink:0;}
+.da-title{font-weight:600;color:var(--ink);}
+.da-desc{font-size:0.63rem;color:var(--muted);margin-top:0.1rem;}
+.da-badge{margin-left:auto;font-size:0.58rem;padding:0.1rem 0.42rem;border-radius:4px;font-weight:600;font-family:'JetBrains Mono',monospace;white-space:nowrap;}
+.dab-urgent{background:rgba(192,40,40,0.1);color:var(--red);border:1px solid rgba(192,40,40,0.2);}
+.dab-warning{background:rgba(192,112,16,0.1);color:var(--amber);border:1px solid rgba(192,112,16,0.2);}
+.dab-info{background:rgba(212,160,16,0.1);color:var(--yellow2);border:1px solid rgba(212,160,16,0.2);}
+.dab-resolved{background:rgba(26,104,48,0.1);color:var(--green);border:1px solid rgba(26,104,48,0.2);}
+.dab-new{background:rgba(106,96,48,0.1);color:var(--muted);border:1px solid rgba(106,96,48,0.18);}
+/* Driver card */
+.driver-card{background:white;border:1px solid var(--border);border-radius:8px;padding:0.85rem 1rem;display:flex;align-items:center;gap:0.85rem;margin-bottom:0.45rem;transition:all 0.3s;}
+.driver-card.active-d{border-color:var(--yellow);}
+.dc-avatar{width:36px;height:36px;border-radius:50%;background:rgba(212,160,16,0.12);display:flex;align-items:center;justify-content:center;font-size:0.9rem;font-weight:700;flex-shrink:0;color:var(--yellow2);}
+.dc-name{font-weight:600;font-size:0.78rem;color:var(--ink);}
+.dc-status{font-size:0.63rem;color:var(--muted);}
+.dc-load{margin-left:auto;text-align:right;}
+.dc-eta{font-family:'JetBrains Mono',monospace;font-size:0.65rem;color:var(--char);}
+.dc-badge{font-size:0.58rem;padding:0.08rem 0.38rem;border-radius:4px;font-weight:600;font-family:'JetBrains Mono',monospace;margin-top:0.15rem;display:inline-block;}
+.dcb-on-route{background:rgba(212,160,16,0.1);color:var(--yellow2);border:1px solid rgba(212,160,16,0.2);}
+.dcb-delivered{background:rgba(26,104,48,0.1);color:var(--green);border:1px solid rgba(26,104,48,0.2);}
+.dcb-standby{background:rgba(106,96,48,0.1);color:var(--muted);border:1px solid rgba(106,96,48,0.18);}
+/* PS list */
+.ps-list{list-style:none;}
+.ps-list li{display:flex;gap:0.75rem;padding:0.45rem 0;border-bottom:1px solid var(--border);font-size:0.74rem;line-height:1.5;transition:all 0.3s;}
+.ps-list li:last-child{border-bottom:none;}
+.ps-num{width:20px;height:20px;border-radius:4px;background:var(--border);color:white;font-size:0.6rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;transition:background 0.3s;font-family:'JetBrains Mono',monospace;}
+.info-yellow{padding:0.75rem 1rem;border-radius:6px;font-size:0.77rem;line-height:1.6;background:rgba(212,160,16,0.06);border:1px solid rgba(212,160,16,0.2);color:var(--yellow2);}
+.info-green{padding:0.75rem 1rem;border-radius:6px;font-size:0.77rem;line-height:1.6;background:rgba(26,104,48,0.06);border:1px solid rgba(26,104,48,0.15);color:var(--green);}
+.ba-bad{padding:0.6rem 0.9rem;border-radius:6px;font-size:0.76rem;line-height:1.5;background:rgba(192,40,40,0.04);border:1px solid rgba(192,40,40,0.12);}
+.ba-good{padding:0.6rem 0.9rem;border-radius:6px;font-size:0.76rem;line-height:1.5;background:rgba(26,104,48,0.05);border:1px solid rgba(26,104,48,0.14);}
+.quote-block{background:var(--char);border-radius:10px;padding:1.75rem 2rem;color:white;border-left:4px solid var(--yellow);}
+.quote-text{font-size:1.05rem;line-height:1.78;margin-bottom:0.75rem;font-weight:300;}
+.quote-text strong{color:var(--lime);}
+.slide-counter{position:fixed;bottom:1.5rem;left:2rem;font-size:0.62rem;color:var(--muted);z-index:100;font-family:'JetBrains Mono',monospace;}
+.slide-nav{position:fixed;bottom:1.5rem;right:2rem;display:flex;gap:0.5rem;z-index:100;}
+.nav-btn{background:white;border:1px solid var(--border);color:var(--text);padding:0.55rem 1.2rem;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:0.7rem;cursor:pointer;transition:all 0.2s;}
+.nav-btn:hover{border-color:var(--yellow);color:var(--yellow2);}
+.nav-btn.primary{background:var(--char);border-color:var(--char);color:white;}
+.nav-btn.primary:hover{background:var(--ink);}
+.run-btn{background:var(--char);color:white;border:none;border-radius:6px;padding:0.7rem 1.5rem;font-family:'JetBrains Mono',monospace;font-size:0.72rem;cursor:pointer;transition:all 0.2s;width:100%;text-align:center;border-left:3px solid var(--yellow);}
+.run-btn:hover{background:var(--ink);}
+.animate-in{opacity:0;animation:fadeUp 0.5s ease-out forwards;}
+.slide.active .animate-in:nth-child(1){animation-delay:0.05s;}
+.slide.active .animate-in:nth-child(2){animation-delay:0.15s;}
+.slide.active .animate-in:nth-child(3){animation-delay:0.25s;}
+.slide.active .animate-in:nth-child(4){animation-delay:0.35s;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+</style>
+</head>
+<body>
+<div class="top-bar"></div>
+<nav>
+  <div class="nav-brand">LOGISTICS · Driver Alerts & Comms</div>
+  <div class="nav-dots" id="navDots"></div>
+  <div class="timer" id="timerBadge">⏱ 00:00</div>
+</nav>
+
+<!-- SLIDE 1: HERO -->
+<section class="slide active" id="slide-0">
+  <div class="hero-lines"></div>
+  <div class="slide-inner">
+    <div class="animate-in"><div class="hero-badge">🚛 n8n AI Automation · Logistics & Supply Chain</div></div>
+    <div class="animate-in"><h1 class="hero-title">Drivers Briefed.<br><span>Ops Informed.</span><br>Nothing Missed.</h1></div>
+    <div class="animate-in"><p class="hero-desc">Automated driver briefings, route updates, safety alerts, and check-in prompts via WhatsApp — keeping drivers informed and operations updated without a single manual radio call.</p></div>
+    <div class="animate-in">
+      <div class="kpi-strip">
+        <div class="kpi"><div class="kpi-val">Auto</div><div class="kpi-lbl">Driver Briefings</div></div>
+        <div class="kpi"><div class="kpi-val">Live</div><div class="kpi-lbl">Check-in Monitoring</div></div>
+        <div class="kpi"><div class="kpi-val">0</div><div class="kpi-lbl">Missed Check-ins</div></div>
+        <div class="kpi"><div class="kpi-val">24/7</div><div class="kpi-lbl">Alert Coverage</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 2: PROBLEM -->
+<section class="slide" id="slide-1">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">01 — The Problem</div><div class="sec-title">Driver Comms That<br><span>Fail Everyone</span></div><p class="sec-desc">The gap between what the operations team knows and what drivers know is where accidents happen, deliveries are missed, and cargo gets lost. Manual radio and phone calls don't scale.</p></div>
+    <div class="animate-in two-col" style="margin-bottom:1.5rem">
+      <div class="card"><div class="card-icon">📻</div><div class="card-title">Radio & Phone Chaos</div><div class="card-desc">Operations calls every driver individually to brief them on routes, check their status, or relay customer changes. 20 drivers × 3 calls each = 60 calls a day. Half go unanswered. Nothing is documented.</div></div>
+      <div class="card"><div class="card-icon">👻</div><div class="card-title">Silent Drivers</div><div class="card-desc">Driver broke down 3 hours ago. Didn't call in. Operations finds out when the customer calls asking where their goods are. By then, a replacement driver could have been dispatched 2 hours ago.</div></div>
+      <div class="card"><div class="card-icon">🗺️</div><div class="card-title">No Route Update System</div><div class="card-desc">Road closed on A1 Expressway. Operations knows. Driver doesn't. Spends 45 minutes in a jam before calling in. A proactive WhatsApp update would have had him on the alternative route before he reached the junction.</div></div>
+      <div class="card"><div class="card-icon">📋</div><div class="card-title">Undocumented Incidents</div><div class="card-desc">Minor accident. Driver notes it verbally on return. Nothing documented. Insurance claim later. Operations has no contemporaneous record of the incident. Claim disputed. Revenue lost.</div></div>
+    </div>
+    <div class="animate-in"><div class="info-yellow">✅ n8n sends every driver their briefing at dispatch, monitors check-ins automatically, pushes route alerts in real time, and captures incident reports via WhatsApp — fully documented.</div></div>
+  </div>
+</section>
+
+<!-- SLIDE 3: WORKFLOW -->
+<section class="slide" id="slide-2">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">02 — The Blueprint</div><div class="sec-title">n8n Driver Comms<br><span>Automation</span></div><p class="sec-desc">From morning briefing to end-of-day debrief — every driver communication automated, documented, and monitored. Operations stays informed without a single manual call.</p></div>
+    <div class="animate-in wf-canvas">
+      <div class="wf-stripe"></div>
+      <div class="wf-label">n8n canvas — driver communication pipeline</div>
+      <div class="wf-nodes">
+        <div class="wf-stage"><div class="wf-slbl">Dispatch</div>
+          <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a1a0a,#78350f);color:#fde68a;border-color:#78350f;">📋</div><div class="wf-nlbl">Morning<br>Briefing</div><div class="tti">At 5:30am, each driver receives their WhatsApp briefing: assigned truck, load details, delivery route, customer contact, special instructions, and fuel card pin.</div></div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-stage"><div class="wf-slbl">Monitor</div>
+          <div style="display:flex;flex-direction:column;gap:0.35rem">
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,0a1a2a,#1d4ed8);color:#93c5fd;border-color:#1d4ed8;background:linear-gradient(135deg,#0a1a2a,#1d4ed8)">⏰</div><div class="wf-nlbl">Check-in<br>Prompts</div><div class="tti">Automated WhatsApp prompts every 2 hours: "Reply OK to confirm status." No reply in 30 minutes: operations alerted. Driver unreachable for 1 hour: incident protocol triggered.</div></div>
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#0a1a1a,#065f46);color:#6ee7b7;border-color:#065f46;">📍</div><div class="wf-nlbl">GPS<br>Watch</div><div class="tti">Vehicle GPS monitored passively. If vehicle stationary for >30 minutes at non-designated stop: driver receives automated welfare check message.</div></div>
+          </div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-stage"><div class="wf-slbl">Alert</div>
+          <div style="display:flex;flex-direction:column;gap:0.35rem">
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a0a0a,#7f1d1d);color:#fca5a5;border-color:#7f1d1d;">🚨</div><div class="wf-nlbl">Route<br>Alerts</div><div class="tti">Traffic/road closure data from Google Maps monitored. If driver's route has incident: proactive WhatsApp with alternative route sent before driver reaches affected point.</div></div>
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a0a1a,#7c3aed);color:#d8b4fe;border-color:#7c3aed;">⛽</div><div class="wf-nlbl">Fuel &<br>Rest Alert</div><div class="tti">Estimated fuel range vs remaining journey calculated. Fuel stop reminder sent with nearest station and expected travel hours. Rest break mandated after 4.5 hours driving (safety compliance).</div></div>
+          </div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-stage"><div class="wf-slbl">Report</div>
+          <div style="display:flex;flex-direction:column;gap:0.35rem">
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a1a0a,#78350f);color:#fde68a;border-color:#78350f;">📸</div><div class="wf-nlbl">Incident<br>Report</div><div class="tti">Driver sends incident photos and description via WhatsApp. n8n creates structured incident report with: time, location (GPS), driver, vehicle, description, photos. Stored immediately.</div></div>
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#0a1a2a,#0369a1);color:#7dd3fc;border-color:#0369a1;">📊</div><div class="wf-nlbl">End-of-Day<br>Debrief</div><div class="tti">On last delivery confirmation, driver receives debrief prompt. Submits: km driven, fuel used, any issues. Feeds daily operations report automatically.</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 4: SIM 1 — DRIVER ALERTS -->
+<section class="slide" id="slide-3">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">03 — Simulation 1</div><div class="sec-title">Live: Driver Alert<br><span>Board — Today</span></div><p class="sec-desc">Four live alerts across the driver network — route warning, missed check-in, breakdown report, and a completed delivery. Watch n8n process and respond to each automatically.</p></div>
+    <div class="animate-in lr">
+      <div style="display:flex;flex-direction:column;gap:1rem">
+        <div class="panel">
+          <h3>Alert Pipeline</h3>
+          <ul class="ps-list" id="alertSteps">
+            <li id="al1" style="opacity:0.3"><div class="ps-num">1</div><div>4 alerts detected across driver network</div></li>
+            <li id="al2" style="opacity:0.3"><div class="ps-num">2</div><div>Road closure — route alert WhatsApp sent to Tunde</div></li>
+            <li id="al3" style="opacity:0.3"><div class="ps-num">3</div><div>Missed check-in — Fatima welfare check triggered</div></li>
+            <li id="al4" style="opacity:0.3"><div class="ps-num">4</div><div>Breakdown reported — recovery team + ops notified</div></li>
+            <li id="al5" style="opacity:0.3"><div class="ps-num">5</div><div>Delivery confirmed — POD captured + customer notified ✅</div></li>
+          </ul>
+        </div>
+        <div class="info-yellow">📊 Operations managers using automated driver comms report a 70% reduction in outbound calls and 100% check-in compliance — because the system follows up automatically, not manually.</div>
+        <button class="run-btn" id="alertBtn" onclick="runAlertSim()">▶ PROCESS ALL ALERTS</button>
+      </div>
+      <div id="alertBoard" style="display:flex;flex-direction:column;gap:0">
+        <div class="driver-alert" id="da1"><div class="da-icon">🗺️</div><div><div class="da-title">Route Alert — Tunde Lawal</div><div class="da-desc">Sagamu Bridge closure — A1 blocked ahead</div></div><span class="da-badge dab-new" id="dab1">New</span></div>
+        <div class="driver-alert" id="da2"><div class="da-icon">📵</div><div><div class="da-title">Missed Check-in — Fatima Ibrahim</div><div class="da-desc">No response to 11:00am check-in prompt</div></div><span class="da-badge dab-new" id="dab2">New</span></div>
+        <div class="driver-alert" id="da3"><div class="da-icon">🔧</div><div><div class="da-title">Breakdown — Babatunde Ike</div><div class="da-desc">Tyre blowout — Lagos-Ibadan Expressway km 45</div></div><span class="da-badge dab-new" id="dab3">New</span></div>
+        <div class="driver-alert" id="da4"><div class="da-icon">✅</div><div><div class="da-title">Delivery Complete — Ngozi Eze</div><div class="da-desc">SHP-0478 delivered — Kano customer signed</div></div><span class="da-badge dab-new" id="dab4">New</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 5: BEFORE/AFTER -->
+<section class="slide" id="slide-4">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">04 — Operational Impact</div><div class="sec-title">Operations In Control.<br><span>Drivers Informed.</span></div></div>
+    <div class="animate-in two-col" style="margin-bottom:1.5rem">
+      <div>
+        <div style="font-size:0.62rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--red);margin-bottom:0.75rem;font-weight:600;font-family:'JetBrains Mono',monospace">❌ BEFORE</div>
+        <div style="display:flex;flex-direction:column;gap:0.5rem">
+          <div class="ba-bad">60 manual calls per day to brief and check on 20 drivers</div>
+          <div class="ba-bad">Breakdowns unreported for hours — operations blindsided</div>
+          <div class="ba-bad">Road closure reaches driver too late — already in traffic</div>
+          <div class="ba-bad">Incidents undocumented — insurance claims disputed</div>
+          <div class="ba-bad">No rest break monitoring — driver fatigue, safety risk</div>
+        </div>
+      </div>
+      <div>
+        <div style="font-size:0.62rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--green);margin-bottom:0.75rem;font-weight:600;font-family:'JetBrains Mono',monospace">✅ AFTER</div>
+        <div style="display:flex;flex-direction:column;gap:0.5rem">
+          <div class="ba-good">Morning briefing auto-sent — every driver fully informed at 5:30am</div>
+          <div class="ba-good">Missed check-in triggers welfare check in 30 minutes automatically</div>
+          <div class="ba-good">Route alerts sent before driver reaches affected road</div>
+          <div class="ba-good">Incident photos + GPS location → structured report created instantly</div>
+          <div class="ba-good">Rest break compliance tracked — driver safety built into workflow</div>
+        </div>
+      </div>
+    </div>
+    <div class="animate-in">
+      <div class="quote-block">
+        <div class="quote-text">"Your drivers are your most valuable operational asset on the road. <strong>Keeping them informed, safe, and connected</strong> to operations isn't just good management — it's the difference between a reliable logistics company and an unreliable one."</div>
+        <div style="font-size:0.62rem;color:rgba(255,255,255,0.35);font-family:'JetBrains Mono',monospace">STACK: n8n · GPT-4o · WhatsApp Business API · Google Maps API · Twilio · Google Sheets · Slack</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="slide-counter" id="slideCounter">Slide 1 of 5</div>
+<div class="slide-nav">
+  <button class="nav-btn" onclick="prevSlide()">← Prev</button>
+  <button class="nav-btn primary" onclick="nextSlide()">Next →</button>
+</div>
+<script>
+const slides=document.querySelectorAll('.slide'),total=slides.length;let cur=0;
+const dots=document.getElementById('navDots');
+for(let i=0;i<total;i++){const d=document.createElement('div');d.className='nav-dot'+(i===0?' active':'');d.onclick=()=>goTo(i);dots.appendChild(d);}
+function goTo(n){slides[cur].classList.remove('active');dots.children[cur].classList.remove('active');if(cur<n)dots.children[cur].classList.add('done');cur=n;slides[cur].classList.add('active');dots.children[cur].classList.add('active');document.getElementById('slideCounter').textContent=`Slide ${cur+1} of ${total}`;}
+function nextSlide(){if(cur<total-1)goTo(cur+1);}function prevSlide(){if(cur>0)goTo(cur-1);}
+document.addEventListener('keydown',e=>{if(e.key==='ArrowRight'||e.key==='ArrowDown')nextSlide();if(e.key==='ArrowLeft'||e.key==='ArrowUp')prevSlide();});
+let secs=0;setInterval(()=>{secs++;const m=String(Math.floor(secs/60)).padStart(2,'0'),s=String(secs%60).padStart(2,'0');document.getElementById('timerBadge').textContent=`⏱ ${m}:${s}`;if(secs>=840)document.getElementById('timerBadge').style.color='#c02828';},1000);
+function delay(ms){return new Promise(r=>setTimeout(r,ms));}
+const alertData=[
+  {id:'da1',b:'dab1',cls:'warning',txt:'Route Sent ✓',bCls:'dab-warning'},
+  {id:'da2',b:'dab2',cls:'urgent',txt:'Welfare Check ⚡',bCls:'dab-urgent'},
+  {id:'da3',b:'dab3',cls:'urgent',txt:'Recovery Dispatched 🔧',bCls:'dab-urgent'},
+  {id:'da4',b:'dab4',cls:'resolved',txt:'Resolved ✓',bCls:'dab-resolved'},
+];
+let alertRunning=false;
+async function runAlertSim(){
+  if(alertRunning)return;alertRunning=true;
+  const btn=document.getElementById('alertBtn');btn.textContent='Processing...';
+  alertData.forEach(d=>{const el=document.getElementById(d.id);const b=document.getElementById(d.b);if(el)el.className='driver-alert';if(b){b.className='da-badge dab-new';b.textContent='New';}});
+  const steps=['al1','al2','al3','al4','al5'];
+  steps.forEach(id=>{const el=document.getElementById(id);if(el){el.style.opacity='0.3';el.querySelector('.ps-num').style.background='var(--border)';}});
+  const light=(i)=>{steps.forEach(id=>{const el=document.getElementById(id);if(el){el.style.opacity='0.3';el.querySelector('.ps-num').style.background='var(--border)';}});const el=document.getElementById(steps[i]);if(el){el.style.opacity='1';el.style.color='var(--yellow2)';el.querySelector('.ps-num').style.background='var(--char)';}};
+  light(0);await delay(500);
+  for(let i=0;i<alertData.length;i++){
+    light(i+1);await delay(550);
+    const d=alertData[i];
+    const el=document.getElementById(d.id);const b=document.getElementById(d.b);
+    if(el)el.classList.add(d.cls);
+    if(b){b.className='da-badge '+d.bCls;b.textContent=d.txt;}
+  }
+  btn.textContent='↺ Reset & Run Again';alertRunning=false;
+}
+</script>
+</body>
+</html>
