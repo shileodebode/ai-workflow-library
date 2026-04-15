@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Education — Student Admissions Automation</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f4f6ff;--surface:#fff;--surface2:#e8ecff;--border:#ccd4f8;
+  --ink:#080c2a;--indigo:#2840b8;--indigo2:#1a2e98;--blue:#3a58e8;
+  --sky:#dbeafe;--green:#0a6a38;--red:#c02020;--amber:#b07010;
+  --text:#0c1230;--muted:#5060a8;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'Nunito',sans-serif;overflow-x:hidden;}
+.top-bar{position:fixed;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,var(--indigo2),var(--blue),var(--indigo));z-index:200;}
+nav{position:fixed;top:4px;left:0;right:0;z-index:100;background:rgba(244,246,255,0.97);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 2.5rem;height:54px;}
+.nav-brand{font-family:'Space Mono',monospace;font-size:0.7rem;color:var(--indigo2);letter-spacing:0.06em;}
+.nav-dots{display:flex;gap:0.3rem;}
+.nav-dot{width:7px;height:7px;border-radius:50%;background:var(--border);cursor:pointer;transition:all 0.2s;}
+.nav-dot.active{background:var(--indigo);transform:scale(1.5);}
+.nav-dot.done{background:var(--green);}
+.timer{font-size:0.67rem;color:var(--indigo);background:rgba(40,64,184,0.08);border:1px solid rgba(40,64,184,0.2);padding:0.2rem 0.75rem;border-radius:20px;font-family:'Space Mono',monospace;}
+.slide{min-height:100vh;padding:78px 0 50px;display:none;flex-direction:column;align-items:center;justify-content:center;position:relative;overflow:hidden;}
+.slide.active{display:flex;}
+.slide-inner{width:100%;max-width:1140px;padding:0 2.5rem;position:relative;z-index:2;}
+.hero-orb{position:absolute;top:-60px;right:-60px;width:500px;height:500px;border-radius:50%;background:radial-gradient(circle,rgba(40,64,184,0.06) 0%,transparent 65%);pointer-events:none;}
+.hero-badge{display:inline-flex;align-items:center;gap:0.5rem;background:var(--sky);border:1px solid rgba(40,64,184,0.2);color:var(--indigo2);font-size:0.67rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;padding:0.28rem 0.9rem;border-radius:20px;margin-bottom:1.5rem;font-family:'Space Mono',monospace;}
+h1.hero-title{font-family:'Nunito',sans-serif;font-size:clamp(2.8rem,5.5vw,4.8rem);font-weight:800;line-height:1.0;letter-spacing:-0.02em;color:var(--ink);margin-bottom:1.5rem;}
+h1.hero-title span{color:var(--indigo);}
+.hero-desc{font-size:0.97rem;color:var(--muted);max-width:510px;line-height:1.78;margin-bottom:2.5rem;font-weight:300;}
+.kpi-strip{display:flex;gap:1px;background:var(--border);border-radius:12px;overflow:hidden;max-width:640px;box-shadow:0 2px 10px rgba(40,64,184,0.07);}
+.kpi{background:white;padding:1.1rem 1.4rem;flex:1;}
+.kpi-val{font-family:'Nunito',sans-serif;font-size:1.9rem;font-weight:800;color:var(--indigo);line-height:1;}
+.kpi-lbl{font-size:0.59rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);margin-top:0.2rem;font-family:'Space Mono',monospace;}
+.sec-tag{font-size:0.61rem;letter-spacing:0.22em;text-transform:uppercase;color:var(--indigo);margin-bottom:0.4rem;font-weight:700;font-family:'Space Mono',monospace;}
+.sec-title{font-family:'Nunito',sans-serif;font-size:clamp(1.9rem,3.8vw,3rem);font-weight:800;line-height:1.05;margin-bottom:0.5rem;color:var(--ink);letter-spacing:-0.02em;}
+.sec-title span{color:var(--indigo);}
+.sec-desc{font-size:0.87rem;color:var(--muted);margin-bottom:1.85rem;max-width:540px;line-height:1.78;font-weight:300;}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;}
+.three-col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;}
+.lr{display:grid;grid-template-columns:1.1fr 1fr;gap:2rem;align-items:start;}
+.card{background:white;border:1px solid var(--border);border-radius:14px;padding:1.25rem;transition:all 0.2s;box-shadow:0 1px 6px rgba(40,64,184,0.05);}
+.card:hover{border-color:var(--indigo);transform:translateY(-2px);box-shadow:0 6px 20px rgba(40,64,184,0.1);}
+.card-icon{font-size:1.4rem;margin-bottom:0.5rem;}
+.card-title{font-family:'Nunito',sans-serif;font-size:0.97rem;font-weight:700;margin-bottom:0.3rem;color:var(--ink);}
+.card-desc{font-size:0.72rem;color:var(--muted);line-height:1.65;}
+.panel{background:white;border:1px solid var(--border);border-radius:14px;padding:1.4rem;}
+.panel h3{font-family:'Nunito',sans-serif;font-size:0.9rem;font-weight:700;color:var(--indigo2);margin-bottom:0.9rem;display:flex;align-items:center;gap:0.5rem;}
+.panel h3::before{content:'✦';color:var(--indigo);font-size:0.7rem;}
+.wf-canvas{background:var(--ink);border-radius:16px;padding:2rem;position:relative;overflow:hidden;}
+.wf-dots{position:absolute;inset:0;background-image:radial-gradient(circle,rgba(58,88,232,0.18) 1px,transparent 1px);background-size:28px 28px;opacity:0.5;}
+.wf-label{position:absolute;top:0.75rem;left:1rem;font-size:0.57rem;letter-spacing:0.18em;text-transform:uppercase;color:rgba(255,255,255,0.3);display:flex;align-items:center;gap:0.4rem;z-index:3;font-family:'Space Mono',monospace;}
+.wf-label::before{content:'';width:7px;height:7px;border-radius:50%;background:var(--blue);box-shadow:0 0 8px var(--blue);animation:bpulse 2s infinite;}
+@keyframes bpulse{0%,100%{opacity:1}50%{opacity:0.2}}
+.wf-nodes{display:flex;align-items:flex-start;gap:0;padding-top:1.5rem;position:relative;z-index:2;flex-wrap:wrap;}
+.wf-stage{display:flex;flex-direction:column;align-items:center;}
+.wf-slbl{font-size:0.51rem;letter-spacing:0.14em;text-transform:uppercase;color:rgba(255,255,255,0.28);margin-bottom:0.3rem;font-family:'Space Mono',monospace;}
+.wf-node{display:flex;flex-direction:column;align-items:center;gap:0.3rem;cursor:pointer;position:relative;}
+.wf-box{width:58px;height:58px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:1.25rem;border:2px solid transparent;transition:all 0.3s;}
+.wf-node:hover .wf-box{transform:scale(1.1);box-shadow:0 0 20px rgba(40,64,184,0.4);}
+.wf-nlbl{font-size:0.52rem;text-align:center;color:rgba(255,255,255,0.42);max-width:66px;line-height:1.3;font-family:'Space Mono',monospace;}
+.wf-arr{color:rgba(255,255,255,0.18);padding:0 0.2rem;font-size:0.85rem;align-self:flex-start;margin-top:19px;flex-shrink:0;}
+.ttw{position:relative;}
+.tti{position:absolute;bottom:calc(100%+8px);left:50%;transform:translateX(-50%);background:white;border:1px solid var(--border);border-radius:10px;padding:0.6rem 0.9rem;font-size:0.67rem;opacity:0;pointer-events:none;transition:opacity 0.2s;z-index:50;color:var(--ink);line-height:1.5;max-width:200px;white-space:normal;text-align:left;box-shadow:0 4px 16px rgba(0,0,0,0.08);}
+.ttw:hover .tti{opacity:1;}
+/* Application pipeline */
+.app-card{background:white;border:1px solid var(--border);border-radius:12px;padding:0.75rem 1rem;margin-bottom:0.45rem;display:flex;gap:0.85rem;align-items:flex-start;transition:all 0.3s;font-size:0.72rem;}
+.app-card.stage-received{border-color:var(--muted);}
+.app-card.stage-review{border-color:var(--amber);}
+.app-card.stage-offered{border-color:var(--indigo);}
+.app-card.stage-accepted{border-color:var(--green);}
+.app-card.stage-declined{border-color:var(--red);}
+.ac-name{font-weight:700;color:var(--ink);}
+.ac-course{font-size:0.63rem;color:var(--muted);}
+.ac-badge{margin-left:auto;font-size:0.58rem;padding:0.1rem 0.42rem;border-radius:20px;font-weight:700;font-family:'Space Mono',monospace;white-space:nowrap;}
+.acb-received{background:rgba(80,96,168,0.1);color:var(--muted);border:1px solid rgba(80,96,168,0.18);}
+.acb-review{background:rgba(176,112,16,0.1);color:var(--amber);border:1px solid rgba(176,112,16,0.2);}
+.acb-offered{background:rgba(40,64,184,0.1);color:var(--indigo);border:1px solid rgba(40,64,184,0.2);}
+.acb-accepted{background:rgba(10,106,56,0.1);color:var(--green);border:1px solid rgba(10,106,56,0.2);}
+.acb-declined{background:rgba(192,32,32,0.1);color:var(--red);border:1px solid rgba(192,32,32,0.2);}
+.acb-new{background:rgba(80,96,168,0.08);color:var(--muted);border:1px solid rgba(80,96,168,0.15);}
+/* PS list */
+.ps-list{list-style:none;}
+.ps-list li{display:flex;gap:0.75rem;padding:0.45rem 0;border-bottom:1px solid var(--border);font-size:0.74rem;line-height:1.5;transition:all 0.3s;}
+.ps-list li:last-child{border-bottom:none;}
+.ps-num{width:20px;height:20px;border-radius:50%;background:var(--border);color:white;font-size:0.6rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;transition:background 0.3s;}
+.info-indigo{padding:0.75rem 1rem;border-radius:10px;font-size:0.77rem;line-height:1.6;background:rgba(40,64,184,0.06);border:1px solid rgba(40,64,184,0.15);color:var(--indigo2);}
+.ba-bad{padding:0.6rem 0.9rem;border-radius:8px;font-size:0.76rem;line-height:1.5;background:rgba(192,32,32,0.04);border:1px solid rgba(192,32,32,0.12);}
+.ba-good{padding:0.6rem 0.9rem;border-radius:8px;font-size:0.76rem;line-height:1.5;background:rgba(10,106,56,0.05);border:1px solid rgba(10,106,56,0.14);}
+.quote-block{background:var(--ink);border-radius:16px;padding:1.75rem 2rem;color:white;}
+.quote-text{font-size:1.05rem;line-height:1.78;margin-bottom:0.75rem;font-weight:300;}
+.quote-text strong{color:#93c5fd;}
+.slide-counter{position:fixed;bottom:1.5rem;left:2rem;font-size:0.62rem;color:var(--muted);z-index:100;font-family:'Space Mono',monospace;}
+.slide-nav{position:fixed;bottom:1.5rem;right:2rem;display:flex;gap:0.5rem;z-index:100;}
+.nav-btn{background:white;border:1px solid var(--border);color:var(--text);padding:0.55rem 1.2rem;border-radius:10px;font-family:'Space Mono',monospace;font-size:0.7rem;cursor:pointer;transition:all 0.2s;}
+.nav-btn:hover{border-color:var(--indigo);color:var(--indigo);}
+.nav-btn.primary{background:var(--indigo);border-color:var(--indigo);color:white;}
+.nav-btn.primary:hover{background:var(--indigo2);}
+.run-btn{background:var(--indigo);color:white;border:none;border-radius:10px;padding:0.7rem 1.5rem;font-family:'Space Mono',monospace;font-size:0.72rem;cursor:pointer;transition:all 0.2s;width:100%;text-align:center;}
+.run-btn:hover{background:var(--indigo2);}
+.animate-in{opacity:0;animation:fadeUp 0.5s ease-out forwards;}
+.slide.active .animate-in:nth-child(1){animation-delay:0.05s;}
+.slide.active .animate-in:nth-child(2){animation-delay:0.15s;}
+.slide.active .animate-in:nth-child(3){animation-delay:0.25s;}
+.slide.active .animate-in:nth-child(4){animation-delay:0.35s;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+</style>
+</head>
+<body>
+<div class="top-bar"></div>
+<nav>
+  <div class="nav-brand">EDUCATION · Student Admissions</div>
+  <div class="nav-dots" id="navDots"></div>
+  <div class="timer" id="timerBadge">⏱ 00:00</div>
+</nav>
+
+<section class="slide active" id="slide-0">
+  <div class="hero-orb"></div>
+  <div class="slide-inner">
+    <div class="animate-in"><div class="hero-badge">🎓 n8n AI Automation · Education & EdTech</div></div>
+    <div class="animate-in"><h1 class="hero-title">Applications In.<br><span>Decisions Made.</span><br>Students Enrolled.</h1></div>
+    <div class="animate-in"><p class="hero-desc">Digital admissions pipeline from first enquiry to enrolment confirmation — applications processed, documents verified, offers sent, acceptances tracked, and new students welcomed automatically.</p></div>
+    <div class="animate-in">
+      <div class="kpi-strip">
+        <div class="kpi"><div class="kpi-val">48hr</div><div class="kpi-lbl">Application Decision</div></div>
+        <div class="kpi"><div class="kpi-val">100%</div><div class="kpi-lbl">Applications Tracked</div></div>
+        <div class="kpi"><div class="kpi-val">Auto</div><div class="kpi-lbl">Doc Verification</div></div>
+        <div class="kpi"><div class="kpi-val">Live</div><div class="kpi-lbl">Admissions Dashboard</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="slide-1">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">01 — The Problem</div><div class="sec-title">Admissions Running<br><span>on Paper & WhatsApp</span></div><p class="sec-desc">Nigerian schools and training institutions process hundreds of applications through a patchwork of WhatsApp messages, paper forms, and spreadsheets. Deserving students fall through the cracks. Great talent is lost to disorganisation.</p></div>
+    <div class="animate-in two-col" style="margin-bottom:1.5rem">
+      <div class="card"><div class="card-icon">📱</div><div class="card-title">WhatsApp Applications</div><div class="card-desc">Prospective students send qualifications via WhatsApp. Admissions officer screenshots and saves to a folder. Application sits unseen for days. Student follows up — still no response. Student enrols elsewhere.</div></div>
+      <div class="card"><div class="card-icon">📋</div><div class="card-title">Manual Document Checks</div><div class="card-desc">Admissions officer manually reviews WAEC results, birth certificates, and reference letters. Checks authenticity by eye. 30 minutes per applicant × 200 applicants = 100 hours of admin every admissions cycle.</div></div>
+      <div class="card"><div class="card-icon">📊</div><div class="card-title">No Pipeline Visibility</div><div class="card-desc">How many applications received? How many are complete? How many offers sent? How many accepted? How many spaces remain? The admissions manager doesn't know the answer to any of these without manually counting.</div></div>
+      <div class="card"><div class="card-icon">🔄</div><div class="card-title">Slow Offer Letters</div><div class="card-desc">Application reviewed. Offer approved. Admissions officer types the letter, formats it on letterhead, emails it. Takes 2 days per offer. Top students receive 3 offers in that time and choose the institution that responded first.</div></div>
+    </div>
+    <div class="animate-in"><div class="info-indigo">✅ n8n handles the complete admissions pipeline: digital application, document upload and verification, scoring, offer letter generation, acceptance tracking, and enrolment confirmation.</div></div>
+  </div>
+</section>
+
+<section class="slide" id="slide-2">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">02 — The Blueprint</div><div class="sec-title">n8n Admissions<br><span>Pipeline</span></div><p class="sec-desc">First enquiry to enrolment — every step automated. Admissions team reviews decisions, not data. Top students offered in 48 hours. No application lost.</p></div>
+    <div class="animate-in wf-canvas">
+      <div class="wf-dots"></div>
+      <div class="wf-label">n8n canvas — student admissions pipeline</div>
+      <div class="wf-nodes">
+        <div class="wf-stage"><div class="wf-slbl">Apply</div>
+          <div style="display:flex;flex-direction:column;gap:0.35rem">
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#0a1a2a,#1d4ed8);color:#93c5fd;border-color:#1d4ed8;">🌐</div><div class="wf-nlbl">Online<br>Application</div><div class="tti">Prospective student completes digital form: personal details, qualifications, programme choice. Uploads required documents. Receives application reference number immediately.</div></div>
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a3a1a,#166534);color:#4ade80;border-color:#166534;">📱</div><div class="wf-nlbl">WhatsApp<br>Bot</div><div class="tti">For non-web applicants: WhatsApp bot guides applicant through form step by step. GPT-4o parses responses into structured application data. Equal access for all applicants.</div></div>
+          </div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-stage"><div class="wf-slbl">Verify</div>
+          <div style="display:flex;flex-direction:column;gap:0.35rem">
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a0a0a,#991b1b);color:#fca5a5;border-color:#991b1b;">🧠</div><div class="wf-nlbl">GPT-4o<br>Doc Check</div><div class="tti">GPT-4o reads uploaded documents: WAEC/NECO results extracted, grades tallied, birth certificate date read, reference letter quality assessed. Flags incomplete or suspicious documents.</div></div>
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#0a1a1a,#065f46);color:#6ee7b7;border-color:#065f46;">🎯</div><div class="wf-nlbl">Scoring<br>Engine</div><div class="tti">Applicant scored on: academic performance, entry requirement match, programme capacity, application completeness. Score 0–100 against programme criteria.</div></div>
+          </div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-stage"><div class="wf-slbl">Decide</div>
+          <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a1a0a,#78350f);color:#fde68a;border-color:#78350f;">👤</div><div class="wf-nlbl">Admissions<br>Review</div><div class="tti">Admissions officer reviews pre-scored applications with full evidence displayed. One-click: Offer / Reject / Waitlist / Request more documents. No manual data pulling.</div></div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-stage"><div class="wf-slbl">Offer</div>
+          <div style="display:flex;flex-direction:column;gap:0.35rem">
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a0a1a,#7c3aed);color:#d8b4fe;border-color:#7c3aed;">📄</div><div class="wf-nlbl">Offer<br>Letter</div><div class="tti">Offer letter auto-generated on approval: student name, programme, start date, fee structure, conditions of offer, acceptance deadline. Branded PDF sent via email + WhatsApp.</div></div>
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a3a1a,#166534);color:#4ade80;border-color:#166534;">✅</div><div class="wf-nlbl">Acceptance<br>Track</div><div class="tti">Student accepts via email link or WhatsApp reply. Acceptance recorded. Enrolment form triggered. Fee payment instructions sent. Student added to class list.</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="slide-3">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">03 — Simulation</div><div class="sec-title">Live Admissions<br><span>Pipeline Board</span></div><p class="sec-desc">September intake in progress. 6 applications across different stages — all tracked, all progressing automatically. Admissions officer only made 2 decisions today. n8n handled the rest.</p></div>
+    <div class="animate-in lr">
+      <div style="display:flex;flex-direction:column;gap:1rem">
+        <div class="panel">
+          <h3>Pipeline Actions — Today</h3>
+          <ul class="ps-list" id="admSteps">
+            <li id="ad1" style="opacity:0.3"><div class="ps-num">1</div><div>3 new applications received — docs auto-checked</div></li>
+            <li id="ad2" style="opacity:0.3"><div class="ps-num">2</div><div>GPT-4o scored all 3 — 2 passed, 1 incomplete</div></li>
+            <li id="ad3" style="opacity:0.3"><div class="ps-num">3</div><div>Admissions officer reviewed — 2 offers sent</div></li>
+            <li id="ad4" style="opacity:0.3"><div class="ps-num">4</div><div>Amaka accepted — enrolment form triggered</div></li>
+            <li id="ad5" style="opacity:0.3"><div class="ps-num">5</div><div>Incomplete applicant notified — resubmit deadline set ✅</div></li>
+          </ul>
+        </div>
+        <div class="info-indigo">📊 Before automation: admissions cycle took 3 weeks, 40% of applications were lost, and top students chose other institutions. With n8n: 48hr turnaround, 100% tracked, enrolment up 28%.</div>
+        <button class="run-btn" id="admBtn" onclick="runAdmSim()">▶ PROCESS PIPELINE NOW</button>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:0">
+        <div style="font-size:0.61rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);font-family:'Space Mono',monospace;margin-bottom:0.4rem">Applications — Sept Intake 2025</div>
+        <div class="app-card" id="ap1"><div><div class="ac-name">Amaka Obi</div><div class="ac-course">B.Sc Computer Science · CGPA 4.8/5.0</div></div><span class="ac-badge acb-new" id="apb1">Scanning...</span></div>
+        <div class="app-card" id="ap2"><div><div class="ac-name">Tunde Fashola</div><div class="ac-course">B.Eng Electrical · 6 A's WAEC</div></div><span class="ac-badge acb-new" id="apb2">Scanning...</span></div>
+        <div class="app-card" id="ap3"><div><div class="ac-name">Ngozi Ibrahim</div><div class="ac-course">MBA Finance · 7 years experience</div></div><span class="ac-badge acb-new" id="apb3">Scanning...</span></div>
+        <div class="app-card" id="ap4"><div><div class="ac-name">Babatunde Eze</div><div class="ac-course">B.Sc Economics · Transcript missing</div></div><span class="ac-badge acb-new" id="apb4">Scanning...</span></div>
+        <div class="app-card stage-offered"><div><div class="ac-name">Kemi Adeyemi</div><div class="ac-course">B.Sc Accounting · Offer sent 2 days ago</div></div><span class="ac-badge acb-offered">Offer Sent</span></div>
+        <div class="app-card stage-accepted"><div><div class="ac-name">Seun Bello</div><div class="ac-course">B.Sc Marketing · Accepted &amp; enrolled</div></div><span class="ac-badge acb-accepted">Enrolled ✓</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="slide-4">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">04 — Impact</div><div class="sec-title">Fill Every Seat.<br><span>Keep Every Student.</span></div></div>
+    <div class="animate-in two-col" style="margin-bottom:1.5rem">
+      <div>
+        <div style="font-size:0.62rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--red);margin-bottom:0.75rem;font-weight:700;font-family:'Space Mono',monospace">❌ BEFORE</div>
+        <div style="display:flex;flex-direction:column;gap:0.5rem">
+          <div class="ba-bad">Applications lost in WhatsApp — no tracking, no visibility</div>
+          <div class="ba-bad">3-week decision cycle — top students already enrolled elsewhere</div>
+          <div class="ba-bad">100 hrs manual document review every admissions cycle</div>
+          <div class="ba-bad">Offer letters typed manually — 2 days per letter</div>
+          <div class="ba-bad">No admissions analytics — yield rate, drop-off point unknown</div>
+        </div>
+      </div>
+      <div>
+        <div style="font-size:0.62rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--green);margin-bottom:0.75rem;font-weight:700;font-family:'Space Mono',monospace">✅ AFTER</div>
+        <div style="display:flex;flex-direction:column;gap:0.5rem">
+          <div class="ba-good">100% of applications captured — web, WhatsApp, and walk-in</div>
+          <div class="ba-good">48-hour decision cycle — offer before the competition</div>
+          <div class="ba-good">GPT-4o handles document review — officer reviews decisions only</div>
+          <div class="ba-good">Offer letters auto-generated — sent same day as decision</div>
+          <div class="ba-good">Live dashboard — pipeline status, capacity, yield rate all visible</div>
+        </div>
+      </div>
+    </div>
+    <div class="animate-in">
+      <div class="quote-block">
+        <div class="quote-text">"The best students have multiple options. <strong>The institution that responds fastest and most professionally</strong> wins the enrolment. Admissions automation is a direct competitive advantage."</div>
+        <div style="font-size:0.62rem;color:rgba(255,255,255,0.3);font-family:'Space Mono',monospace">STACK: n8n · GPT-4o · WhatsApp API · Google Forms · DocuSign · Gmail · Google Sheets · Paystack</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="slide-counter" id="slideCounter">Slide 1 of 5</div>
+<div class="slide-nav">
+  <button class="nav-btn" onclick="prevSlide()">← Prev</button>
+  <button class="nav-btn primary" onclick="nextSlide()">Next →</button>
+</div>
+<script>
+const slides=document.querySelectorAll('.slide'),total=slides.length;let cur=0;
+const dots=document.getElementById('navDots');
+for(let i=0;i<total;i++){const d=document.createElement('div');d.className='nav-dot'+(i===0?' active':'');d.onclick=()=>goTo(i);dots.appendChild(d);}
+function goTo(n){slides[cur].classList.remove('active');dots.children[cur].classList.remove('active');if(cur<n)dots.children[cur].classList.add('done');cur=n;slides[cur].classList.add('active');dots.children[cur].classList.add('active');document.getElementById('slideCounter').textContent=`Slide ${cur+1} of ${total}`;}
+function nextSlide(){if(cur<total-1)goTo(cur+1);}function prevSlide(){if(cur>0)goTo(cur-1);}
+document.addEventListener('keydown',e=>{if(e.key==='ArrowRight'||e.key==='ArrowDown')nextSlide();if(e.key==='ArrowLeft'||e.key==='ArrowUp')prevSlide();});
+let secs=0;setInterval(()=>{secs++;const m=String(Math.floor(secs/60)).padStart(2,'0'),s=String(secs%60).padStart(2,'0');document.getElementById('timerBadge').textContent=`⏱ ${m}:${s}`;if(secs>=840)document.getElementById('timerBadge').style.color='#c02020';},1000);
+function delay(ms){return new Promise(r=>setTimeout(r,ms));}
+const appData=[
+  {id:'ap1',b:'apb1',cls:'stage-offered',bval:'Offered ✓',bcls:'acb-offered'},
+  {id:'ap2',b:'apb2',cls:'stage-offered',bval:'Offered ✓',bcls:'acb-offered'},
+  {id:'ap3',b:'apb3',cls:'stage-review',bval:'Under Review',bcls:'acb-review'},
+  {id:'ap4',b:'apb4',cls:'stage-declined',bval:'Docs Needed',bcls:'acb-declined'},
+];
+let admRunning=false;
+async function runAdmSim(){
+  if(admRunning)return;admRunning=true;
+  const btn=document.getElementById('admBtn');btn.textContent='Processing...';
+  appData.forEach(d=>{const el=document.getElementById(d.id);const b=document.getElementById(d.b);if(el)el.className='app-card';if(b){b.className='ac-badge acb-new';b.textContent='Scanning...';}});
+  const steps=['ad1','ad2','ad3','ad4','ad5'];
+  steps.forEach(id=>{const el=document.getElementById(id);if(el){el.style.opacity='0.3';el.querySelector('.ps-num').style.background='var(--border)';}});
+  const light=(i)=>{steps.forEach(id=>{const el=document.getElementById(id);if(el){el.style.opacity='0.3';el.querySelector('.ps-num').style.background='var(--border)';}});const el=document.getElementById(steps[i]);if(el){el.style.opacity='1';el.style.color='var(--indigo)';el.querySelector('.ps-num').style.background='var(--indigo)';}};
+  light(0);await delay(500);light(1);
+  for(let i=0;i<appData.length;i++){
+    await delay(480);
+    const d=appData[i];
+    const el=document.getElementById(d.id);const b=document.getElementById(d.b);
+    if(el)el.classList.add(d.cls);
+    if(b){b.className='ac-badge '+d.bcls;b.textContent=d.bval;}
+  }
+  light(2);await delay(400);light(3);await delay(400);light(4);
+  btn.textContent='↺ Reset & Run Again';admRunning=false;
+}
+</script>
+</body>
+</html>
