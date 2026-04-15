@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Healthcare — Lab Results & Notifications Automation</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f3f7ff;--surface:#ffffff;--surface2:#e8f0ff;--border:#c8d8f5;
+  --ink:#04101e;--navy:#1a3a6c;--navy2:#102850;--blue:#2060c8;
+  --sky:#dbeafe;--green:#0a6a3a;--red:#c02020;--amber:#b87010;
+  --purple:#5a28a8;--text:#0a1828;--muted:#5070a8;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;overflow-x:hidden;}
+.top-bar{position:fixed;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,var(--navy),var(--blue),var(--navy));z-index:200;}
+nav{position:fixed;top:4px;left:0;right:0;z-index:100;background:rgba(243,247,255,0.97);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 2.5rem;height:54px;}
+.nav-brand{font-family:'IBM Plex Mono',monospace;font-size:0.7rem;color:var(--navy2);letter-spacing:0.06em;}
+.nav-dots{display:flex;gap:0.3rem;}
+.nav-dot{width:7px;height:7px;border-radius:2px;background:var(--border);cursor:pointer;transition:all 0.2s;}
+.nav-dot.active{background:var(--navy);transform:scale(1.4);}
+.nav-dot.done{background:var(--green);}
+.timer{font-size:0.67rem;color:var(--navy);background:rgba(26,58,108,0.07);border:1px solid rgba(26,58,108,0.18);padding:0.2rem 0.75rem;border-radius:4px;font-family:'IBM Plex Mono',monospace;}
+.slide{min-height:100vh;padding:78px 0 50px;display:none;flex-direction:column;align-items:center;justify-content:center;position:relative;overflow:hidden;}
+.slide.active{display:flex;}
+.slide-inner{width:100%;max-width:1140px;padding:0 2.5rem;position:relative;z-index:2;}
+.hero-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(26,58,108,0.04) 1px,transparent 1px),linear-gradient(90deg,rgba(26,58,108,0.04) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;}
+.hero-badge{display:inline-flex;align-items:center;gap:0.5rem;background:var(--sky);border:1px solid rgba(26,58,108,0.2);color:var(--navy2);font-size:0.67rem;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;padding:0.28rem 0.9rem;border-radius:6px;margin-bottom:1.5rem;font-family:'IBM Plex Mono',monospace;}
+h1.hero-title{font-family:'Inter',sans-serif;font-size:clamp(2.8rem,5.5vw,4.8rem);font-weight:800;line-height:1.0;letter-spacing:-0.03em;color:var(--ink);margin-bottom:1.5rem;}
+h1.hero-title span{color:var(--blue);}
+.hero-desc{font-size:0.97rem;color:var(--muted);max-width:510px;line-height:1.78;margin-bottom:2.5rem;font-weight:300;}
+.kpi-strip{display:flex;gap:1px;background:var(--border);border-radius:8px;overflow:hidden;max-width:640px;box-shadow:0 2px 10px rgba(26,58,108,0.08);}
+.kpi{background:white;padding:1.1rem 1.4rem;flex:1;}
+.kpi-val{font-family:'Inter',sans-serif;font-size:1.85rem;font-weight:800;color:var(--navy);line-height:1;}
+.kpi-lbl{font-size:0.59rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);margin-top:0.2rem;font-family:'IBM Plex Mono',monospace;}
+.sec-tag{font-size:0.61rem;letter-spacing:0.22em;text-transform:uppercase;color:var(--blue);margin-bottom:0.4rem;font-weight:600;font-family:'IBM Plex Mono',monospace;display:flex;align-items:center;gap:0.4rem;}
+.sec-tag::before{content:'Rx';font-size:0.7rem;}
+.sec-title{font-family:'Inter',sans-serif;font-size:clamp(1.9rem,3.8vw,3rem);font-weight:800;line-height:1.05;margin-bottom:0.5rem;color:var(--ink);letter-spacing:-0.02em;}
+.sec-title span{color:var(--navy);}
+.sec-desc{font-size:0.87rem;color:var(--muted);margin-bottom:1.85rem;max-width:540px;line-height:1.78;font-weight:300;}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;}
+.lr{display:grid;grid-template-columns:1.1fr 1fr;gap:2rem;align-items:start;}
+.lr-rev{display:grid;grid-template-columns:1fr 1.15fr;gap:2rem;align-items:start;}
+.card{background:white;border:1px solid var(--border);border-radius:10px;padding:1.25rem;transition:all 0.2s;box-shadow:0 1px 4px rgba(0,0,0,0.04);}
+.card:hover{border-color:var(--navy);transform:translateY(-2px);box-shadow:0 6px 18px rgba(26,58,108,0.09);}
+.card-icon{font-size:1.4rem;margin-bottom:0.5rem;}
+.card-title{font-family:'Inter',sans-serif;font-size:0.95rem;font-weight:700;margin-bottom:0.3rem;color:var(--ink);}
+.card-desc{font-size:0.72rem;color:var(--muted);line-height:1.65;}
+.panel{background:white;border:1px solid var(--border);border-radius:10px;padding:1.4rem;}
+.panel h3{font-family:'Inter',sans-serif;font-size:0.88rem;font-weight:700;color:var(--navy2);margin-bottom:0.9rem;display:flex;align-items:center;gap:0.5rem;}
+.panel h3::before{content:'//';color:var(--border);font-size:0.8rem;font-family:'IBM Plex Mono',monospace;}
+.steps{list-style:none;}
+.steps li{display:flex;gap:0.75rem;padding:0.45rem 0;border-bottom:1px solid var(--border);font-size:0.76rem;line-height:1.6;}
+.steps li:last-child{border-bottom:none;}
+.step-n{width:22px;height:22px;border-radius:4px;background:var(--navy);color:white;font-size:0.62rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:'IBM Plex Mono',monospace;}
+/* Workflow */
+.wf-canvas{background:var(--ink);border-radius:12px;padding:2rem;position:relative;overflow:hidden;}
+.wf-grid2{position:absolute;inset:0;background-image:linear-gradient(rgba(32,96,200,0.1) 1px,transparent 1px),linear-gradient(90deg,rgba(32,96,200,0.1) 1px,transparent 1px);background-size:32px 32px;}
+.wf-label{position:absolute;top:0.75rem;left:1rem;font-size:0.57rem;letter-spacing:0.18em;text-transform:uppercase;color:rgba(255,255,255,0.3);display:flex;align-items:center;gap:0.4rem;z-index:3;font-family:'IBM Plex Mono',monospace;}
+.wf-label::before{content:'';width:7px;height:7px;border-radius:2px;background:var(--blue);box-shadow:0 0 8px var(--blue);animation:bpulse 2s infinite;}
+@keyframes bpulse{0%,100%{opacity:1}50%{opacity:0.2}}
+.wf-nodes{display:flex;align-items:flex-start;gap:0;padding-top:1.5rem;position:relative;z-index:2;flex-wrap:wrap;}
+.wf-stage{display:flex;flex-direction:column;align-items:center;}
+.wf-slbl{font-size:0.51rem;letter-spacing:0.14em;text-transform:uppercase;color:rgba(255,255,255,0.28);margin-bottom:0.3rem;font-family:'IBM Plex Mono',monospace;}
+.wf-node{display:flex;flex-direction:column;align-items:center;gap:0.3rem;cursor:pointer;position:relative;}
+.wf-box{width:58px;height:58px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.25rem;border:2px solid transparent;transition:all 0.3s;}
+.wf-node:hover .wf-box{transform:scale(1.1);box-shadow:0 0 20px rgba(32,96,200,0.4);}
+.wf-nlbl{font-size:0.52rem;text-align:center;color:rgba(255,255,255,0.42);max-width:66px;line-height:1.3;font-family:'IBM Plex Mono',monospace;}
+.wf-arr{color:rgba(255,255,255,0.18);padding:0 0.2rem;font-size:0.85rem;align-self:flex-start;margin-top:19px;flex-shrink:0;}
+.ttw{position:relative;}
+.tti{position:absolute;bottom:calc(100%+8px);left:50%;transform:translateX(-50%);background:white;border:1px solid var(--border);border-radius:6px;padding:0.6rem 0.9rem;font-size:0.67rem;opacity:0;pointer-events:none;transition:opacity 0.2s;z-index:50;color:var(--ink);line-height:1.5;max-width:200px;white-space:normal;text-align:left;box-shadow:0 4px 12px rgba(0,0,0,0.1);}
+.ttw:hover .tti{opacity:1;}
+/* Lab result card */
+.lab-result{background:white;border:1px solid var(--border);border-radius:10px;overflow:hidden;}
+.lr2-header{background:linear-gradient(135deg,var(--navy),var(--blue));color:white;padding:0.85rem 1.1rem;display:flex;align-items:center;justify-content:space-between;}
+.lr2-title{font-family:'Inter',sans-serif;font-size:0.88rem;font-weight:700;}
+.lr2-body{padding:1rem;}
+.lr2-test{display:flex;align-items:center;gap:0.75rem;padding:0.45rem 0;border-bottom:1px solid var(--border);font-size:0.73rem;}
+.lr2-test:last-child{border-bottom:none;}
+.lr2-name{flex:1;font-weight:500;}
+.lr2-val{font-family:'IBM Plex Mono',monospace;font-size:0.7rem;min-width:80px;text-align:right;}
+.lr2-ref{font-size:0.62rem;color:var(--muted);font-family:'IBM Plex Mono',monospace;min-width:100px;text-align:right;}
+.lr2-flag{font-size:0.6rem;padding:0.08rem 0.38rem;border-radius:4px;font-weight:700;font-family:'IBM Plex Mono',monospace;min-width:40px;text-align:center;}
+.lf-normal{background:rgba(10,106,58,0.1);color:var(--green);}
+.lf-high{background:rgba(192,32,32,0.1);color:var(--red);}
+.lf-low{background:rgba(26,58,108,0.1);color:var(--navy);}
+/* Notification row */
+.notif-row{background:white;border:1px solid var(--border);border-radius:8px;padding:0.75rem 1rem;margin-bottom:0.4rem;display:flex;gap:0.75rem;align-items:flex-start;transition:all 0.3s;font-size:0.72rem;}
+.notif-row.critical{border-color:var(--red);background:rgba(192,32,32,0.02);}
+.notif-row.normal{border-color:var(--green);background:rgba(10,106,58,0.02);}
+.notif-row.pending{opacity:0.5;}
+.nr-icon{font-size:1.1rem;flex-shrink:0;}
+.nr-name{font-weight:600;color:var(--ink);}
+.nr-detail{font-size:0.63rem;color:var(--muted);margin-top:0.1rem;}
+.nr-badge{margin-left:auto;font-size:0.58rem;padding:0.1rem 0.42rem;border-radius:4px;font-weight:600;font-family:'IBM Plex Mono',monospace;white-space:nowrap;}
+.nrb-crit{background:rgba(192,32,32,0.1);color:var(--red);border:1px solid rgba(192,32,32,0.2);}
+.nrb-norm{background:rgba(10,106,58,0.1);color:var(--green);border:1px solid rgba(10,106,58,0.2);}
+.nrb-pend{background:rgba(80,112,168,0.1);color:var(--muted);border:1px solid rgba(80,112,168,0.18);}
+/* PS list */
+.ps-list{list-style:none;}
+.ps-list li{display:flex;gap:0.75rem;padding:0.45rem 0;border-bottom:1px solid var(--border);font-size:0.74rem;line-height:1.5;transition:all 0.3s;}
+.ps-list li:last-child{border-bottom:none;}
+.ps-num{width:20px;height:20px;border-radius:4px;background:var(--border);color:white;font-size:0.6rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;transition:background 0.3s;font-family:'IBM Plex Mono',monospace;}
+.info-navy{padding:0.75rem 1rem;border-radius:8px;font-size:0.77rem;line-height:1.6;background:rgba(26,58,108,0.06);border:1px solid rgba(26,58,108,0.15);color:var(--navy2);}
+.info-red{padding:0.75rem 1rem;border-radius:8px;font-size:0.77rem;line-height:1.6;background:rgba(192,32,32,0.06);border:1px solid rgba(192,32,32,0.18);color:var(--red);}
+.ba-bad{padding:0.6rem 0.9rem;border-radius:6px;font-size:0.76rem;line-height:1.5;background:rgba(192,32,32,0.04);border:1px solid rgba(192,32,32,0.12);}
+.ba-good{padding:0.6rem 0.9rem;border-radius:6px;font-size:0.76rem;line-height:1.5;background:rgba(10,106,58,0.05);border:1px solid rgba(10,106,58,0.14);}
+.quote-block{background:var(--ink);border-radius:12px;padding:1.75rem 2rem;color:white;border-left:4px solid var(--blue);}
+.quote-text{font-size:1.05rem;line-height:1.78;margin-bottom:0.75rem;font-weight:300;}
+.quote-text strong{color:#93c5fd;}
+.slide-counter{position:fixed;bottom:1.5rem;left:2rem;font-size:0.62rem;color:var(--muted);z-index:100;font-family:'IBM Plex Mono',monospace;}
+.slide-nav{position:fixed;bottom:1.5rem;right:2rem;display:flex;gap:0.5rem;z-index:100;}
+.nav-btn{background:white;border:1px solid var(--border);color:var(--text);padding:0.55rem 1.2rem;border-radius:6px;font-family:'IBM Plex Mono',monospace;font-size:0.7rem;cursor:pointer;transition:all 0.2s;}
+.nav-btn:hover{border-color:var(--navy);color:var(--navy);}
+.nav-btn.primary{background:var(--navy);border-color:var(--navy);color:white;}
+.nav-btn.primary:hover{background:var(--navy2);}
+.run-btn{background:var(--navy);color:white;border:none;border-radius:6px;padding:0.7rem 1.5rem;font-family:'IBM Plex Mono',monospace;font-size:0.72rem;cursor:pointer;transition:all 0.2s;width:100%;text-align:center;}
+.run-btn:hover{background:var(--navy2);}
+.animate-in{opacity:0;animation:fadeUp 0.5s ease-out forwards;}
+.slide.active .animate-in:nth-child(1){animation-delay:0.05s;}
+.slide.active .animate-in:nth-child(2){animation-delay:0.15s;}
+.slide.active .animate-in:nth-child(3){animation-delay:0.25s;}
+.slide.active .animate-in:nth-child(4){animation-delay:0.35s;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+</style>
+</head>
+<body>
+<div class="top-bar"></div>
+<nav>
+  <div class="nav-brand">HEALTHCARE · Lab Results & Notifications</div>
+  <div class="nav-dots" id="navDots"></div>
+  <div class="timer" id="timerBadge">⏱ 00:00</div>
+</nav>
+
+<!-- SLIDE 1: HERO -->
+<section class="slide active" id="slide-0">
+  <div class="hero-grid"></div>
+  <div class="slide-inner">
+    <div class="animate-in"><div class="hero-badge">🧪 n8n AI Automation · Healthcare & Hospitals</div></div>
+    <div class="animate-in"><h1 class="hero-title">Results Ready.<br><span>Patients Notified.</span><br>Doctors Alerted.</h1></div>
+    <div class="animate-in"><p class="hero-desc">Lab results automatically delivered to patients with plain-language explanations. Critical values flagged to doctors in under 5 minutes. No more patients calling to ask if their results are ready.</p></div>
+    <div class="animate-in">
+      <div class="kpi-strip">
+        <div class="kpi"><div class="kpi-val">&lt;5min</div><div class="kpi-lbl">Critical Alert Time</div></div>
+        <div class="kpi"><div class="kpi-val">100%</div><div class="kpi-lbl">Results Delivered</div></div>
+        <div class="kpi"><div class="kpi-val">AI</div><div class="kpi-lbl">Plain Language</div></div>
+        <div class="kpi"><div class="kpi-val">0</div><div class="kpi-lbl">Results Chased</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 2: PROBLEM -->
+<section class="slide" id="slide-1">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">01 — The Problem</div><div class="sec-title">Lab Results Lost<br><span>in the System</span></div><p class="sec-desc">A lab result sitting unretrieved for 48 hours can be the difference between early intervention and a medical emergency. Yet most hospitals have no automated pipeline from lab to patient and doctor.</p></div>
+    <div class="animate-in two-col" style="margin-bottom:1.5rem">
+      <div class="card"><div class="card-icon">📞</div><div class="card-title">Patients Calling In</div><div class="card-desc">"Is my blood test ready?" "Can you check my malaria result?" Reception fields dozens of these calls daily. Staff interrupt clinical work to check a lab system that could simply notify the patient automatically.</div></div>
+      <div class="card"><div class="card-icon">⏰</div><div class="card-title">Critical Values Missed</div><div class="card-desc">Dangerously high potassium. Critically low haemoglobin. These results require immediate clinical action. But if the doctor only checks results at their next consultation — which might be tomorrow — a patient is at risk.</div></div>
+      <div class="card"><div class="card-icon">🔤</div><div class="card-title">Unreadable Reports</div><div class="card-desc">"FBS: 11.2 mmol/L (Ref: 3.9–5.5)" — what does that mean to a patient with no medical training? Most patients receive their results on paper, understand nothing, and either panic or ignore them entirely.</div></div>
+      <div class="card"><div class="card-icon">📁</div><div class="card-title">No Continuity of Care</div><div class="card-desc">Lab result from one visit not linked to the same patient's next visit. Doctor orders the same test twice. History of results never visualised as a trend. Each visit starts from scratch rather than building on a record.</div></div>
+    </div>
+    <div class="animate-in"><div class="info-navy">✅ n8n monitors the lab system, delivers results to patients with GPT-4o plain-language explanations, and flags critical values to doctors in under 5 minutes — automatically.</div></div>
+  </div>
+</section>
+
+<!-- SLIDE 3: WORKFLOW -->
+<section class="slide" id="slide-2">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">02 — The Blueprint</div><div class="sec-title">n8n Lab Results<br><span>Notification Pipeline</span></div><p class="sec-desc">Result verified → classified → plain-language explained → delivered to patient → critical values escalated to doctor. The full chain in under 5 minutes.</p></div>
+    <div class="animate-in wf-canvas">
+      <div class="wf-grid2"></div>
+      <div class="wf-label">n8n canvas — lab results pipeline</div>
+      <div class="wf-nodes">
+        <div class="wf-stage"><div class="wf-slbl">Detect</div>
+          <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#0a1a2a,#1d4ed8);color:#93c5fd;border-color:#1d4ed8;">🧪</div><div class="wf-nlbl">Lab System<br>Webhook</div><div class="tti">LIS (Laboratory Information System) webhook fires when any result is validated and released. Captures test type, patient ID, results, and reference ranges.</div></div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-stage"><div class="wf-slbl">Classify</div>
+          <div style="display:flex;flex-direction:column;gap:0.35rem">
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a0a0a,#7f1d1d);color:#fca5a5;border-color:#7f1d1d;">⚠️</div><div class="wf-nlbl">Critical<br>Value Check</div><div class="tti">Each result compared against critical value thresholds: potassium <2.5 or >6.5, glucose <2.8 or >25, haemoglobin <6, etc. If critical → urgent escalation pipeline.</div></div>
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a0a0a,#991b1b);color:#fca5a5;border-color:#991b1b;">🧠</div><div class="wf-nlbl">GPT-4o<br>Explain</div><div class="tti">GPT-4o writes a plain-language explanation of every result: what each test measures, what the patient's value means, whether it's concerning, and what to do next.</div></div>
+          </div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-stage"><div class="wf-slbl">Deliver</div>
+          <div style="display:flex;flex-direction:column;gap:0.35rem">
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a3a1a,#166534);color:#4ade80;border-color:#166534;">📱</div><div class="wf-nlbl">Patient<br>WhatsApp</div><div class="tti">Patient receives WhatsApp: "Your lab results are ready. Here's what they mean: [plain language summary]." With secure link to view full report. One-tap to book follow-up.</div></div>
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#0a1a1a,#065f46);color:#6ee7b7;border-color:#065f46;">📁</div><div class="wf-nlbl">EMR<br>Update</div><div class="tti">Results automatically linked to patient EMR record. Previous results loaded for trend comparison. Doctor sees current and historical values side by side at next consultation.</div></div>
+          </div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-stage"><div class="wf-slbl">Escalate</div>
+          <div style="display:flex;flex-direction:column;gap:0.35rem">
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a0a0a,#7f1d1d);color:#fca5a5;border-color:#7f1d1d;">🚨</div><div class="wf-nlbl">Critical<br>Alert</div><div class="tti">Critical values: ordering doctor receives immediate call + WhatsApp alert. If no response in 5 minutes: on-call consultant alerted. Patient's emergency contact also notified if severe.</div></div>
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a0a2e,#6d28d9);color:#c4b5fd;border-color:#6d28d9;">📅</div><div class="wf-nlbl">Follow-up<br>Prompt</div><div class="tti">Abnormal (non-critical) results trigger automatic follow-up appointment suggestion: "Your results show elevated HbA1c. Would you like to book a review with Dr. Eze?"</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 4: SIM 1 — LAB RESULT -->
+<section class="slide" id="slide-3">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">03 — Simulation 1</div><div class="sec-title">Live: Results Released<br><span>— Critical Value Flagged</span></div><p class="sec-desc">Amaka's full blood count just came back from the lab. One value is critically low. Watch n8n notify her in plain language and simultaneously alert her doctor within seconds.</p></div>
+    <div class="animate-in lr">
+      <div style="display:flex;flex-direction:column;gap:1rem">
+        <div class="panel">
+          <h3>Lab Pipeline Steps</h3>
+          <ul class="ps-list" id="labSteps">
+            <li id="ls1" style="opacity:0.3"><div class="ps-num">1</div><div>Lab result validated — n8n webhook fires</div></li>
+            <li id="ls2" style="opacity:0.3"><div class="ps-num">2</div><div>Critical value check — Hb 5.8g/dL flagged 🚨</div></li>
+            <li id="ls3" style="opacity:0.3"><div class="ps-num">3</div><div>GPT-4o writes plain-language explanation</div></li>
+            <li id="ls4" style="opacity:0.3"><div class="ps-num">4</div><div>Results delivered to Amaka via WhatsApp</div></li>
+            <li id="ls5" style="opacity:0.3"><div class="ps-num">5</div><div>Dr. Eze alerted via call + WhatsApp — critical Hb</div></li>
+            <li id="ls6" style="opacity:0.3"><div class="ps-num">6</div><div>EMR updated — follow-up appointment suggested ✅</div></li>
+          </ul>
+        </div>
+        <div class="info-red">🚨 Critical value alert — Hb 5.8g/dL (normal: 12–16). This requires same-day clinical review. n8n ensures the doctor is alerted in under 5 minutes, not tomorrow morning.</div>
+        <button class="run-btn" id="labBtn" onclick="runLabSim()">▶ RELEASE & NOTIFY RESULTS</button>
+      </div>
+      <div id="labReveal" style="display:none">
+        <div class="lab-result">
+          <div class="lr2-header"><div class="lr2-title">🧪 Full Blood Count — Amaka Obi</div><span style="font-family:'IBM Plex Mono',monospace;font-size:0.6rem;opacity:0.7">LB-2025-0482 · Released 10 Apr</span></div>
+          <div class="lr2-body">
+            <div class="lr2-test"><span class="lr2-name">Haemoglobin (Hb)</span><span class="lr2-val" style="color:var(--red);font-weight:700">5.8 g/dL</span><span class="lr2-ref">12.0–16.0</span><span class="lr2-flag lf-high">LOW 🚨</span></div>
+            <div class="lr2-test"><span class="lr2-name">White Blood Cells</span><span class="lr2-val">7.2 ×10⁹/L</span><span class="lr2-ref">4.0–11.0</span><span class="lr2-flag lf-normal">Normal</span></div>
+            <div class="lr2-test"><span class="lr2-name">Platelets</span><span class="lr2-val">210 ×10⁹/L</span><span class="lr2-ref">150–400</span><span class="lr2-flag lf-normal">Normal</span></div>
+            <div class="lr2-test"><span class="lr2-name">Packed Cell Volume</span><span class="lr2-val" style="color:var(--red);font-weight:700">17%</span><span class="lr2-ref">36–46%</span><span class="lr2-flag lf-high">LOW 🚨</span></div>
+            <div style="background:rgba(192,32,32,0.05);border:1px solid rgba(192,32,32,0.15);border-radius:6px;padding:0.6rem 0.75rem;margin-top:0.6rem;font-size:0.7rem;line-height:1.65;color:var(--navy2)">
+              <strong style="color:var(--red)">GPT-4o explanation to patient:</strong><br>
+              "Your blood count shows your haemoglobin (the protein that carries oxygen in your blood) is very low at 5.8 — it should be between 12 and 16. This means your blood isn't carrying as much oxygen as it should. Your doctor has been notified and will contact you today. Please do not drive until you speak to them."
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 5: BEFORE/AFTER -->
+<section class="slide" id="slide-4">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">04 — Clinical Impact</div><div class="sec-title">Results That Drive<br><span>Action</span></div></div>
+    <div class="animate-in two-col" style="margin-bottom:1.5rem">
+      <div>
+        <div style="font-size:0.62rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--red);margin-bottom:0.75rem;font-weight:600;font-family:'IBM Plex Mono',monospace">❌ BEFORE</div>
+        <div style="display:flex;flex-direction:column;gap:0.5rem">
+          <div class="ba-bad">Patients call reception to ask if results are ready — wastes staff time</div>
+          <div class="ba-bad">Critical values spotted only at next scheduled consultation — hours/days late</div>
+          <div class="ba-bad">Results on paper — patient understands nothing, ignores or panics</div>
+          <div class="ba-bad">Results not linked to patient history — trends invisible to doctors</div>
+          <div class="ba-bad">Abnormal results with no follow-up prompt — patient never returns</div>
+        </div>
+      </div>
+      <div>
+        <div style="font-size:0.62rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--green);margin-bottom:0.75rem;font-weight:600;font-family:'IBM Plex Mono',monospace">✅ AFTER</div>
+        <div style="display:flex;flex-direction:column;gap:0.5rem">
+          <div class="ba-good">Patients notified via WhatsApp the moment results are released</div>
+          <div class="ba-good">Critical values alert doctor in under 5 minutes — lives protected</div>
+          <div class="ba-good">Plain-language explanation — patients understand and act appropriately</div>
+          <div class="ba-good">Results linked to EMR — doctor sees trends, not just today's value</div>
+          <div class="ba-good">Abnormal results trigger automatic follow-up booking suggestion</div>
+        </div>
+      </div>
+    </div>
+    <div class="animate-in">
+      <div class="quote-block">
+        <div class="quote-text">"A lab result is only clinically useful if it reaches the right person in time to act. <strong>Automated delivery and critical value alerting</strong> is one of the highest-impact safety improvements any hospital can make — and n8n makes it simple."</div>
+        <div style="font-size:0.62rem;color:rgba(255,255,255,0.3);font-family:'IBM Plex Mono',monospace">STACK: n8n · GPT-4o · LIS Webhook · WhatsApp API · EMR System · Twilio · Google Sheets</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="slide-counter" id="slideCounter">Slide 1 of 5</div>
+<div class="slide-nav">
+  <button class="nav-btn" onclick="prevSlide()">← Prev</button>
+  <button class="nav-btn primary" onclick="nextSlide()">Next →</button>
+</div>
+<script>
+const slides=document.querySelectorAll('.slide'),total=slides.length;let cur=0;
+const dots=document.getElementById('navDots');
+for(let i=0;i<total;i++){const d=document.createElement('div');d.className='nav-dot'+(i===0?' active':'');d.onclick=()=>goTo(i);dots.appendChild(d);}
+function goTo(n){slides[cur].classList.remove('active');dots.children[cur].classList.remove('active');if(cur<n)dots.children[cur].classList.add('done');cur=n;slides[cur].classList.add('active');dots.children[cur].classList.add('active');document.getElementById('slideCounter').textContent=`Slide ${cur+1} of ${total}`;}
+function nextSlide(){if(cur<total-1)goTo(cur+1);}function prevSlide(){if(cur>0)goTo(cur-1);}
+document.addEventListener('keydown',e=>{if(e.key==='ArrowRight'||e.key==='ArrowDown')nextSlide();if(e.key==='ArrowLeft'||e.key==='ArrowUp')prevSlide();});
+let secs=0;setInterval(()=>{secs++;const m=String(Math.floor(secs/60)).padStart(2,'0'),s=String(secs%60).padStart(2,'0');document.getElementById('timerBadge').textContent=`⏱ ${m}:${s}`;if(secs>=840)document.getElementById('timerBadge').style.color='#c02020';},1000);
+function delay(ms){return new Promise(r=>setTimeout(r,ms));}
+let labRunning=false;
+async function runLabSim(){
+  if(labRunning)return;labRunning=true;
+  const btn=document.getElementById('labBtn');btn.textContent='Processing...';
+  document.getElementById('labReveal').style.display='none';
+  const steps=['ls1','ls2','ls3','ls4','ls5','ls6'];
+  steps.forEach(id=>{const el=document.getElementById(id);if(el){el.style.opacity='0.3';el.querySelector('.ps-num').style.background='var(--border)';}});
+  const light=(i)=>{steps.forEach(id=>{const el=document.getElementById(id);if(el){el.style.opacity='0.3';el.querySelector('.ps-num').style.background='var(--border)';}});const el=document.getElementById(steps[i]);if(el){el.style.opacity='1';el.style.color=i===1?'var(--red)':'var(--blue)';el.querySelector('.ps-num').style.background=i===1?'var(--red)':'var(--navy)';}};
+  for(let i=0;i<steps.length;i++){
+    light(i);await delay(500);
+    if(i===1)document.getElementById('labReveal').style.display='block';
+  }
+  btn.textContent='↺ Reset & Run Again';labRunning=false;
+}
+</script>
+</body>
+</html>
