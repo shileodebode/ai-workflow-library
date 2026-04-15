@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Marketing — Campaign Reporting Automation</title>
+<link href="https://fonts.googleapis.com/css2?family=Epilogue:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,300&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f4f7f6;--surface:#ffffff;--surface2:#eaf0ed;--border:#d0ddd8;
+  --ink:#0a1a14;--navy:#1a3a5c;--navy2:#0f2a48;--emerald:#0d7a5a;
+  --teal:#0a9070;--lime:#68c44a;--green:#16a34a;--red:#dc2626;
+  --amber:#c47a10;--orange:#d46810;--text:#162820;--muted:#5a7068;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'Epilogue',sans-serif;overflow-x:hidden;}
+.left-accent{position:fixed;left:0;top:0;bottom:0;width:4px;background:linear-gradient(to bottom,var(--navy),var(--emerald),var(--lime));z-index:200;}
+nav{position:fixed;top:0;left:4px;right:0;z-index:100;background:rgba(244,247,246,0.97);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 2.5rem;height:54px;}
+.nav-brand{font-family:'IBM Plex Mono',monospace;font-size:0.7rem;color:var(--navy2);letter-spacing:0.06em;}
+.nav-dots{display:flex;gap:0.3rem;}
+.nav-dot{width:7px;height:7px;border-radius:50%;background:var(--border);cursor:pointer;transition:all 0.2s;}
+.nav-dot.active{background:var(--navy);transform:scale(1.5);}
+.nav-dot.done{background:var(--green);}
+.timer{font-size:0.67rem;color:var(--navy);background:rgba(26,58,92,0.08);border:1px solid rgba(26,58,92,0.2);padding:0.2rem 0.75rem;border-radius:4px;font-family:'IBM Plex Mono',monospace;}
+.slide{min-height:100vh;padding:78px 0 50px;display:none;flex-direction:column;align-items:center;justify-content:center;position:relative;overflow:hidden;}
+.slide.active{display:flex;}
+.slide-inner{width:100%;max-width:1140px;padding:0 2.5rem;position:relative;z-index:2;}
+.hero-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(26,58,92,0.04) 1px,transparent 1px),linear-gradient(90deg,rgba(26,58,92,0.04) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;}
+.hero-tag{display:inline-flex;align-items:center;gap:0.5rem;background:rgba(26,58,92,0.07);border:1px solid rgba(26,58,92,0.15);color:var(--navy2);font-size:0.67rem;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;padding:0.28rem 0.9rem;border-radius:4px;margin-bottom:1.5rem;font-family:'IBM Plex Mono',monospace;}
+h1.hero-title{font-family:'Epilogue',sans-serif;font-size:clamp(2.8rem,5.5vw,4.8rem);font-weight:800;line-height:1.0;letter-spacing:-0.03em;color:var(--ink);margin-bottom:1.5rem;}
+h1.hero-title span{color:var(--emerald);}
+.hero-desc{font-size:0.97rem;color:var(--muted);max-width:510px;line-height:1.78;margin-bottom:2.5rem;font-weight:300;}
+.kpi-strip{display:flex;gap:1px;background:var(--border);border:1px solid var(--border);border-radius:8px;overflow:hidden;max-width:620px;box-shadow:0 2px 8px rgba(26,58,92,0.07);}
+.kpi{background:white;padding:1.1rem 1.4rem;flex:1;}
+.kpi-val{font-family:'Epilogue',sans-serif;font-size:1.9rem;font-weight:800;color:var(--navy);line-height:1;}
+.kpi-lbl{font-size:0.59rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);margin-top:0.2rem;font-family:'IBM Plex Mono',monospace;}
+.sec-tag{font-size:0.61rem;letter-spacing:0.22em;text-transform:uppercase;color:var(--emerald);margin-bottom:0.4rem;font-weight:600;font-family:'IBM Plex Mono',monospace;display:flex;align-items:center;gap:0.4rem;}
+.sec-tag::before{content:'';width:16px;height:2px;background:var(--emerald);}
+.sec-title{font-family:'Epilogue',sans-serif;font-size:clamp(1.9rem,3.8vw,3rem);font-weight:800;line-height:1.05;margin-bottom:0.5rem;color:var(--ink);letter-spacing:-0.02em;}
+.sec-title span{color:var(--navy);}
+.sec-desc{font-size:0.87rem;color:var(--muted);margin-bottom:1.85rem;max-width:540px;line-height:1.78;font-weight:300;}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;}
+.three-col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;}
+.lr{display:grid;grid-template-columns:1.1fr 1fr;gap:2rem;align-items:start;}
+.lr-rev{display:grid;grid-template-columns:1fr 1.15fr;gap:2rem;align-items:start;}
+.card{background:white;border:1px solid var(--border);border-radius:8px;padding:1.25rem;transition:all 0.2s;box-shadow:0 1px 4px rgba(0,0,0,0.04);}
+.card:hover{border-color:var(--navy);transform:translateY(-2px);box-shadow:0 6px 18px rgba(26,58,92,0.08);}
+.card-icon{font-size:1.4rem;margin-bottom:0.5rem;}
+.card-title{font-family:'Epilogue',sans-serif;font-size:0.97rem;font-weight:700;margin-bottom:0.3rem;color:var(--ink);}
+.card-desc{font-size:0.72rem;color:var(--muted);line-height:1.65;}
+.panel{background:white;border:1px solid var(--border);border-radius:8px;padding:1.4rem;}
+.panel h3{font-family:'Epilogue',sans-serif;font-size:0.9rem;font-weight:700;color:var(--navy2);margin-bottom:0.9rem;display:flex;align-items:center;gap:0.5rem;}
+.panel h3::before{content:'//';color:var(--border);font-size:0.8rem;font-family:'IBM Plex Mono',monospace;}
+.steps{list-style:none;}
+.steps li{display:flex;gap:0.75rem;padding:0.45rem 0;border-bottom:1px solid var(--border);font-size:0.76rem;line-height:1.6;}
+.steps li:last-child{border-bottom:none;}
+.step-n{width:22px;height:22px;border-radius:4px;background:var(--navy);color:white;font-size:0.62rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:'IBM Plex Mono',monospace;}
+/* Workflow */
+.wf-canvas{background:var(--ink);border-radius:12px;padding:2rem;position:relative;overflow:hidden;}
+.wf-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(13,122,90,0.1) 1px,transparent 1px),linear-gradient(90deg,rgba(13,122,90,0.1) 1px,transparent 1px);background-size:32px 32px;}
+.wf-label{position:absolute;top:0.75rem;left:1rem;font-size:0.57rem;letter-spacing:0.18em;text-transform:uppercase;color:rgba(255,255,255,0.3);display:flex;align-items:center;gap:0.4rem;z-index:3;font-family:'IBM Plex Mono',monospace;}
+.wf-label::before{content:'';width:7px;height:7px;border-radius:50%;background:var(--lime);box-shadow:0 0 8px var(--lime);animation:lpulse 2s infinite;}
+@keyframes lpulse{0%,100%{opacity:1}50%{opacity:0.2}}
+.wf-nodes{display:flex;align-items:flex-start;gap:0;padding-top:1.5rem;position:relative;z-index:2;flex-wrap:wrap;}
+.wf-stage{display:flex;flex-direction:column;align-items:center;}
+.wf-slbl{font-size:0.51rem;letter-spacing:0.14em;text-transform:uppercase;color:rgba(255,255,255,0.28);margin-bottom:0.3rem;font-family:'IBM Plex Mono',monospace;}
+.wf-node{display:flex;flex-direction:column;align-items:center;gap:0.3rem;cursor:pointer;position:relative;}
+.wf-box{width:58px;height:58px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.25rem;border:2px solid transparent;transition:all 0.3s;}
+.wf-node:hover .wf-box{transform:scale(1.1);box-shadow:0 0 20px rgba(13,122,90,0.4);}
+.wf-nlbl{font-size:0.52rem;text-align:center;color:rgba(255,255,255,0.42);max-width:66px;line-height:1.3;font-family:'IBM Plex Mono',monospace;}
+.wf-arr{color:rgba(255,255,255,0.18);padding:0 0.2rem;font-size:0.85rem;align-self:flex-start;margin-top:19px;flex-shrink:0;}
+.ttw{position:relative;}
+.tti{position:absolute;bottom:calc(100%+8px);left:50%;transform:translateX(-50%);background:white;border:1px solid var(--border);border-radius:6px;padding:0.6rem 0.9rem;font-size:0.67rem;opacity:0;pointer-events:none;transition:opacity 0.2s;z-index:50;color:var(--ink);line-height:1.5;max-width:200px;white-space:normal;text-align:left;box-shadow:0 4px 12px rgba(0,0,0,0.1);}
+.ttw:hover .tti{opacity:1;}
+/* Data table */
+.data-table{background:white;border:1px solid var(--border);border-radius:8px;overflow:hidden;font-size:0.7rem;box-shadow:0 1px 6px rgba(0,0,0,0.05);}
+.dt-head{background:rgba(26,58,92,0.06);border-bottom:1px solid var(--border);display:grid;grid-template-columns:130px 80px 70px 70px 70px 80px 80px;padding:0.55rem 0.85rem;gap:0.4rem;font-size:0.59rem;letter-spacing:0.08em;color:var(--navy2);font-weight:600;text-transform:uppercase;font-family:'IBM Plex Mono',monospace;}
+.dt-row{display:grid;grid-template-columns:130px 80px 70px 70px 70px 80px 80px;padding:0.52rem 0.85rem;gap:0.4rem;border-bottom:1px solid rgba(208,221,216,0.5);align-items:center;transition:background 0.15s;}
+.dt-row:hover{background:var(--surface2);}
+.dt-row:last-child{border-bottom:none;}
+.perf-tag{display:inline-block;padding:0.1rem 0.42rem;border-radius:4px;font-size:0.58rem;font-weight:600;font-family:'IBM Plex Mono',monospace;}
+.pt-good{background:rgba(22,163,74,0.1);color:var(--green);border:1px solid rgba(22,163,74,0.2);}
+.pt-avg{background:rgba(196,122,16,0.1);color:var(--amber);border:1px solid rgba(196,122,16,0.2);}
+.pt-low{background:rgba(220,38,38,0.08);color:var(--red);border:1px solid rgba(220,38,38,0.15);}
+/* Metric card */
+.metric-card{background:white;border:1px solid var(--border);border-radius:8px;padding:1rem 1.1rem;display:flex;flex-direction:column;gap:0.25rem;}
+.mc-val{font-family:'Epilogue',sans-serif;font-size:1.8rem;font-weight:800;color:var(--navy);line-height:1;}
+.mc-label{font-size:0.6rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);font-family:'IBM Plex Mono',monospace;}
+.mc-change{font-size:0.68rem;font-weight:600;}
+.mc-up{color:var(--green);}
+.mc-down{color:var(--red);}
+/* Report preview */
+.report-preview{background:white;border:1px solid var(--border);border-radius:8px;overflow:hidden;}
+.rp-header{background:var(--navy);color:white;padding:0.85rem 1.1rem;display:flex;align-items:center;justify-content:space-between;}
+.rp-title{font-family:'Epilogue',sans-serif;font-size:0.9rem;font-weight:700;}
+.rp-body{padding:1rem;font-size:0.73rem;line-height:1.75;}
+.rp-section{margin-bottom:0.85rem;padding-bottom:0.85rem;border-bottom:1px solid var(--border);}
+.rp-section:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0;}
+.rp-section-title{font-weight:700;color:var(--navy2);font-size:0.72rem;margin-bottom:0.3rem;text-transform:uppercase;letter-spacing:0.06em;font-family:'IBM Plex Mono',monospace;}
+/* PS list */
+.ps-list{list-style:none;}
+.ps-list li{display:flex;gap:0.75rem;padding:0.45rem 0;border-bottom:1px solid var(--border);font-size:0.74rem;line-height:1.5;transition:all 0.3s;}
+.ps-list li:last-child{border-bottom:none;}
+.ps-num{width:20px;height:20px;border-radius:4px;background:var(--border);color:white;font-size:0.6rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;transition:background 0.3s;font-family:'IBM Plex Mono',monospace;}
+/* Info */
+.info-navy{padding:0.75rem 1rem;border-radius:6px;font-size:0.77rem;line-height:1.6;background:rgba(26,58,92,0.06);border:1px solid rgba(26,58,92,0.15);color:var(--navy2);}
+.info-green{padding:0.75rem 1rem;border-radius:6px;font-size:0.77rem;line-height:1.6;background:rgba(22,163,74,0.06);border:1px solid rgba(22,163,74,0.15);color:var(--green);}
+.ba-bad{padding:0.6rem 0.9rem;border-radius:6px;font-size:0.76rem;line-height:1.5;background:rgba(220,38,38,0.04);border:1px solid rgba(220,38,38,0.12);}
+.ba-good{padding:0.6rem 0.9rem;border-radius:6px;font-size:0.76rem;line-height:1.5;background:rgba(22,163,74,0.05);border:1px solid rgba(22,163,74,0.14);}
+.quote-block{background:var(--ink);border-radius:10px;padding:1.75rem 2rem;color:white;border-left:4px solid var(--emerald);}
+.quote-text{font-size:1.05rem;line-height:1.78;margin-bottom:0.75rem;font-weight:300;}
+.quote-text strong{color:var(--lime);}
+.slide-counter{position:fixed;bottom:1.5rem;left:2rem;font-size:0.62rem;color:var(--muted);z-index:100;font-family:'IBM Plex Mono',monospace;}
+.slide-nav{position:fixed;bottom:1.5rem;right:2rem;display:flex;gap:0.5rem;z-index:100;}
+.nav-btn{background:white;border:1px solid var(--border);color:var(--text);padding:0.55rem 1.2rem;border-radius:6px;font-family:'IBM Plex Mono',monospace;font-size:0.7rem;cursor:pointer;transition:all 0.2s;}
+.nav-btn:hover{border-color:var(--navy);color:var(--navy);}
+.nav-btn.primary{background:var(--navy);border-color:var(--navy);color:white;}
+.nav-btn.primary:hover{background:var(--navy2);}
+.run-btn{background:var(--navy);color:white;border:none;border-radius:6px;padding:0.7rem 1.5rem;font-family:'IBM Plex Mono',monospace;font-size:0.72rem;cursor:pointer;transition:all 0.2s;width:100%;text-align:center;}
+.run-btn:hover{background:var(--navy2);}
+.animate-in{opacity:0;animation:fadeUp 0.5s ease-out forwards;}
+.slide.active .animate-in:nth-child(1){animation-delay:0.05s;}
+.slide.active .animate-in:nth-child(2){animation-delay:0.15s;}
+.slide.active .animate-in:nth-child(3){animation-delay:0.25s;}
+.slide.active .animate-in:nth-child(4){animation-delay:0.35s;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+/* Count-up */
+.count-val{display:inline-block;transition:all 0.3s;}
+</style>
+</head>
+<body>
+<div class="left-accent"></div>
+<nav>
+  <div class="nav-brand">MKT · Campaign Reporting</div>
+  <div class="nav-dots" id="navDots"></div>
+  <div class="timer" id="timerBadge">⏱ 00:00</div>
+</nav>
+
+<!-- SLIDE 1: HERO -->
+<section class="slide active" id="slide-0">
+  <div class="hero-grid"></div>
+  <div class="slide-inner">
+    <div class="animate-in"><div class="hero-tag">n8n AI Automation · Marketing</div></div>
+    <div class="animate-in"><h1 class="hero-title">Your Campaign<br><span>Report.</span> Monday<br>Morning. Automatic.</h1></div>
+    <div class="animate-in"><p class="hero-desc">Every Monday at 8am, your marketing team receives a complete campaign performance report — pulled from every channel, analysed by AI, and delivered as an executive-ready PDF. Zero manual work.</p></div>
+    <div class="animate-in">
+      <div class="kpi-strip">
+        <div class="kpi"><div class="kpi-val">8am</div><div class="kpi-lbl">Auto-Delivered Weekly</div></div>
+        <div class="kpi"><div class="kpi-val">12+</div><div class="kpi-lbl">Data Sources</div></div>
+        <div class="kpi"><div class="kpi-val">AI</div><div class="kpi-lbl">Insight Analysis</div></div>
+        <div class="kpi"><div class="kpi-val">0h</div><div class="kpi-lbl">Manual Reporting</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 2: PROBLEM -->
+<section class="slide" id="slide-1">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">01 — The Problem</div><div class="sec-title">Reporting That Takes<br><span>All Friday</span></div><p class="sec-desc">Marketing teams spend 4–6 hours every week pulling data from different dashboards, copying numbers into slides, and writing summaries. None of that time creates value.</p></div>
+    <div class="animate-in two-col" style="margin-bottom:1.5rem">
+      <div class="card"><div class="card-icon">🔄</div><div class="card-title">Manual Data Pulling</div><div class="card-desc">Google Analytics, Meta Ads, LinkedIn, email platform, CRM — all separate dashboards. Copy numbers into Excel, cross-reference, calculate rates. 3 hours minimum, every week, error-prone.</div></div>
+      <div class="card"><div class="card-icon">📊</div><div class="card-title">Stale Insights</div><div class="card-desc">Weekly report shows last week's data presented on Friday. Leadership makes decisions on 5-day-old information. Fast-moving campaigns keep spending on what was already underperforming.</div></div>
+      <div class="card"><div class="card-icon">🎭</div><div class="card-title">Numbers, Not Insights</div><div class="card-desc">Reports full of numbers with no interpretation. "CTR was 2.4%" — so what? Is that good? What should change? Marketers present data; nobody knows what to do with it.</div></div>
+      <div class="card"><div class="card-icon">👻</div><div class="card-title">Missed Anomalies</div><div class="card-desc">CPA spiked 40% on Tuesday. Nobody noticed until Friday's report. £3,000 wasted on a broken campaign segment. Real-time anomaly detection would have caught it in 2 hours.</div></div>
+    </div>
+    <div class="animate-in"><div class="info-navy">✅ n8n pulls data from every channel automatically, GPT-4o writes the analysis and recommendations, and a full report lands in inboxes every Monday at 8am — no human effort required.</div></div>
+  </div>
+</section>
+
+<!-- SLIDE 3: WORKFLOW -->
+<section class="slide" id="slide-2">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">02 — The Blueprint</div><div class="sec-title">n8n Campaign Reporting<br><span>Automation</span></div><p class="sec-desc">Every Monday at 7am, n8n wakes up, pulls all your campaign data, runs AI analysis, builds the report, and delivers it — before your first meeting.</p></div>
+    <div class="animate-in wf-canvas">
+      <div class="wf-grid"></div>
+      <div class="wf-label">n8n canvas — campaign reporting pipeline</div>
+      <div class="wf-nodes">
+        <div class="wf-stage"><div class="wf-slbl">Collect</div>
+          <div style="display:flex;flex-direction:column;gap:0.35rem">
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#0a1a1a,#065f46);color:#6ee7b7;border-color:#065f46;">📊</div><div class="wf-nlbl">Google<br>Analytics</div><div class="tti">Pulls: sessions, bounce rate, traffic sources, page performance, conversion paths. Last 7 days vs prior 7 days.</div></div>
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#0a1a2a,#1d4ed8);color:#93c5fd;border-color:#1d4ed8;">💼</div><div class="wf-nlbl">LinkedIn &<br>Meta Ads</div><div class="tti">Pulls: spend, impressions, clicks, CTR, conversions, CPA, ROAS per campaign and per ad creative. Identifies winners and losers.</div></div>
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a3a1a,#166534);color:#4ade80;border-color:#166534;">📧</div><div class="wf-nlbl">Email<br>Platform</div><div class="tti">Pulls: send volume, open rates, click rates, unsubscribes, revenue attributed per email/sequence. Identifies top-performing subject lines.</div></div>
+          </div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-stage"><div class="wf-slbl">Aggregate</div>
+          <div style="display:flex;flex-direction:column;gap:0.35rem">
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a1a0a,#78350f);color:#fde68a;border-color:#78350f;">🔗</div><div class="wf-nlbl">Data<br>Merge</div><div class="tti">n8n joins data from all sources using UTM parameters and deal IDs. Calculates true revenue attribution across full funnel — from first touch to close.</div></div>
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#0a1a2a,#0369a1);color:#7dd3fc;border-color:#0369a1;">📉</div><div class="wf-nlbl">Anomaly<br>Detect</div><div class="tti">Compares this week vs 4-week average for each metric. If any metric deviates >20%, flagged as anomaly. Alerts sent immediately, not weekly.</div></div>
+          </div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-stage"><div class="wf-slbl">Analyse</div>
+          <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a0a0a,#991b1b);color:#fca5a5;border-color:#991b1b;">🧠</div><div class="wf-nlbl">GPT-4o<br>Analysis</div><div class="tti">GPT-4o reads all aggregated data and writes: executive summary, top 3 wins, top 3 concerns, specific recommendations with projected impact, and budget reallocation suggestions.</div></div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-stage"><div class="wf-slbl">Build</div>
+          <div style="display:flex;flex-direction:column;gap:0.35rem">
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a0a2e,#6d28d9);color:#c4b5fd;border-color:#6d28d9;">📄</div><div class="wf-nlbl">PDF<br>Report</div><div class="tti">n8n generates a branded PDF with: exec summary, channel breakdowns, campaign tables, trend charts, and AI recommendations. Stored in Drive, emailed to team.</div></div>
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#0a1a1a,#065f46);color:#6ee7b7;border-color:#065f46;">📊</div><div class="wf-nlbl">Looker<br>Update</div><div class="tti">Live Looker Studio / Google Data Studio dashboard updated with latest data. Leadership can view real-time metrics any time — not just on Mondays.</div></div>
+          </div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-stage"><div class="wf-slbl">Deliver</div>
+          <div style="display:flex;flex-direction:column;gap:0.35rem">
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a3a1a,#166534);color:#4ade80;border-color:#166534;">📧</div><div class="wf-nlbl">Email<br>Report</div><div class="tti">PDF emailed to CMO, marketing team, and relevant stakeholders. Every Monday at 8am. With key headline metrics in the email body so they can triage before opening.</div></div>
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#0a0a1a,#1e3a5f);color:#93c5fd;border-color:#1e3a5f;">💬</div><div class="wf-nlbl">Slack<br>Digest</div><div class="tti">Slack #marketing channel gets a formatted summary: top 3 wins, top 3 concerns, and one action item for this week. Designed to be read in 30 seconds.</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 4: SIM 1 — REPORT BUILD -->
+<section class="slide" id="slide-3">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">03 — Simulation 1</div><div class="sec-title">Live: Weekly Report<br><span>Being Built</span></div><p class="sec-desc">It's Monday 7:00am. n8n is pulling all campaign data, running analysis, and building this week's report. Watch the pipeline complete in real time.</p></div>
+    <div class="animate-in lr">
+      <div style="display:flex;flex-direction:column;gap:1rem">
+        <div class="panel">
+          <h3>Report Build Pipeline</h3>
+          <ul class="ps-list" id="reportSteps">
+            <li id="rp1" style="opacity:0.3"><div class="ps-num">1</div><div>n8n cron fires — Monday 7:00am</div></li>
+            <li id="rp2" style="opacity:0.3"><div class="ps-num">2</div><div>Pulling data from 6 sources simultaneously</div></li>
+            <li id="rp3" style="opacity:0.3"><div class="ps-num">3</div><div>Data merged + anomaly check running</div></li>
+            <li id="rp4" style="opacity:0.3"><div class="ps-num">4</div><div>GPT-4o writing executive summary + recommendations</div></li>
+            <li id="rp5" style="opacity:0.3"><div class="ps-num">5</div><div>PDF generated + stored in Google Drive</div></li>
+            <li id="rp6" style="opacity:0.3"><div class="ps-num">6</div><div>Report emailed + Slack digest sent — 7:58am ✅</div></li>
+          </ul>
+        </div>
+        <div class="three-col">
+          <div class="metric-card"><div class="mc-val" id="mc1">—</div><div class="mc-label">Total Leads</div><div class="mc-change mc-up" id="mc1c">—</div></div>
+          <div class="metric-card"><div class="mc-val" id="mc2">—</div><div class="mc-label">CAC</div><div class="mc-change mc-down" id="mc2c">—</div></div>
+          <div class="metric-card"><div class="mc-val" id="mc3">—</div><div class="mc-label">ROAS</div><div class="mc-change mc-up" id="mc3c">—</div></div>
+        </div>
+        <button class="run-btn" id="reportBtn" onclick="runReportSim()">▶ BUILD WEEKLY REPORT</button>
+      </div>
+      <div id="reportReveal" style="display:none">
+        <div class="report-preview">
+          <div class="rp-header"><div class="rp-title">📊 Weekly Marketing Report</div><span style="font-family:'IBM Plex Mono',monospace;font-size:0.6rem;opacity:0.7">W14 · Apr 7–13 · Auto-generated by n8n</span></div>
+          <div class="rp-body">
+            <div class="rp-section">
+              <div class="rp-section-title">Executive Summary</div>
+              Strong week overall. LinkedIn campaign outperformed by 34%. Email nurture sequence conversion hit 8.2% — new record. Google Ads CPA increased 18% — flagged for review.
+            </div>
+            <div class="rp-section">
+              <div class="rp-section-title">✅ Top Wins</div>
+              1. LinkedIn Ads CTR: 4.2% (vs 2.8% benchmark) — creative A winning<br>
+              2. Email Sequence Open Rate: 48% — subject line test successful<br>
+              3. Organic leads up 22% — SEO content working
+            </div>
+            <div class="rp-section">
+              <div class="rp-section-title">⚠️ Action Required</div>
+              Google Ads CPA +18% — recommend pausing Audience B, reallocating £1,200/week to LinkedIn Campaign 3 (ROAS 4.2×). Expected impact: +14 qualified leads/week.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 5: SIM 2 — CAMPAIGN TABLE -->
+<section class="slide" id="slide-4">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">04 — Simulation 2</div><div class="sec-title">Campaign Performance<br><span>Breakdown Table</span></div><p class="sec-desc">Every active campaign broken down by key metrics. AI flags what's over- and under-performing — and suggests where to move budget for maximum impact.</p></div>
+    <div class="animate-in" style="margin-bottom:1.25rem">
+      <div class="data-table">
+        <div class="dt-head"><div>Campaign</div><div>Spend</div><div>Leads</div><div>CPA</div><div>CTR</div><div>ROAS</div><div>Status</div></div>
+        <div class="dt-row"><div style="font-weight:600">LinkedIn — B2B Decision</div><div>£2,400</div><div style="color:var(--green);font-weight:700">48</div><div>£50</div><div>4.2%</div><div style="color:var(--green);font-weight:700">4.2×</div><div><span class="perf-tag pt-good">🚀 Scale</span></div></div>
+        <div class="dt-row"><div style="font-weight:600">Email Nurture — MQL</div><div>£0</div><div style="color:var(--green);font-weight:700">22</div><div>£0</div><div>48% OR</div><div style="color:var(--green);font-weight:700">6.1×</div><div><span class="perf-tag pt-good">✓ Strong</span></div></div>
+        <div class="dt-row"><div style="font-weight:600">Google Ads — Brand</div><div>£1,800</div><div>18</div><div style="color:var(--amber)">£100</div><div>2.1%</div><div>2.8×</div><div><span class="perf-tag pt-avg">~ Review</span></div></div>
+        <div class="dt-row"><div style="font-weight:600">Meta — Awareness</div><div>£1,200</div><div style="color:var(--amber)">9</div><div style="color:var(--red);font-weight:700">£133</div><div>1.4%</div><div style="color:var(--red)">1.4×</div><div><span class="perf-tag pt-low">⚠ Pause</span></div></div>
+        <div class="dt-row"><div style="font-weight:600">Organic SEO</div><div>£0</div><div>31</div><div>£0</div><div>—</div><div style="color:var(--green)">∞</div><div><span class="perf-tag pt-good">✓ Strong</span></div></div>
+      </div>
+    </div>
+    <div class="animate-in two-col">
+      <div class="panel">
+        <h3>GPT-4o Recommendation</h3>
+        <div style="font-size:0.75rem;line-height:1.75">
+          📌 <strong>Pause Meta Awareness campaign</strong> — CPA £133 vs target £60. Reallocate £1,200/week to LinkedIn B2B Decision (current ROAS 4.2×).<br><br>
+          📈 <strong>Expected impact:</strong> +14 qualified leads/week at current LinkedIn CPA. Net gain: ~6 additional MQLs entering nurture sequence per week.
+        </div>
+      </div>
+      <div class="info-green">✅ This recommendation is generated automatically every Monday. No analyst needed to spot the under-performer — AI does it in seconds, with actionable budget numbers.</div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 6: BEFORE/AFTER -->
+<section class="slide" id="slide-5">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">05 — Business Impact</div><div class="sec-title">Data That Drives<br><span>Decisions</span></div></div>
+    <div class="animate-in two-col" style="margin-bottom:1.5rem">
+      <div>
+        <div style="font-size:0.62rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--red);margin-bottom:0.75rem;font-weight:600;font-family:'IBM Plex Mono',monospace">❌ BEFORE</div>
+        <div style="display:flex;flex-direction:column;gap:0.5rem">
+          <div class="ba-bad">4–6 hours every Friday pulling data from 6 different dashboards</div>
+          <div class="ba-bad">Report delivered Friday — 5-day-old data, decisions already made</div>
+          <div class="ba-bad">Numbers without context — nobody knows what "2.4% CTR" means</div>
+          <div class="ba-bad">Campaign anomalies noticed at end of week — budget already wasted</div>
+          <div class="ba-bad">No budget reallocation recommendations — gut feel only</div>
+        </div>
+      </div>
+      <div>
+        <div style="font-size:0.62rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--green);margin-bottom:0.75rem;font-weight:600;font-family:'IBM Plex Mono',monospace">✅ AFTER</div>
+        <div style="display:flex;flex-direction:column;gap:0.5rem">
+          <div class="ba-good">0 hours — report auto-generated and emailed every Monday 8am</div>
+          <div class="ba-good">Live dashboard always current — no waiting for Friday's report</div>
+          <div class="ba-good">AI executive summary with wins, concerns, and specific actions</div>
+          <div class="ba-good">Anomaly alerts within 2 hours — bad campaigns paused before wasting budget</div>
+          <div class="ba-good">GPT-4o budget reallocation recommendations with projected impact</div>
+        </div>
+      </div>
+    </div>
+    <div class="animate-in">
+      <div class="quote-block">
+        <div class="quote-text">"Marketing teams should spend their time on <strong>strategy and creativity</strong> — not copying numbers from dashboards into slides. This automation gives them both their Friday back and better insights than they had before."</div>
+        <div style="font-size:0.62rem;color:rgba(255,255,255,0.3);font-family:'IBM Plex Mono',monospace">STACK: n8n · GPT-4o · Google Analytics · Meta Ads API · LinkedIn API · HubSpot · Looker Studio · Slack</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="slide-counter" id="slideCounter">Slide 1 of 6</div>
+<div class="slide-nav">
+  <button class="nav-btn" onclick="prevSlide()">← Prev</button>
+  <button class="nav-btn primary" onclick="nextSlide()">Next →</button>
+</div>
+<script>
+const slides=document.querySelectorAll('.slide'),total=slides.length;let cur=0;
+const dots=document.getElementById('navDots');
+for(let i=0;i<total;i++){const d=document.createElement('div');d.className='nav-dot'+(i===0?' active':'');d.onclick=()=>goTo(i);dots.appendChild(d);}
+function goTo(n){slides[cur].classList.remove('active');dots.children[cur].classList.remove('active');if(cur<n)dots.children[cur].classList.add('done');cur=n;slides[cur].classList.add('active');dots.children[cur].classList.add('active');document.getElementById('slideCounter').textContent=`Slide ${cur+1} of ${total}`;}
+function nextSlide(){if(cur<total-1)goTo(cur+1);}function prevSlide(){if(cur>0)goTo(cur-1);}
+document.addEventListener('keydown',e=>{if(e.key==='ArrowRight'||e.key==='ArrowDown')nextSlide();if(e.key==='ArrowLeft'||e.key==='ArrowUp')prevSlide();});
+let secs=0;setInterval(()=>{secs++;const m=String(Math.floor(secs/60)).padStart(2,'0'),s=String(secs%60).padStart(2,'0');document.getElementById('timerBadge').textContent=`⏱ ${m}:${s}`;if(secs>=840)document.getElementById('timerBadge').style.color='#dc2626';},1000);
+function delay(ms){return new Promise(r=>setTimeout(r,ms));}
+
+let reportRunning=false;
+async function runReportSim(){
+  if(reportRunning)return;reportRunning=true;
+  const btn=document.getElementById('reportBtn');btn.textContent='Building...';
+  document.getElementById('reportReveal').style.display='none';
+  ['mc1','mc2','mc3'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent='—';});
+  ['mc1c','mc2c','mc3c'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent='—';});
+  const steps=['rp1','rp2','rp3','rp4','rp5','rp6'];
+  steps.forEach(id=>{const el=document.getElementById(id);if(el){el.style.opacity='0.3';el.querySelector('.ps-num').style.background='var(--border)';}});
+  const light=(i)=>{steps.forEach(id=>{const el=document.getElementById(id);if(el){el.style.opacity='0.3';el.querySelector('.ps-num').style.background='var(--border)';}});const el=document.getElementById(steps[i]);if(el){el.style.opacity='1';el.style.color='var(--emerald)';el.querySelector('.ps-num').style.background='var(--navy)';}};
+  for(let s=0;s<4;s++){light(s);await delay(600);}
+  document.getElementById('mc1').textContent='128';document.getElementById('mc1c').textContent='▲ 18% vs last week';
+  document.getElementById('mc2').textContent='£62';document.getElementById('mc2c').textContent='▼ 8% — improving';
+  document.getElementById('mc3').textContent='3.8×';document.getElementById('mc3c').textContent='▲ 0.4× vs last week';
+  light(4);await delay(600);
+  document.getElementById('reportReveal').style.display='block';
+  light(5);
+  btn.textContent='↺ Reset & Run Again';reportRunning=false;
+}
+</script>
+</body>
+</html>
