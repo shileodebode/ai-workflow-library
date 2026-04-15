@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Healthcare — Patient Intake & Registration Automation</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f3faf8;--surface:#ffffff;--surface2:#e6f5f1;--border:#c8e8e0;
+  --ink:#041814;--teal:#0b7c6a;--teal2:#096058;--mint:#10b896;
+  --foam:#e0f7f2;--green:#0a6a3a;--red:#c02828;--amber:#b87010;
+  --blue:#1a4a8a;--purple:#5a2898;--text:#0a2018;--muted:#507868;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'Plus Jakarta Sans',sans-serif;overflow-x:hidden;}
+.top-cross{position:fixed;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,var(--teal),var(--mint),var(--teal));z-index:200;}
+nav{position:fixed;top:4px;left:0;right:0;z-index:100;background:rgba(243,250,248,0.97);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 2.5rem;height:54px;}
+.nav-brand{font-family:'JetBrains Mono',monospace;font-size:0.7rem;color:var(--teal2);letter-spacing:0.06em;}
+.nav-dots{display:flex;gap:0.3rem;}
+.nav-dot{width:7px;height:7px;border-radius:50%;background:var(--border);cursor:pointer;transition:all 0.2s;}
+.nav-dot.active{background:var(--teal);transform:scale(1.5);}
+.nav-dot.done{background:var(--green);}
+.timer{font-size:0.67rem;color:var(--teal);background:rgba(11,124,106,0.08);border:1px solid rgba(11,124,106,0.2);padding:0.2rem 0.75rem;border-radius:20px;font-family:'JetBrains Mono',monospace;}
+.slide{min-height:100vh;padding:78px 0 50px;display:none;flex-direction:column;align-items:center;justify-content:center;position:relative;overflow:hidden;}
+.slide.active{display:flex;}
+.slide-inner{width:100%;max-width:1140px;padding:0 2.5rem;position:relative;z-index:2;}
+.hero-orb{position:absolute;top:-80px;right:-80px;width:520px;height:520px;border-radius:50%;background:radial-gradient(circle,rgba(11,124,106,0.06) 0%,transparent 65%);pointer-events:none;}
+.hero-badge{display:inline-flex;align-items:center;gap:0.5rem;background:var(--foam);border:1px solid rgba(11,124,106,0.2);color:var(--teal2);font-size:0.67rem;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;padding:0.28rem 0.9rem;border-radius:20px;margin-bottom:1.5rem;font-family:'JetBrains Mono',monospace;}
+.hero-badge::before{content:'🏥';font-size:0.75rem;}
+h1.hero-title{font-family:'Plus Jakarta Sans',sans-serif;font-size:clamp(2.8rem,5.5vw,4.8rem);font-weight:800;line-height:1.0;letter-spacing:-0.03em;color:var(--ink);margin-bottom:1.5rem;}
+h1.hero-title span{color:var(--teal);}
+.hero-desc{font-size:0.97rem;color:var(--muted);max-width:510px;line-height:1.78;margin-bottom:2.5rem;font-weight:300;}
+.kpi-strip{display:flex;gap:1px;background:var(--border);border-radius:12px;overflow:hidden;max-width:640px;box-shadow:0 2px 12px rgba(11,124,106,0.07);}
+.kpi{background:white;padding:1.1rem 1.4rem;flex:1;}
+.kpi-val{font-family:'Plus Jakarta Sans',sans-serif;font-size:1.85rem;font-weight:800;color:var(--teal);line-height:1;}
+.kpi-lbl{font-size:0.59rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);margin-top:0.2rem;font-family:'JetBrains Mono',monospace;}
+.sec-tag{font-size:0.61rem;letter-spacing:0.22em;text-transform:uppercase;color:var(--teal);margin-bottom:0.4rem;font-weight:600;font-family:'JetBrains Mono',monospace;display:flex;align-items:center;gap:0.4rem;}
+.sec-tag::before{content:'';width:16px;height:2px;background:var(--teal);}
+.sec-title{font-family:'Plus Jakarta Sans',sans-serif;font-size:clamp(1.9rem,3.8vw,3rem);font-weight:800;line-height:1.05;margin-bottom:0.5rem;color:var(--ink);letter-spacing:-0.02em;}
+.sec-title span{color:var(--teal);}
+.sec-desc{font-size:0.87rem;color:var(--muted);margin-bottom:1.85rem;max-width:540px;line-height:1.78;font-weight:300;}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;}
+.three-col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;}
+.lr{display:grid;grid-template-columns:1.1fr 1fr;gap:2rem;align-items:start;}
+.lr-rev{display:grid;grid-template-columns:1fr 1.15fr;gap:2rem;align-items:start;}
+.card{background:white;border:1px solid var(--border);border-radius:12px;padding:1.25rem;transition:all 0.2s;box-shadow:0 1px 4px rgba(0,0,0,0.04);}
+.card:hover{border-color:var(--teal);transform:translateY(-2px);box-shadow:0 6px 20px rgba(11,124,106,0.1);}
+.card-icon{font-size:1.4rem;margin-bottom:0.5rem;}
+.card-title{font-family:'Plus Jakarta Sans',sans-serif;font-size:0.95rem;font-weight:700;margin-bottom:0.3rem;color:var(--ink);}
+.card-desc{font-size:0.72rem;color:var(--muted);line-height:1.65;}
+.panel{background:white;border:1px solid var(--border);border-radius:12px;padding:1.4rem;}
+.panel h3{font-family:'Plus Jakarta Sans',sans-serif;font-size:0.88rem;font-weight:700;color:var(--teal2);margin-bottom:0.9rem;display:flex;align-items:center;gap:0.5rem;}
+.panel h3::before{content:'▸';color:var(--mint);}
+.steps{list-style:none;}
+.steps li{display:flex;gap:0.75rem;padding:0.45rem 0;border-bottom:1px solid var(--border);font-size:0.76rem;line-height:1.6;}
+.steps li:last-child{border-bottom:none;}
+.step-n{width:22px;height:22px;border-radius:50%;background:var(--teal);color:white;font-size:0.62rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+/* Workflow */
+.wf-canvas{background:var(--ink);border-radius:14px;padding:2rem;position:relative;overflow:hidden;}
+.wf-dots{position:absolute;inset:0;background-image:radial-gradient(circle,rgba(16,184,150,0.15) 1px,transparent 1px);background-size:28px 28px;opacity:0.5;}
+.wf-label{position:absolute;top:0.75rem;left:1rem;font-size:0.57rem;letter-spacing:0.18em;text-transform:uppercase;color:rgba(255,255,255,0.3);display:flex;align-items:center;gap:0.4rem;z-index:3;font-family:'JetBrains Mono',monospace;}
+.wf-label::before{content:'';width:7px;height:7px;border-radius:50%;background:var(--mint);box-shadow:0 0 8px var(--mint);animation:mpulse 2s infinite;}
+@keyframes mpulse{0%,100%{opacity:1}50%{opacity:0.2}}
+.wf-nodes{display:flex;align-items:flex-start;gap:0;padding-top:1.5rem;position:relative;z-index:2;flex-wrap:wrap;}
+.wf-stage{display:flex;flex-direction:column;align-items:center;}
+.wf-slbl{font-size:0.51rem;letter-spacing:0.14em;text-transform:uppercase;color:rgba(255,255,255,0.28);margin-bottom:0.3rem;font-family:'JetBrains Mono',monospace;}
+.wf-node{display:flex;flex-direction:column;align-items:center;gap:0.3rem;cursor:pointer;position:relative;}
+.wf-box{width:58px;height:58px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.25rem;border:2px solid transparent;transition:all 0.3s;}
+.wf-node:hover .wf-box{transform:scale(1.1);box-shadow:0 0 20px rgba(11,124,106,0.4);}
+.wf-nlbl{font-size:0.52rem;text-align:center;color:rgba(255,255,255,0.42);max-width:66px;line-height:1.3;font-family:'JetBrains Mono',monospace;}
+.wf-arr{color:rgba(255,255,255,0.18);padding:0 0.2rem;font-size:0.85rem;align-self:flex-start;margin-top:19px;flex-shrink:0;}
+.ttw{position:relative;}
+.tti{position:absolute;bottom:calc(100%+8px);left:50%;transform:translateX(-50%);background:white;border:1px solid var(--border);border-radius:8px;padding:0.6rem 0.9rem;font-size:0.67rem;opacity:0;pointer-events:none;transition:opacity 0.2s;z-index:50;color:var(--ink);line-height:1.5;max-width:200px;white-space:normal;text-align:left;box-shadow:0 4px 16px rgba(0,0,0,0.08);}
+.ttw:hover .tti{opacity:1;}
+/* Patient form */
+.patient-form{background:white;border:1px solid var(--border);border-radius:12px;overflow:hidden;}
+.pf-header{background:linear-gradient(135deg,var(--teal),var(--mint));color:white;padding:0.85rem 1.1rem;}
+.pf-title{font-family:'Plus Jakarta Sans',sans-serif;font-size:0.9rem;font-weight:700;}
+.pf-body{padding:1rem;}
+.pf-field label{font-size:0.6rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:0.18rem;font-family:'JetBrains Mono',monospace;}
+.pf-input{background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:0.4rem 0.65rem;font-size:0.72rem;color:var(--text);font-family:'Plus Jakarta Sans',sans-serif;width:100%;min-height:26px;margin-bottom:0.5rem;transition:border-color 0.3s;}
+.pf-row{display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;}
+/* Patient record */
+.patient-record{background:white;border:1px solid var(--border);border-radius:12px;overflow:hidden;}
+.pr-header{background:var(--teal);color:white;padding:0.85rem 1.1rem;display:flex;align-items:center;justify-content:space-between;}
+.pr-avatar{width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,0.25);display:flex;align-items:center;justify-content:center;font-size:1rem;}
+.pr-name{font-weight:700;font-size:0.88rem;}
+.pr-id{font-size:0.6rem;opacity:0.75;font-family:'JetBrains Mono',monospace;}
+.pr-body{padding:1rem;font-size:0.73rem;line-height:1.75;}
+.pr-row{display:flex;justify-content:space-between;padding:0.25rem 0;border-bottom:1px solid rgba(200,232,224,0.5);}
+.pr-row:last-child{border-bottom:none;}
+.pr-label{color:var(--muted);font-size:0.65rem;font-family:'JetBrains Mono',monospace;}
+.pr-val{font-weight:500;color:var(--ink);}
+/* Queue board */
+.queue-row{background:white;border:1px solid var(--border);border-radius:10px;padding:0.75rem 1rem;margin-bottom:0.4rem;display:flex;gap:0.85rem;align-items:center;transition:all 0.3s;font-size:0.72rem;}
+.queue-row.waiting{border-color:var(--amber);background:rgba(184,112,16,0.03);}
+.queue-row.called{border-color:var(--teal);background:rgba(11,124,106,0.03);}
+.queue-row.with-doc{border-color:var(--green);background:rgba(10,106,58,0.03);}
+.q-num{font-family:'JetBrains Mono',monospace;font-size:1.1rem;font-weight:700;color:var(--teal);flex-shrink:0;min-width:30px;}
+.q-name{font-weight:600;color:var(--ink);}
+.q-type{font-size:0.63rem;color:var(--muted);}
+.q-badge{margin-left:auto;font-size:0.58rem;padding:0.1rem 0.42rem;border-radius:20px;font-weight:600;font-family:'JetBrains Mono',monospace;white-space:nowrap;}
+.qb-wait{background:rgba(184,112,16,0.1);color:var(--amber);border:1px solid rgba(184,112,16,0.2);}
+.qb-called{background:rgba(11,124,106,0.1);color:var(--teal);border:1px solid rgba(11,124,106,0.2);}
+.qb-done{background:rgba(10,106,58,0.1);color:var(--green);border:1px solid rgba(10,106,58,0.2);}
+.qb-new{background:rgba(80,120,104,0.1);color:var(--muted);border:1px solid rgba(80,120,104,0.18);}
+/* PS list */
+.ps-list{list-style:none;}
+.ps-list li{display:flex;gap:0.75rem;padding:0.45rem 0;border-bottom:1px solid var(--border);font-size:0.74rem;line-height:1.5;transition:all 0.3s;}
+.ps-list li:last-child{border-bottom:none;}
+.ps-num{width:20px;height:20px;border-radius:50%;background:var(--border);color:white;font-size:0.6rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;transition:background 0.3s;}
+/* Info */
+.info-teal{padding:0.75rem 1rem;border-radius:8px;font-size:0.77rem;line-height:1.6;background:rgba(11,124,106,0.06);border:1px solid rgba(11,124,106,0.15);color:var(--teal2);}
+.info-green{padding:0.75rem 1rem;border-radius:8px;font-size:0.77rem;line-height:1.6;background:rgba(10,106,58,0.06);border:1px solid rgba(10,106,58,0.15);color:var(--green);}
+.ba-bad{padding:0.6rem 0.9rem;border-radius:8px;font-size:0.76rem;line-height:1.5;background:rgba(192,40,40,0.04);border:1px solid rgba(192,40,40,0.12);}
+.ba-good{padding:0.6rem 0.9rem;border-radius:8px;font-size:0.76rem;line-height:1.5;background:rgba(10,106,58,0.05);border:1px solid rgba(10,106,58,0.14);}
+.quote-block{background:var(--ink);border-radius:14px;padding:1.75rem 2rem;color:white;}
+.quote-text{font-size:1.05rem;line-height:1.78;margin-bottom:0.75rem;font-weight:300;}
+.quote-text strong{color:var(--mint);}
+.slide-counter{position:fixed;bottom:1.5rem;left:2rem;font-size:0.62rem;color:var(--muted);z-index:100;font-family:'JetBrains Mono',monospace;}
+.slide-nav{position:fixed;bottom:1.5rem;right:2rem;display:flex;gap:0.5rem;z-index:100;}
+.nav-btn{background:white;border:1px solid var(--border);color:var(--text);padding:0.55rem 1.2rem;border-radius:8px;font-family:'JetBrains Mono',monospace;font-size:0.7rem;cursor:pointer;transition:all 0.2s;}
+.nav-btn:hover{border-color:var(--teal);color:var(--teal);}
+.nav-btn.primary{background:var(--teal);border-color:var(--teal);color:white;}
+.nav-btn.primary:hover{background:var(--teal2);}
+.run-btn{background:var(--teal);color:white;border:none;border-radius:8px;padding:0.7rem 1.5rem;font-family:'JetBrains Mono',monospace;font-size:0.72rem;cursor:pointer;transition:all 0.2s;width:100%;text-align:center;}
+.run-btn:hover{background:var(--teal2);}
+.animate-in{opacity:0;animation:fadeUp 0.5s ease-out forwards;}
+.slide.active .animate-in:nth-child(1){animation-delay:0.05s;}
+.slide.active .animate-in:nth-child(2){animation-delay:0.15s;}
+.slide.active .animate-in:nth-child(3){animation-delay:0.25s;}
+.slide.active .animate-in:nth-child(4){animation-delay:0.35s;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+</style>
+</head>
+<body>
+<div class="top-cross"></div>
+<nav>
+  <div class="nav-brand">HEALTHCARE · Patient Intake & Registration</div>
+  <div class="nav-dots" id="navDots"></div>
+  <div class="timer" id="timerBadge">⏱ 00:00</div>
+</nav>
+
+<!-- SLIDE 1: HERO -->
+<section class="slide active" id="slide-0">
+  <div class="hero-orb"></div>
+  <div class="slide-inner">
+    <div class="animate-in"><div class="hero-badge">n8n AI Automation · Healthcare & Hospitals</div></div>
+    <div class="animate-in"><h1 class="hero-title">Patients Registered.<br><span>Records Ready.</span><br>Waiting Rooms Calm.</h1></div>
+    <div class="animate-in"><p class="hero-desc">Digital patient intake that captures biodata, medical history, and consent forms before the patient arrives — so the clinical team focuses on care, not paperwork, from the first second.</p></div>
+    <div class="animate-in">
+      <div class="kpi-strip">
+        <div class="kpi"><div class="kpi-val">80%</div><div class="kpi-lbl">Faster Check-in</div></div>
+        <div class="kpi"><div class="kpi-val">100%</div><div class="kpi-lbl">Digital Records</div></div>
+        <div class="kpi"><div class="kpi-val">0</div><div class="kpi-lbl">Paper Forms</div></div>
+        <div class="kpi"><div class="kpi-val">Live</div><div class="kpi-lbl">Queue Dashboard</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 2: PROBLEM -->
+<section class="slide" id="slide-1">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">01 — The Problem</div><div class="sec-title">The Paper-Based<br><span>Waiting Room</span></div><p class="sec-desc">Nigerian hospitals and clinics lose enormous operational capacity to manual intake processes. Patients fill paper forms at the front desk while qualified clinical staff wait. It doesn't have to work this way.</p></div>
+    <div class="animate-in two-col" style="margin-bottom:1.5rem">
+      <div class="card"><div class="card-icon">📋</div><div class="card-title">Paper Form Bottleneck</div><div class="card-desc">Patients arrive, collect a form, fill it at a shared desk, hand it back. Receptionist manually transcribes into the system. 15–20 minutes per patient. At peak hours, queues form before a single doctor has seen anyone.</div></div>
+      <div class="card"><div class="card-icon">🔁</div><div class="card-title">Repeat Data Collection</div><div class="card-desc">Returning patient fills the same form again because records can't be found or weren't digitised last time. Patient frustration rises. Time wasted. Same information collected 5 times across 5 visits.</div></div>
+      <div class="card"><div class="card-icon">🗂️</div><div class="card-title">Fragmented Medical History</div><div class="card-desc">Patient's previous visit notes are in a manila folder somewhere in the records room. Doctor sees a new patient every time. Critical allergy or medication history missed. Clinical risk, not just inconvenience.</div></div>
+      <div class="card"><div class="card-icon">📊</div><div class="card-title">No Queue Intelligence</div><div class="card-desc">Receptionist manages queue manually. No visibility of how many patients are waiting, which doctors are available, or which cases are urgent. Walk-ins and scheduled patients treated identically.</div></div>
+    </div>
+    <div class="animate-in"><div class="info-teal">✅ n8n sends a digital intake form to patients before arrival. Medical history auto-loaded for returning patients. Queue managed intelligently. Doctors see full patient context before walking into the consultation.</div></div>
+  </div>
+</section>
+
+<!-- SLIDE 3: WORKFLOW -->
+<section class="slide" id="slide-2">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">02 — The Blueprint</div><div class="sec-title">n8n Patient Intake<br><span>Automation</span></div><p class="sec-desc">From booking confirmation to consultation room — every step automated. Patients arrive prepared, records are ready, and clinical staff start from day one with full context.</p></div>
+    <div class="animate-in wf-canvas">
+      <div class="wf-dots"></div>
+      <div class="wf-label">n8n canvas — patient intake pipeline</div>
+      <div class="wf-nodes">
+        <div class="wf-stage"><div class="wf-slbl">Pre-Arrival</div>
+          <div style="display:flex;flex-direction:column;gap:0.35rem">
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#0a1a2a,#1d4ed8);color:#93c5fd;border-color:#1d4ed8;">📱</div><div class="wf-nlbl">SMS/WhatsApp<br>Intake Form</div><div class="tti">On appointment booking, patient receives WhatsApp/SMS with digital intake form link. Completes from phone before arrival — no waiting at reception desk.</div></div>
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a3a1a,#166534);color:#4ade80;border-color:#166534;">🔍</div><div class="wf-nlbl">Returning<br>Patient Check</div><div class="tti">Phone number matched against patient database. If returning patient found — pre-fill form with existing biodata. Patient confirms or updates only what has changed.</div></div>
+          </div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-stage"><div class="wf-slbl">Capture</div>
+          <div style="display:flex;flex-direction:column;gap:0.35rem">
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a0a0a,#991b1b);color:#fca5a5;border-color:#991b1b;">🧠</div><div class="wf-nlbl">GPT-4o<br>Extract</div><div class="tti">GPT-4o parses free-text symptom descriptions into structured clinical fields: chief complaint, symptom duration, severity, relevant history. Reduces ambiguity before doctor review.</div></div>
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a0a1a,#7c3aed);color:#d8b4fe;border-color:#7c3aed;">⚠️</div><div class="wf-nlbl">Allergy &<br>Flag Check</div><div class="tti">Submitted medications and allergies cross-checked against known interaction database. Any high-risk flag immediately highlighted on patient record for clinical review.</div></div>
+          </div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-stage"><div class="wf-slbl">Record</div>
+          <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#0a1a1a,#065f46);color:#6ee7b7;border-color:#065f46;">📁</div><div class="wf-nlbl">EMR<br>Create</div><div class="tti">Patient record created or updated in Electronic Medical Record system. All fields pre-populated. Patient ID, visit number, and QR code generated for check-in.</div></div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-stage"><div class="wf-slbl">Queue</div>
+          <div style="display:flex;flex-direction:column;gap:0.35rem">
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a1a0a,#78350f);color:#fde68a;border-color:#78350f;">🔢</div><div class="wf-nlbl">Smart<br>Queue</div><div class="tti">Patient queued by: appointment time, urgency flag, doctor specialisation, and estimated consultation length. Walk-ins triaged against scheduled patients automatically.</div></div>
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#0a1a2a,#0369a1);color:#7dd3fc;border-color:#0369a1;">📊</div><div class="wf-nlbl">Live<br>Dashboard</div><div class="tti">Reception and clinical staff see live dashboard: patients waiting, with which doctor, estimated wait times, urgent cases highlighted. No more manual queue management.</div></div>
+          </div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-stage"><div class="wf-slbl">Notify</div>
+          <div style="display:flex;flex-direction:column;gap:0.35rem">
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#1a3a1a,#166534);color:#4ade80;border-color:#166534;">📱</div><div class="wf-nlbl">Doctor<br>Brief</div><div class="tti">Doctor receives patient summary on their device before calling patient in: chief complaint, relevant history, allergies, last visit notes. Arrives at consultation informed.</div></div>
+            <div class="wf-node ttw"><div class="wf-box" style="background:linear-gradient(135deg,#0a0a1a,#1e3a5f);color:#93c5fd;border-color:#1e3a5f;">💬</div><div class="wf-nlbl">Patient<br>SMS Alert</div><div class="tti">Patient SMS when their turn is approaching: "You are next — please proceed to Room 3." Reduces crowding in waiting room and improves patient experience.</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 4: SIM 1 — PATIENT INTAKE -->
+<section class="slide" id="slide-3">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">03 — Simulation 1</div><div class="sec-title">Live: Patient Registered<br><span>Before They Arrive</span></div><p class="sec-desc">Amaka Obi booked an appointment for tomorrow. n8n sends her intake form via WhatsApp tonight — she completes it from home. Watch the record build automatically.</p></div>
+    <div class="animate-in lr">
+      <div style="display:flex;flex-direction:column;gap:1rem">
+        <div class="panel">
+          <h3>Intake Pipeline Steps</h3>
+          <ul class="ps-list" id="intakeSteps">
+            <li id="is1" style="opacity:0.3"><div class="ps-num">1</div><div>Appointment booked — intake form WhatsApp sent</div></li>
+            <li id="is2" style="opacity:0.3"><div class="ps-num">2</div><div>Returning patient matched — biodata pre-loaded</div></li>
+            <li id="is3" style="opacity:0.3"><div class="ps-num">3</div><div>GPT-4o structures symptoms into clinical fields</div></li>
+            <li id="is4" style="opacity:0.3"><div class="ps-num">4</div><div>Allergy check — no high-risk flags detected</div></li>
+            <li id="is5" style="opacity:0.3"><div class="ps-num">5</div><div>EMR record created — patient ID assigned</div></li>
+            <li id="is6" style="opacity:0.3"><div class="ps-num">6</div><div>Added to tomorrow's queue — doctor briefed ✅</div></li>
+          </ul>
+        </div>
+        <button class="run-btn" id="intakeBtn" onclick="runIntakeSim()">▶ REGISTER PATIENT NOW</button>
+      </div>
+      <div>
+        <div class="patient-form" id="patientForm">
+          <div class="pf-header"><div class="pf-title">🏥 Patient Intake Form — Pre-Arrival</div></div>
+          <div class="pf-body">
+            <div class="pf-row">
+              <div class="pf-field"><label>Full Name</label><div class="pf-input" id="pi-name"></div></div>
+              <div class="pf-field"><label>Date of Birth</label><div class="pf-input" id="pi-dob"></div></div>
+            </div>
+            <div class="pf-field"><label>Chief Complaint</label><div class="pf-input" id="pi-complaint" style="min-height:38px"></div></div>
+            <div class="pf-row">
+              <div class="pf-field"><label>Current Medications</label><div class="pf-input" id="pi-meds"></div></div>
+              <div class="pf-field"><label>Known Allergies</label><div class="pf-input" id="pi-allergy"></div></div>
+            </div>
+          </div>
+        </div>
+        <div id="patientRecord" style="display:none;margin-top:0.85rem">
+          <div class="patient-record">
+            <div class="pr-header">
+              <div style="display:flex;align-items:center;gap:0.65rem">
+                <div class="pr-avatar">👤</div>
+                <div><div class="pr-name">Amaka Obi</div><div class="pr-id">ID: PAT-2025-0847 · Returning Patient</div></div>
+              </div>
+              <span style="font-size:0.6rem;background:rgba(255,255,255,0.2);padding:0.15rem 0.5rem;border-radius:20px;font-family:'JetBrains Mono',monospace">EMR Ready ✓</span>
+            </div>
+            <div class="pr-body">
+              <div class="pr-row"><span class="pr-label">DOB</span><span class="pr-val">14 Mar 1985 (40 yrs)</span></div>
+              <div class="pr-row"><span class="pr-label">Complaint</span><span class="pr-val">Persistent headache, 3 days, worsening</span></div>
+              <div class="pr-row"><span class="pr-label">Medications</span><span class="pr-val">Amlodipine 5mg daily</span></div>
+              <div class="pr-row"><span class="pr-label">Allergies</span><span class="pr-val">Penicillin ⚠ (noted)</span></div>
+              <div class="pr-row"><span class="pr-label">Last Visit</span><span class="pr-val">Feb 12 — Hypertension review</span></div>
+              <div class="pr-row"><span class="pr-label">Queue</span><span class="pr-val">Dr. Ngozi Eze — #4 tomorrow 10am</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 5: SIM 2 — QUEUE BOARD -->
+<section class="slide" id="slide-4">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">04 — Simulation 2</div><div class="sec-title">Live Queue Board —<br><span>Reception Dashboard</span></div><p class="sec-desc">Real-time view of all patients at the facility — waiting, with doctor, or completed. Reception manages the entire morning without a single manual queue card.</p></div>
+    <div class="animate-in lr-rev">
+      <div style="display:flex;flex-direction:column;gap:1rem">
+        <div class="panel">
+          <h3>Queue Intelligence</h3>
+          <ul class="steps">
+            <li><div class="step-n">1</div><div><strong>Priority triage:</strong> Urgent cases (chest pain, breathing difficulty) auto-escalated to top of queue regardless of arrival time</div></li>
+            <li><div class="step-n">2</div><div><strong>Doctor matching:</strong> Patients routed to the right specialist automatically — no manual assignment</div></li>
+            <li><div class="step-n">3</div><div><strong>Wait time estimates:</strong> Each patient sees their estimated wait time via SMS update every 20 minutes</div></li>
+            <li><div class="step-n">4</div><div><strong>No-shows:</strong> If patient hasn't checked in 15 mins after appointment — SMS reminder sent, slot offered to walk-in</div></li>
+          </ul>
+        </div>
+        <div class="info-teal">📊 Average waiting room time reduced from 45 minutes to 12 minutes. Patient satisfaction scores improve immediately when people know exactly how long they will wait.</div>
+      </div>
+      <div id="queueBoard" style="display:flex;flex-direction:column;gap:0">
+        <div style="font-size:0.61rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);font-family:'JetBrains Mono',monospace;margin-bottom:0.4rem">Today's Queue — Dr. Ngozi Eze</div>
+        <div class="queue-row with-doc" id="qq1"><div class="q-num">01</div><div><div class="q-name">Tunde Fashola</div><div class="q-type">Follow-up · Diabetes review</div></div><span class="q-badge qb-done" id="qqb1">With Doctor ✓</span></div>
+        <div class="queue-row called" id="qq2"><div class="q-num">02</div><div><div class="q-name">Fatima Ibrahim</div><div class="q-type">New patient · Fever 3 days</div></div><span class="q-badge qb-called" id="qqb2">Called →</span></div>
+        <div class="queue-row waiting" id="qq3"><div class="q-num">03</div><div><div class="q-name">Oluwaseun Bello</div><div class="q-type">Appointment · Hypertension</div></div><span class="q-badge qb-wait" id="qqb3">~8 min wait</span></div>
+        <div class="queue-row" id="qq4"><div class="q-num">04</div><div><div class="q-name">Amaka Obi</div><div class="q-type">Returning · Headache — Hypertension hx</div></div><span class="q-badge qb-new" id="qqb4">~20 min wait</span></div>
+        <div class="queue-row" id="qq5"><div class="q-num">05</div><div><div class="q-name">Ngozi Eze</div><div class="q-type">Walk-in · General complaint</div></div><span class="q-badge qb-new" id="qqb5">~32 min wait</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 6: BEFORE/AFTER -->
+<section class="slide" id="slide-5">
+  <div class="slide-inner">
+    <div class="animate-in"><div class="sec-tag">05 — Clinical Impact</div><div class="sec-title">Care That Starts<br><span>Informed</span></div></div>
+    <div class="animate-in two-col" style="margin-bottom:1.5rem">
+      <div>
+        <div style="font-size:0.62rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--red);margin-bottom:0.75rem;font-weight:600;font-family:'JetBrains Mono',monospace">❌ BEFORE</div>
+        <div style="display:flex;flex-direction:column;gap:0.5rem">
+          <div class="ba-bad">Paper forms at front desk — 15–20 min per patient, long queues</div>
+          <div class="ba-bad">Returning patients fill same form every visit — frustrating</div>
+          <div class="ba-bad">Doctor walks in knowing nothing — history buried in folder</div>
+          <div class="ba-bad">Manual queue — no urgency triage, no wait time visibility</div>
+          <div class="ba-bad">Allergy and drug interaction risks missed in manual review</div>
+        </div>
+      </div>
+      <div>
+        <div style="font-size:0.62rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--green);margin-bottom:0.75rem;font-weight:600;font-family:'JetBrains Mono',monospace">✅ AFTER</div>
+        <div style="display:flex;flex-direction:column;gap:0.5rem">
+          <div class="ba-good">Digital intake completed at home — check-in takes under 2 minutes</div>
+          <div class="ba-good">Returning patients pre-loaded — only confirm changes</div>
+          <div class="ba-good">Doctor briefed with full structured history before consultation</div>
+          <div class="ba-good">Smart queue with urgency triage and live wait time SMS updates</div>
+          <div class="ba-good">Allergy flags and drug interactions auto-detected on intake</div>
+        </div>
+      </div>
+    </div>
+    <div class="animate-in">
+      <div class="quote-block">
+        <div class="quote-text">"The quality of care a patient receives starts <strong>before they walk through the door</strong>. Digital intake ensures every doctor starts every consultation with full context — making every minute of clinical time count."</div>
+        <div style="font-size:0.62rem;color:rgba(255,255,255,0.3);font-family:'JetBrains Mono',monospace">STACK: n8n · GPT-4o · WhatsApp Business API · EMR System · Google Sheets · SMS Gateway · Slack</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="slide-counter" id="slideCounter">Slide 1 of 6</div>
+<div class="slide-nav">
+  <button class="nav-btn" onclick="prevSlide()">← Prev</button>
+  <button class="nav-btn primary" onclick="nextSlide()">Next →</button>
+</div>
+<script>
+const slides=document.querySelectorAll('.slide'),total=slides.length;let cur=0;
+const dots=document.getElementById('navDots');
+for(let i=0;i<total;i++){const d=document.createElement('div');d.className='nav-dot'+(i===0?' active':'');d.onclick=()=>goTo(i);dots.appendChild(d);}
+function goTo(n){slides[cur].classList.remove('active');dots.children[cur].classList.remove('active');if(cur<n)dots.children[cur].classList.add('done');cur=n;slides[cur].classList.add('active');dots.children[cur].classList.add('active');document.getElementById('slideCounter').textContent=`Slide ${cur+1} of ${total}`;}
+function nextSlide(){if(cur<total-1)goTo(cur+1);}function prevSlide(){if(cur>0)goTo(cur-1);}
+document.addEventListener('keydown',e=>{if(e.key==='ArrowRight'||e.key==='ArrowDown')nextSlide();if(e.key==='ArrowLeft'||e.key==='ArrowUp')prevSlide();});
+let secs=0;setInterval(()=>{secs++;const m=String(Math.floor(secs/60)).padStart(2,'0'),s=String(secs%60).padStart(2,'0');document.getElementById('timerBadge').textContent=`⏱ ${m}:${s}`;if(secs>=840)document.getElementById('timerBadge').style.color='#c02828';},1000);
+function delay(ms){return new Promise(r=>setTimeout(r,ms));}
+let intakeRunning=false;
+async function runIntakeSim(){
+  if(intakeRunning)return;intakeRunning=true;
+  document.getElementById('patientRecord').style.display='none';
+  const fields=[['pi-name','Amaka Obi'],['pi-dob','14 March 1985'],['pi-complaint','Persistent headache for 3 days, worsening in the evening. Previously diagnosed hypertensive.'],['pi-meds','Amlodipine 5mg (daily)'],['pi-allergy','Penicillin']];
+  for(const[id,val]of fields){const el=document.getElementById(id);if(!el)continue;let i=0;await new Promise(r=>{const iv=setInterval(()=>{el.textContent=val.slice(0,++i);if(i>=val.length){clearInterval(iv);r();}},22);});await delay(80);}
+  const steps=['is1','is2','is3','is4','is5','is6'];
+  steps.forEach(id=>{const el=document.getElementById(id);if(el){el.style.opacity='0.3';el.querySelector('.ps-num').style.background='var(--border)';}});
+  for(let i=0;i<steps.length;i++){
+    await delay(480);
+    steps.forEach(id=>{const el=document.getElementById(id);if(el){el.style.opacity='0.3';el.querySelector('.ps-num').style.background='var(--border)';}});
+    const el=document.getElementById(steps[i]);
+    if(el){el.style.opacity='1';el.style.color='var(--teal)';el.querySelector('.ps-num').style.background='var(--teal)';}
+  }
+  document.getElementById('patientRecord').style.display='block';
+  document.getElementById('intakeBtn').textContent='↺ Reset & Run Again';
+  intakeRunning=false;
+}
+</script>
+</body>
+</html>
